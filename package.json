@@ -10,5 +10,11 @@
     "dev:site": "pnpm --filter site dev",
     "build:cms": "pnpm --filter cms build",
     "build:site": "pnpm --filter site build"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
   }
 }
