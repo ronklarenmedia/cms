@@ -6,6 +6,8 @@ export const Pages: CollectionConfig = {
   slug: "pages",
   admin: {
     useAsTitle: "title",
+    defaultColumns: ["title", "site", "slug", "_status", "updatedAt"],
+    description: "Pagina's van ALLE sites staan hier samen (centrale database). Gebruik de 'site'-kolom of het filter om te scopen naar één klant.",
   },
   versions: {
     drafts: true, // opslaan = concept, publiceren = live + rebuild-hook (zie doc §4)
