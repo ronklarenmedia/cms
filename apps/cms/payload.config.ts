@@ -1,5 +1,6 @@
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
+import { s3Storage } from "@payloadcms/storage-s3";
 import path from "path";
 import { fileURLToPath } from "url";
 import { buildConfig } from "payload";
@@ -44,7 +45,30 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URI || "",
     },
   }),
-  // Media-uploads gaan naar Cloudflare R2 via de S3-adapter, zie doc §3.
-  // Toe te voegen zodra de R2-bucket/credentials er zijn:
-  // plugins: [s3Storage({ collections: { media: true }, bucket: ..., config: {...} })]
+  // Media-uploads naar Cloudflare R2 (S3-compatible), zie doc §3.
+  // Zonder R2_BUCKET blijft alles lokaal opgeslagen (prima voor development).
+  plugins: [
+    s3Storage({
+      enabled: Boolean(process.env.R2_BUCKET),
+      collections: {
+        media: {
+          disablePayloadAccessControl: true,
+          generateFileURL: ({ filename, prefix }) => {
+            const key = prefix ? `${prefix}/${filename}` : filename;
+            return `${process.env.R2_PUBLIC_URL || ""}/${key}`;
+          },
+        },
+      },
+      bucket: process.env.R2_BUCKET || "",
+      config: {
+        credentials: {
+          accessKeyId: process.env.R2_ACCESS_KEY_ID || "",
+          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || "",
+        },
+        region: "auto",
+        endpoint: process.env.R2_ENDPOINT || "",
+        forcePathStyle: true,
+      },
+    }),
+  ],
 });
