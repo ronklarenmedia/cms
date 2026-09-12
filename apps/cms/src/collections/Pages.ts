@@ -7,6 +7,7 @@ export const Pages: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "site", "slug", "_status", "updatedAt"],
+    group: "Klanten & Sites",
     description: "Pagina's van ALLE sites staan hier samen (centrale database). Gebruik de 'site'-kolom of het filter om te scopen naar één klant.",
   },
   versions: {

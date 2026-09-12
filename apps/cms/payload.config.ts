@@ -13,6 +13,7 @@ import { SiteTemplates } from "./src/collections/SiteTemplates";
 import { Sites } from "./src/collections/Sites";
 import { SitePlugins } from "./src/collections/SitePlugins";
 import { Pages } from "./src/collections/Pages";
+import { TimeEntries } from "./src/collections/TimeEntries";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -31,6 +32,7 @@ export default buildConfig({
     Sites,
     SitePlugins,
     Pages,
+    TimeEntries,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || "",

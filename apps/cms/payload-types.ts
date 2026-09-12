@@ -76,6 +76,7 @@ export interface Config {
     sites: Site;
     'site-plugins': SitePlugin;
     pages: Page;
+    'time-entries': TimeEntry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -92,6 +93,7 @@ export interface Config {
     sites: SitesSelect<false> | SitesSelect<true>;
     'site-plugins': SitePluginsSelect<false> | SitePluginsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
+    'time-entries': TimeEntriesSelect<false> | TimeEntriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -192,6 +194,15 @@ export interface Site {
    * stable = periodiek/beproefd, early = nieuwe bloktypes direct (zie doc §10).
    */
   updateChannel: 'stable' | 'early';
+  /**
+   * Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.
+   */
+  billing?: {
+    basePrice?: number | null;
+    billingCycle?: ('monthly' | 'yearly') | null;
+    billingStatus?: ('active' | 'paused' | 'cancelled') | null;
+    subscriptionStartDate?: string | null;
+  };
   vercel?: {
     projectId?: string | null;
     deployHookUrl?: string | null;
@@ -213,6 +224,25 @@ export interface Client {
    * Via welk merk/acquisitiekanaal deze klant binnenkwam.
    */
   brand: 'budget' | 'premium';
+  /**
+   * Voorbereiding op (deels) automatische facturatie, later eventueel gekoppeld aan Moneybird e.d.
+   */
+  billing?: {
+    companyName?: string | null;
+    kvkNumber?: string | null;
+    vatNumber?: string | null;
+    billingEmail?: string | null;
+    address?: {
+      street?: string | null;
+      postalCode?: string | null;
+      city?: string | null;
+      country?: string | null;
+    };
+    /**
+     * Bijv. het relatie-ID in Moneybird zodra die koppeling er is. Nu nog leeg/handmatig.
+     */
+    externalAccountingId?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -247,6 +277,7 @@ export interface SiteTemplate {
  */
 export interface Media {
   id: number;
+  site: number | Site;
   alt?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -270,6 +301,10 @@ export interface Plugin {
   slug: string;
   description?: string | null;
   status?: ('planned' | 'available') | null;
+  /**
+   * Standaardprijs per maand (EUR) voor deze plugin — basis voor toekomstige automatische facturatie. Per site te overschrijven via Site Plugins.
+   */
+  basePrice?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -294,6 +329,14 @@ export interface SitePlugin {
   site: number | Site;
   plugin: number | Plugin;
   active?: boolean | null;
+  /**
+   * Leeg = gebruik de standaardprijs van de plugin. Alleen invullen bij een klantspecifieke afspraak.
+   */
+  priceOverride?: number | null;
+  /**
+   * Voor het bepalen van het eerste factuurmoment (proratie).
+   */
+  activatedAt?: string | null;
   settings?:
     | {
         [k: string]: unknown;
@@ -307,6 +350,8 @@ export interface SitePlugin {
   createdAt: string;
 }
 /**
+ * Pagina's van ALLE sites staan hier samen (centrale database). Gebruik de 'site'-kolom of het filter om te scopen naar één klant.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -375,6 +420,36 @@ export interface Page {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Tijdregistratie per kwartier. 'Doorbelasten' aanvinken voor werk dat bij de klant in rekening gebracht moet worden.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "time-entries".
+ */
+export interface TimeEntry {
+  id: number;
+  client: number | Client;
+  /**
+   * Optioneel: leeg laten voor algemeen klantwerk dat niet aan één site hangt.
+   */
+  site?: (number | null) | Site;
+  date: string;
+  /**
+   * In minuten, bij voorkeur afgerond op kwartieren (15/30/45/60).
+   */
+  minutes: number;
+  description: string;
+  /**
+   * Uit = telt als eigen platformonderhoud, niet als klantwerk.
+   */
+  billable?: boolean | null;
+  /**
+   * Handmatig (of later automatisch) aan te vinken zodra dit is meegenomen in een factuur.
+   */
+  invoiced?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -433,6 +508,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'pages';
         value: number | Page;
+      } | null)
+    | ({
+        relationTo: 'time-entries';
+        value: number | TimeEntry;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -505,6 +584,7 @@ export interface UsersSelect<T extends boolean = true> {
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
+  site?: T;
   alt?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -528,6 +608,23 @@ export interface ClientsSelect<T extends boolean = true> {
   phone?: T;
   status?: T;
   brand?: T;
+  billing?:
+    | T
+    | {
+        companyName?: T;
+        kvkNumber?: T;
+        vatNumber?: T;
+        billingEmail?: T;
+        address?:
+          | T
+          | {
+              street?: T;
+              postalCode?: T;
+              city?: T;
+              country?: T;
+            };
+        externalAccountingId?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -540,6 +637,7 @@ export interface PluginsSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   status?: T;
+  basePrice?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -614,6 +712,14 @@ export interface SitesSelect<T extends boolean = true> {
       };
   plan?: T;
   updateChannel?: T;
+  billing?:
+    | T
+    | {
+        basePrice?: T;
+        billingCycle?: T;
+        billingStatus?: T;
+        subscriptionStartDate?: T;
+      };
   vercel?:
     | T
     | {
@@ -631,6 +737,8 @@ export interface SitePluginsSelect<T extends boolean = true> {
   site?: T;
   plugin?: T;
   active?: T;
+  priceOverride?: T;
+  activatedAt?: T;
   settings?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -710,6 +818,21 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "time-entries_select".
+ */
+export interface TimeEntriesSelect<T extends boolean = true> {
+  client?: T;
+  site?: T;
+  date?: T;
+  minutes?: T;
+  description?: T;
+  billable?: T;
+  invoiced?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

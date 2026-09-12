@@ -4,6 +4,7 @@ export const ApiConnections: CollectionConfig = {
   slug: "api-connections",
   admin: {
     useAsTitle: "name",
+    group: "Platform",
   },
   access: {
     read: ({ req: { user } }) => user?.role === "admin",

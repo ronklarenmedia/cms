@@ -7,6 +7,7 @@ export const Plugins: CollectionConfig = {
   slug: "plugins",
   admin: {
     useAsTitle: "name",
+    group: "Platform",
   },
   access: {
     read: () => true,
@@ -26,6 +27,14 @@ export const Plugins: CollectionConfig = {
         { label: "Gepland", value: "planned" },
         { label: "Beschikbaar", value: "available" },
       ],
+    },
+    {
+      name: "basePrice",
+      type: "number",
+      admin: {
+        description: "Standaardprijs per maand (EUR) voor deze plugin — basis voor toekomstige automatische facturatie. Per site te overschrijven via Site Plugins.",
+        step: 0.01,
+      },
     },
   ],
 };

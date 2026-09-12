@@ -8,6 +8,7 @@ export const SiteTemplates: CollectionConfig = {
   slug: "site-templates",
   admin: {
     useAsTitle: "name",
+    group: "Platform",
   },
   access: {
     read: ({ req: { user } }) => Boolean(user),

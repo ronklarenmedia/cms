@@ -6,6 +6,8 @@ export const Sites: CollectionConfig = {
   slug: "sites",
   admin: {
     useAsTitle: "domain",
+    group: "Klanten & Sites",
+    defaultColumns: ["domain", "client", "plan", "billing.billingStatus", "updatedAt"],
   },
   access: {
     read: ({ req: { user } }) =>
@@ -18,6 +20,15 @@ export const Sites: CollectionConfig = {
     beforeChange: [copyTemplateOnCreate],
   },
   fields: [
+    {
+      name: "quickLinks",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/src/components/SiteQuickLinks#SiteQuickLinks",
+        },
+      },
+    },
     { name: "domain", type: "text", required: true, unique: true },
     { name: "client", type: "relationship", relationTo: "clients", required: true },
     {
@@ -50,6 +61,48 @@ export const Sites: CollectionConfig = {
       options: [
         { label: "Stable", value: "stable" },
         { label: "Vroege toegang", value: "early" },
+      ],
+    },
+    {
+      name: "billing",
+      type: "group",
+      label: "Facturatie",
+      admin: {
+        description: "Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.",
+      },
+      fields: [
+        {
+          name: "basePrice",
+          type: "number",
+          label: "Abonnementsprijs (EUR/maand)",
+          admin: { step: 0.01 },
+        },
+        {
+          name: "billingCycle",
+          type: "select",
+          label: "Factureringscyclus",
+          defaultValue: "monthly",
+          options: [
+            { label: "Maandelijks", value: "monthly" },
+            { label: "Jaarlijks", value: "yearly" },
+          ],
+        },
+        {
+          name: "billingStatus",
+          type: "select",
+          label: "Factureringsstatus",
+          defaultValue: "active",
+          options: [
+            { label: "Actief", value: "active" },
+            { label: "Gepauzeerd", value: "paused" },
+            { label: "Opgezegd", value: "cancelled" },
+          ],
+        },
+        {
+          name: "subscriptionStartDate",
+          type: "date",
+          label: "Startdatum abonnement",
+        },
       ],
     },
     {

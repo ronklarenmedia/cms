@@ -7,6 +7,7 @@ export const Users: CollectionConfig = {
   auth: true,
   admin: {
     useAsTitle: "email",
+    group: "Platform",
   },
   access: {
     read: ({ req: { user } }) => Boolean(user),
