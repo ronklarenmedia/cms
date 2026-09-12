@@ -1,0 +1,30 @@
+---
+// Eerste bouwblok als voorbeeld/skelet: varianten zijn een instellingenveld
+// op dit ene component, geen apart component per variant (zie doc §7).
+export interface Props {
+  variant?: "centered" | "split" | "video-bg" | "full-bleed";
+  heading: string;
+  subheading?: string;
+  imageUrl?: string;
+}
+
+const { variant = "centered", heading, subheading, imageUrl } = Astro.props;
+---
+
+<section class:list={["hero", `hero--${variant}`]}>
+  <h1>{heading}</h1>
+  {subheading && <p>{subheading}</p>}
+  {imageUrl && <img src={imageUrl} alt="" />}
+</section>
+
+<style>
+  .hero {
+    padding: 4rem 1.5rem;
+    text-align: center;
+  }
+  .hero--split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    text-align: left;
+  }
+</style>

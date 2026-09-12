@@ -1,0 +1,14 @@
+{
+  "name": "cms-platform",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:cms": "pnpm --filter cms dev",
+    "dev:site": "pnpm --filter site dev",
+    "build:cms": "pnpm --filter cms build",
+    "build:site": "pnpm --filter site build"
+  }
+}
