@@ -393,10 +393,28 @@ export interface Page {
         blocks?:
           | (
               | {
-                  variant?: ('centered' | 'split' | 'video-bg' | 'full-bleed') | null;
+                  variant?: ('centered' | 'centered-proof' | 'split' | 'video-bg' | 'full-bleed') | null;
                   heading: string;
                   subheading?: string | null;
                   image?: (number | null) | Media;
+                  /**
+                   * Bijv. 'Vertrouwd door 10.000+ klanten'. Leeg = niet tonen.
+                   */
+                  badge?: string | null;
+                  cta?: {
+                    label?: string | null;
+                    href?: string | null;
+                  };
+                  /**
+                   * Optionele rij met kengetallen onder de hero, bijv. '500+ Projecten'.
+                   */
+                  stats?:
+                    | {
+                        value: string;
+                        label: string;
+                        id?: string | null;
+                      }[]
+                    | null;
                   id?: string | null;
                   blockName?: string | null;
                   blockType: 'hero';
@@ -799,6 +817,20 @@ export interface PagesSelect<T extends boolean = true> {
                     heading?: T;
                     subheading?: T;
                     image?: T;
+                    badge?: T;
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                        };
+                    stats?:
+                      | T
+                      | {
+                          value?: T;
+                          label?: T;
+                          id?: T;
+                        };
                     id?: T;
                     blockName?: T;
                   };
