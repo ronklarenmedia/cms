@@ -20,6 +20,7 @@ export const Sites: CollectionConfig = {
     beforeChange: [copyTemplateOnCreate],
   },
   fields: [
+    // Blijft buiten de tabs, zodat de knoppen altijd zichtbaar zijn ongeacht welk tabblad open staat.
     {
       name: "quickLinks",
       type: "ui",
@@ -29,88 +30,113 @@ export const Sites: CollectionConfig = {
         },
       },
     },
-    { name: "domain", type: "text", required: true, unique: true },
-    { name: "client", type: "relationship", relationTo: "clients", required: true },
     {
-      name: "startingTemplate",
-      type: "relationship",
-      relationTo: "site-templates",
-      admin: {
-        description: "Alleen gebruikt bij het aanmaken — kopieert het sjabloon eenmalig naar 'theme' hieronder.",
-      },
-    },
-    { name: "theme", type: "group", fields: themeFields() },
-    {
-      name: "plan",
-      type: "select",
-      required: true,
-      defaultValue: "budget",
-      options: [
-        { label: "Bodemprijs", value: "budget" },
-        { label: "Premium", value: "premium" },
-      ],
-    },
-    {
-      name: "updateChannel",
-      type: "select",
-      required: true,
-      defaultValue: "stable",
-      admin: {
-        description: "stable = periodiek/beproefd, early = nieuwe bloktypes direct (zie doc §10).",
-      },
-      options: [
-        { label: "Stable", value: "stable" },
-        { label: "Vroege toegang", value: "early" },
-      ],
-    },
-    {
-      name: "billing",
-      type: "group",
-      label: "Facturatie",
-      admin: {
-        description: "Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.",
-      },
-      fields: [
+      type: "tabs",
+      tabs: [
         {
-          name: "basePrice",
-          type: "number",
-          label: "Abonnementsprijs (EUR/maand)",
-          admin: { step: 0.01 },
-        },
-        {
-          name: "billingCycle",
-          type: "select",
-          label: "Factureringscyclus",
-          defaultValue: "monthly",
-          options: [
-            { label: "Maandelijks", value: "monthly" },
-            { label: "Jaarlijks", value: "yearly" },
+          label: "Algemeen",
+          fields: [
+            { name: "domain", type: "text", required: true, unique: true },
+            { name: "client", type: "relationship", relationTo: "clients", required: true },
+            {
+              name: "startingTemplate",
+              type: "relationship",
+              relationTo: "site-templates",
+              admin: {
+                description:
+                  "Alleen gebruikt bij het aanmaken — kopieert het sjabloon eenmalig naar 'theme' hieronder.",
+              },
+            },
+            {
+              name: "plan",
+              type: "select",
+              required: true,
+              defaultValue: "budget",
+              options: [
+                { label: "Bodemprijs", value: "budget" },
+                { label: "Premium", value: "premium" },
+              ],
+            },
+            {
+              name: "updateChannel",
+              type: "select",
+              required: true,
+              defaultValue: "stable",
+              admin: {
+                description: "stable = periodiek/beproefd, early = nieuwe bloktypes direct (zie doc §10).",
+              },
+              options: [
+                { label: "Stable", value: "stable" },
+                { label: "Vroege toegang", value: "early" },
+              ],
+            },
           ],
         },
         {
-          name: "billingStatus",
-          type: "select",
-          label: "Factureringsstatus",
-          defaultValue: "active",
-          options: [
-            { label: "Actief", value: "active" },
-            { label: "Gepauzeerd", value: "paused" },
-            { label: "Opgezegd", value: "cancelled" },
+          label: "Thema",
+          fields: [{ name: "theme", type: "group", label: false, fields: themeFields() }],
+        },
+        {
+          label: "Facturatie",
+          fields: [
+            {
+              name: "billing",
+              type: "group",
+              label: false,
+              admin: {
+                description: "Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.",
+              },
+              fields: [
+                {
+                  name: "basePrice",
+                  type: "number",
+                  label: "Abonnementsprijs (EUR/maand)",
+                  admin: { step: 0.01 },
+                },
+                {
+                  name: "billingCycle",
+                  type: "select",
+                  label: "Factureringscyclus",
+                  defaultValue: "monthly",
+                  options: [
+                    { label: "Maandelijks", value: "monthly" },
+                    { label: "Jaarlijks", value: "yearly" },
+                  ],
+                },
+                {
+                  name: "billingStatus",
+                  type: "select",
+                  label: "Factureringsstatus",
+                  defaultValue: "active",
+                  options: [
+                    { label: "Actief", value: "active" },
+                    { label: "Gepauzeerd", value: "paused" },
+                    { label: "Opgezegd", value: "cancelled" },
+                  ],
+                },
+                {
+                  name: "subscriptionStartDate",
+                  type: "date",
+                  label: "Startdatum abonnement",
+                },
+              ],
+            },
           ],
         },
         {
-          name: "subscriptionStartDate",
-          type: "date",
-          label: "Startdatum abonnement",
+          label: "Vercel",
+          fields: [
+            {
+              name: "vercel",
+              type: "group",
+              label: false,
+              fields: [
+                { name: "projectId", type: "text" },
+                { name: "deployHookUrl", type: "text" },
+              ],
+            },
+          ],
         },
-      ],
-    },
-    {
-      name: "vercel",
-      type: "group",
-      fields: [
-        { name: "projectId", type: "text" },
-        { name: "deployHookUrl", type: "text" },
       ],
     },
   ],

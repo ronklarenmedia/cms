@@ -175,6 +175,11 @@ export interface Site {
    * Alleen gebruikt bij het aanmaken — kopieert het sjabloon eenmalig naar 'theme' hieronder.
    */
   startingTemplate?: (number | null) | SiteTemplate;
+  plan: 'budget' | 'premium';
+  /**
+   * stable = periodiek/beproefd, early = nieuwe bloktypes direct (zie doc §10).
+   */
+  updateChannel: 'stable' | 'early';
   theme?: {
     colors?: {
       primary?: string | null;
@@ -189,11 +194,6 @@ export interface Site {
     borderRadius?: string | null;
     maxPageWidth?: string | null;
   };
-  plan: 'budget' | 'premium';
-  /**
-   * stable = periodiek/beproefd, early = nieuwe bloktypes direct (zie doc §10).
-   */
-  updateChannel: 'stable' | 'early';
   /**
    * Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.
    */
@@ -708,6 +708,8 @@ export interface SitesSelect<T extends boolean = true> {
   domain?: T;
   client?: T;
   startingTemplate?: T;
+  plan?: T;
+  updateChannel?: T;
   theme?:
     | T
     | {
@@ -728,8 +730,6 @@ export interface SitesSelect<T extends boolean = true> {
         borderRadius?: T;
         maxPageWidth?: T;
       };
-  plan?: T;
-  updateChannel?: T;
   billing?:
     | T
     | {
