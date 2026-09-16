@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { themeFields } from "./fields/themeFields";
+import { generalSettingsFields, seoSettingsFields, analyticsSettingsFields } from "./fields/settingsFields";
 import { copyTemplateOnCreate } from "../hooks/copyTemplateOnCreate";
 
 export const Sites: CollectionConfig = {
@@ -74,7 +75,27 @@ export const Sites: CollectionConfig = {
         },
         {
           label: "Thema",
-          fields: [{ name: "theme", type: "group", label: false, fields: themeFields() }],
+          fields: [
+            {
+              name: "themePresets",
+              type: "ui",
+              admin: {
+                components: {
+                  Field: "/src/components/ThemePresets#ThemePresets",
+                },
+              },
+            },
+            {
+              name: "themePreview",
+              type: "ui",
+              admin: {
+                components: {
+                  Field: "/src/components/ThemePreview#ThemePreview",
+                },
+              },
+            },
+            { name: "theme", type: "group", label: false, fields: themeFields() },
+          ],
         },
         {
           label: "Facturatie",
@@ -133,6 +154,21 @@ export const Sites: CollectionConfig = {
               fields: [
                 { name: "projectId", type: "text" },
                 { name: "deployHookUrl", type: "text" },
+              ],
+            },
+          ],
+        },
+        {
+          label: "Instellingen",
+          fields: [
+            {
+              name: "settings",
+              type: "group",
+              label: false,
+              fields: [
+                { name: "general", type: "group", label: "Algemeen", fields: generalSettingsFields() },
+                { name: "seo", type: "group", label: "SEO", fields: seoSettingsFields() },
+                { name: "analytics", type: "group", label: "Analytics", fields: analyticsSettingsFields() },
               ],
             },
           ],

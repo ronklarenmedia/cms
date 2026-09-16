@@ -1,25 +1,122 @@
 // Zet een site.theme-object (uit Payload) om naar CSS custom properties.
-// Dit is de "Lokaal"-laag uit de niveauhiërarchie: kleuren/fonts/randen/
-// radius/paginaformaat, straks nog aan te vullen met de exacte velden
-// zodra het Payload-schema definitief is.
+// Veldnamen komen 1:1 overeen met apps/cms/src/collections/fields/themeFields.ts
+// (zie ook .claude/skills/theme-field-schema/SKILL.md). Elke camelCase key
+// wordt mechanisch omgezet naar zijn --var-kebab-case CSS-varnaam, dus een
+// nieuw token in themeFields.ts hoeft hier niet apart toegevoegd te worden
+// zolang de conventie standhoudt.
+//
+// Nog niet gekoppeld aan een layout/.astro-component — dat gebeurt bij de
+// blocks-herbouw (zie project-memory over de Hero-block-beslissing).
 
-export type SiteTheme = {
-  colors?: Record<string, string>;
-  fonts?: { heading?: string; body?: string };
-  borderRadius?: string;
-  maxPageWidth?: string;
-};
+export type SiteTheme = Partial<{
+  // Typografie
+  fontSizeXs: string;
+  fontSizeSmall: string;
+  fontSizeStandard: string;
+  fontSizeMedium: string;
+  fontSizeLarge: string;
+  fontSizeXl: string;
+  fontSizeXxl: string;
+  fontFamilyPrimary: string;
+  fontFamilySecondary: string;
+  fontFamilyText: string;
+  fontFamilyAccent: string;
+  fontFamilyMono: string;
+  fontWeightLight: string;
+  fontWeightStandard: string;
+  fontWeightMedium: string;
+  fontWeightBold: string;
+  fontWeightHeavy: string;
+  lineHeightTight: string;
+  lineHeightStandard: string;
+  lineHeightRelaxed: string;
+  lineHeightLoose: string;
+  letterSpacingTight: string;
+  letterSpacingStandard: string;
+  letterSpacingWide: string;
+
+  // Kleuren
+  colorPrimary: string;
+  colorSecondary: string;
+  colorAccent: string;
+  colorText: string;
+  colorBgPrimaryLight: string;
+  colorBgPrimaryMedium: string;
+  colorBgPrimaryDark: string;
+  colorBgSecondaryLight: string;
+  colorBgSecondaryMedium: string;
+  colorBgSecondaryDark: string;
+  colorWhite: string;
+  colorOffWhite: string;
+  colorLightGrey: string;
+  colorMediumGrey: string;
+  colorDarkGrey: string;
+  colorOffBlack: string;
+  colorBgBlack: string;
+  colorSuccess: string;
+  colorWarning: string;
+  colorError: string;
+
+  // Vormgeving & Randen
+  borderRadiusNone: string;
+  borderRadiusSmall: string;
+  borderRadiusStandard: string;
+  borderRadiusMedium: string;
+  borderRadiusLarge: string;
+  borderRadiusFull: string;
+  borderWidthNone: string;
+  borderWidthThin: string;
+  borderWidthStandard: string;
+  borderWidthThick: string;
+  boxShadowNone: string;
+  boxShadowSmall: string;
+  boxShadowStandard: string;
+  boxShadowLarge: string;
+  boxShadowXl: string;
+
+  // Ruimte & Afmetingen
+  spacingXs: string;
+  spacingSmall: string;
+  spacingStandard: string;
+  spacingMedium: string;
+  spacingLarge: string;
+  spacingXl: string;
+  spacingXxl: string;
+  maxWidthSmall: string;
+  maxWidthStandard: string;
+  maxWidthMedium: string;
+  maxWidthLarge: string;
+  maxWidthFull: string;
+
+  // Media & Objecten
+  aspectRatioSquare: string;
+  aspectRatioVideo: string;
+  aspectRatioPhoto: string;
+  aspectRatioPortrait: string;
+
+  // Interactie, Status & Lagen
+  transitionFast: string;
+  transitionStandard: string;
+  transitionSlow: string;
+  opacityLight: number;
+  opacityStandard: number;
+  opacityHeavy: number;
+  opacitySolid: number;
+  zIndexBase: number;
+  zIndexAbove: number;
+  zIndexDropdown: number;
+  zIndexOverlay: number;
+  zIndexModal: number;
+}>;
+
+function toKebabVar(key: string): string {
+  return `--var-${key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()}`;
+}
 
 export function themeToCssVars(theme: SiteTheme = {}): string {
-  const lines: string[] = [];
+  const lines = Object.entries(theme)
+    .filter(([, value]) => value !== undefined && value !== null && value !== "")
+    .map(([key, value]) => `  ${toKebabVar(key)}: ${value};`);
 
-  for (const [name, value] of Object.entries(theme.colors ?? {})) {
-    lines.push(`--color-${name}: ${value};`);
-  }
-  if (theme.fonts?.heading) lines.push(`--font-heading: ${theme.fonts.heading};`);
-  if (theme.fonts?.body) lines.push(`--font-body: ${theme.fonts.body};`);
-  if (theme.borderRadius) lines.push(`--radius: ${theme.borderRadius};`);
-  if (theme.maxPageWidth) lines.push(`--page-max-width: ${theme.maxPageWidth};`);
-
-  return `:root {\n  ${lines.join("\n  ")}\n}`;
+  return `:root {\n${lines.join("\n")}\n}`;
 }

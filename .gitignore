@@ -10,3 +10,4 @@ dist/
 .astro/
 .next/
 build/
+*.tsbuildinfo
