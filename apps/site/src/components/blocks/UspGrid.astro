@@ -1,0 +1,58 @@
+---
+// Icoon/titel/tekst-grid — dekt USP-grid, icon-box en features (zie
+// apps/cms/src/blocks/uspGrid.ts). Styling loopt volledig via theme-tokens,
+// geen bloc-specifieke kleuren (zie .claude/skills/theme-field-schema).
+export interface Props {
+  columns?: "2" | "3" | "4";
+  items: { icon?: string; heading: string; text?: string }[];
+}
+
+const { columns = "3", items } = Astro.props;
+---
+
+<div class:list={["usp-grid", `usp-grid--${columns}col`]}>
+  {items.map((item) => (
+    <div class="usp-grid__item">
+      {item.icon && <span class="usp-grid__icon" aria-hidden="true">{item.icon}</span>}
+      <h3 class="usp-grid__heading">{item.heading}</h3>
+      {item.text && <p class="usp-grid__text">{item.text}</p>}
+    </div>
+  ))}
+</div>
+
+<style>
+  .usp-grid {
+    display: grid;
+    gap: var(--var-spacing-large, 2rem);
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .usp-grid--2col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .usp-grid--3col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .usp-grid--4col {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .usp-grid__item {
+    padding: var(--var-spacing-standard, 1rem);
+  }
+  .usp-grid__icon {
+    display: inline-block;
+    font-size: var(--var-font-size-xl, 2rem);
+    margin-bottom: var(--var-spacing-small, 0.5rem);
+  }
+  .usp-grid__heading {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-medium, 1.125rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .usp-grid__text {
+    font-size: var(--var-font-size-standard, 1rem);
+    line-height: var(--var-line-height-standard, 1.5);
+    opacity: 0.8;
+    margin: 0;
+  }
+</style>

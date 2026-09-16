@@ -54,11 +54,11 @@ const { variant = "centered", heading, subheading, imageUrl, badge, cta, stats }
   .hero__badge {
     display: inline-block;
     padding: 0.35rem 0.9rem;
-    border-radius: 999px;
-    background: var(--color-badge-bg, #eef2ff);
-    color: var(--color-badge-text, #3730a3);
-    font-size: 0.875rem;
-    font-weight: 600;
+    border-radius: var(--var-border-radius-full, 999px);
+    background: var(--var-color-bg-secondary-light, #eef2ff);
+    color: var(--var-color-secondary, #3730a3);
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
   }
   .hero__subheading {
     max-width: 40rem;
@@ -70,13 +70,14 @@ const { variant = "centered", heading, subheading, imageUrl, badge, cta, stats }
   }
   .hero__cta {
     display: inline-block;
-    margin-top: 1rem;
+    margin-top: var(--var-spacing-standard, 1rem);
     padding: 0.75rem 1.75rem;
-    border-radius: 0.5rem;
-    background: var(--color-primary, #4338ca);
-    color: var(--color-on-primary, #fff);
-    font-weight: 600;
+    border-radius: var(--var-border-radius-standard, 0.5rem);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-weight: var(--var-font-weight-bold, 600);
     text-decoration: none;
+    transition: var(--var-transition-standard, 200ms ease);
   }
   .hero__image {
     max-width: 100%;

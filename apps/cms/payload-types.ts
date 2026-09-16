@@ -181,18 +181,177 @@ export interface Site {
    */
   updateChannel: 'stable' | 'early';
   theme?: {
-    colors?: {
-      primary?: string | null;
-      secondary?: string | null;
-      background?: string | null;
-      text?: string | null;
-    };
-    fonts?: {
-      heading?: string | null;
-      body?: string | null;
-    };
-    borderRadius?: string | null;
-    maxPageWidth?: string | null;
+    fontSizeXs?: string | null;
+    fontSizeSmall?: string | null;
+    /**
+     * bv. 1rem
+     */
+    fontSizeStandard?: string | null;
+    fontSizeMedium?: string | null;
+    fontSizeLarge?: string | null;
+    fontSizeXl?: string | null;
+    fontSizeXxl?: string | null;
+    /**
+     * bv. Inter, sans-serif
+     */
+    fontFamilyPrimary?: string | null;
+    fontFamilySecondary?: string | null;
+    fontFamilyText?: string | null;
+    fontFamilyAccent?: string | null;
+    fontFamilyMono?: string | null;
+    fontWeightLight?: string | null;
+    fontWeightStandard?: string | null;
+    fontWeightMedium?: string | null;
+    fontWeightBold?: string | null;
+    fontWeightHeavy?: string | null;
+    lineHeightTight?: string | null;
+    lineHeightStandard?: string | null;
+    lineHeightRelaxed?: string | null;
+    lineHeightLoose?: string | null;
+    letterSpacingTight?: string | null;
+    letterSpacingStandard?: string | null;
+    letterSpacingWide?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorPrimary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorSecondary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorAccent?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorText?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorLightGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorMediumGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorDarkGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffBlack?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgBlack?: string | null;
+    /**
+     * Hex-waarde. Status-kleuren: nodig voor formulier-validaties en notificaties.
+     */
+    colorSuccess?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWarning?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorError?: string | null;
+    borderRadiusNone?: string | null;
+    borderRadiusSmall?: string | null;
+    borderRadiusStandard?: string | null;
+    borderRadiusMedium?: string | null;
+    borderRadiusLarge?: string | null;
+    borderRadiusFull?: string | null;
+    borderWidthNone?: string | null;
+    borderWidthThin?: string | null;
+    borderWidthStandard?: string | null;
+    borderWidthThick?: string | null;
+    boxShadowNone?: string | null;
+    /**
+     * bv. 0 1px 2px rgba(0,0,0,.1)
+     */
+    boxShadowSmall?: string | null;
+    boxShadowStandard?: string | null;
+    boxShadowLarge?: string | null;
+    boxShadowXl?: string | null;
+    spacingXs?: string | null;
+    spacingSmall?: string | null;
+    spacingStandard?: string | null;
+    spacingMedium?: string | null;
+    spacingLarge?: string | null;
+    spacingXl?: string | null;
+    spacingXxl?: string | null;
+    maxWidthSmall?: string | null;
+    maxWidthStandard?: string | null;
+    maxWidthMedium?: string | null;
+    maxWidthLarge?: string | null;
+    maxWidthFull?: string | null;
+    /**
+     * 1:1 — dwingt geüploade afbeeldingen via object-fit: cover in een vast grid.
+     */
+    aspectRatioSquare?: string | null;
+    /**
+     * 16:9
+     */
+    aspectRatioVideo?: string | null;
+    /**
+     * 4:3
+     */
+    aspectRatioPhoto?: string | null;
+    /**
+     * 3:4
+     */
+    aspectRatioPortrait?: string | null;
+    /**
+     * bv. 100ms ease
+     */
+    transitionFast?: string | null;
+    transitionStandard?: string | null;
+    transitionSlow?: string | null;
+    opacityLight?: number | null;
+    opacityStandard?: number | null;
+    opacityHeavy?: number | null;
+    opacitySolid?: number | null;
+    zIndexBase?: number | null;
+    zIndexAbove?: number | null;
+    zIndexDropdown?: number | null;
+    zIndexOverlay?: number | null;
+    zIndexModal?: number | null;
   };
   /**
    * Voorbereiding op automatische facturatie: abonnementsprijs en -status van deze site.
@@ -206,6 +365,34 @@ export interface Site {
   vercel?: {
     projectId?: string | null;
     deployHookUrl?: string | null;
+  };
+  settings?: {
+    general?: {
+      siteName?: string | null;
+      favicon?: (number | null) | Media;
+      locale?: ('nl' | 'en') | null;
+    };
+    seo?: {
+      /**
+       * Gebruikt wanneer een pagina geen eigen meta title heeft.
+       */
+      metaTitle?: string | null;
+      /**
+       * Gebruikt wanneer een pagina geen eigen meta description heeft.
+       */
+      metaDescription?: string | null;
+      ogImage?: (number | null) | Media;
+    };
+    analytics?: {
+      /**
+       * Bijv. G-XXXXXXXXXX.
+       */
+      gaId?: string | null;
+      /**
+       * Ruwe HTML/script-tags, bijv. voor Google Tag Manager of andere tracking.
+       */
+      headScripts?: string | null;
+    };
   };
   updatedAt: string;
   createdAt: string;
@@ -255,18 +442,177 @@ export interface SiteTemplate {
   name: string;
   thumbnail?: (number | null) | Media;
   theme?: {
-    colors?: {
-      primary?: string | null;
-      secondary?: string | null;
-      background?: string | null;
-      text?: string | null;
-    };
-    fonts?: {
-      heading?: string | null;
-      body?: string | null;
-    };
-    borderRadius?: string | null;
-    maxPageWidth?: string | null;
+    fontSizeXs?: string | null;
+    fontSizeSmall?: string | null;
+    /**
+     * bv. 1rem
+     */
+    fontSizeStandard?: string | null;
+    fontSizeMedium?: string | null;
+    fontSizeLarge?: string | null;
+    fontSizeXl?: string | null;
+    fontSizeXxl?: string | null;
+    /**
+     * bv. Inter, sans-serif
+     */
+    fontFamilyPrimary?: string | null;
+    fontFamilySecondary?: string | null;
+    fontFamilyText?: string | null;
+    fontFamilyAccent?: string | null;
+    fontFamilyMono?: string | null;
+    fontWeightLight?: string | null;
+    fontWeightStandard?: string | null;
+    fontWeightMedium?: string | null;
+    fontWeightBold?: string | null;
+    fontWeightHeavy?: string | null;
+    lineHeightTight?: string | null;
+    lineHeightStandard?: string | null;
+    lineHeightRelaxed?: string | null;
+    lineHeightLoose?: string | null;
+    letterSpacingTight?: string | null;
+    letterSpacingStandard?: string | null;
+    letterSpacingWide?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorPrimary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorSecondary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorAccent?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorText?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorLightGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorMediumGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorDarkGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffBlack?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgBlack?: string | null;
+    /**
+     * Hex-waarde. Status-kleuren: nodig voor formulier-validaties en notificaties.
+     */
+    colorSuccess?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWarning?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorError?: string | null;
+    borderRadiusNone?: string | null;
+    borderRadiusSmall?: string | null;
+    borderRadiusStandard?: string | null;
+    borderRadiusMedium?: string | null;
+    borderRadiusLarge?: string | null;
+    borderRadiusFull?: string | null;
+    borderWidthNone?: string | null;
+    borderWidthThin?: string | null;
+    borderWidthStandard?: string | null;
+    borderWidthThick?: string | null;
+    boxShadowNone?: string | null;
+    /**
+     * bv. 0 1px 2px rgba(0,0,0,.1)
+     */
+    boxShadowSmall?: string | null;
+    boxShadowStandard?: string | null;
+    boxShadowLarge?: string | null;
+    boxShadowXl?: string | null;
+    spacingXs?: string | null;
+    spacingSmall?: string | null;
+    spacingStandard?: string | null;
+    spacingMedium?: string | null;
+    spacingLarge?: string | null;
+    spacingXl?: string | null;
+    spacingXxl?: string | null;
+    maxWidthSmall?: string | null;
+    maxWidthStandard?: string | null;
+    maxWidthMedium?: string | null;
+    maxWidthLarge?: string | null;
+    maxWidthFull?: string | null;
+    /**
+     * 1:1 — dwingt geüploade afbeeldingen via object-fit: cover in een vast grid.
+     */
+    aspectRatioSquare?: string | null;
+    /**
+     * 16:9
+     */
+    aspectRatioVideo?: string | null;
+    /**
+     * 4:3
+     */
+    aspectRatioPhoto?: string | null;
+    /**
+     * 3:4
+     */
+    aspectRatioPortrait?: string | null;
+    /**
+     * bv. 100ms ease
+     */
+    transitionFast?: string | null;
+    transitionStandard?: string | null;
+    transitionSlow?: string | null;
+    opacityLight?: number | null;
+    opacityStandard?: number | null;
+    opacityHeavy?: number | null;
+    opacitySolid?: number | null;
+    zIndexBase?: number | null;
+    zIndexAbove?: number | null;
+    zIndexDropdown?: number | null;
+    zIndexOverlay?: number | null;
+    zIndexModal?: number | null;
   };
   updatedAt: string;
   createdAt: string;
@@ -368,18 +714,177 @@ export interface Page {
    * Alles hier is optioneel — leeg = erf van de site-instellingen.
    */
   themeOverrides?: {
-    colors?: {
-      primary?: string | null;
-      secondary?: string | null;
-      background?: string | null;
-      text?: string | null;
-    };
-    fonts?: {
-      heading?: string | null;
-      body?: string | null;
-    };
-    borderRadius?: string | null;
-    maxPageWidth?: string | null;
+    fontSizeXs?: string | null;
+    fontSizeSmall?: string | null;
+    /**
+     * bv. 1rem
+     */
+    fontSizeStandard?: string | null;
+    fontSizeMedium?: string | null;
+    fontSizeLarge?: string | null;
+    fontSizeXl?: string | null;
+    fontSizeXxl?: string | null;
+    /**
+     * bv. Inter, sans-serif
+     */
+    fontFamilyPrimary?: string | null;
+    fontFamilySecondary?: string | null;
+    fontFamilyText?: string | null;
+    fontFamilyAccent?: string | null;
+    fontFamilyMono?: string | null;
+    fontWeightLight?: string | null;
+    fontWeightStandard?: string | null;
+    fontWeightMedium?: string | null;
+    fontWeightBold?: string | null;
+    fontWeightHeavy?: string | null;
+    lineHeightTight?: string | null;
+    lineHeightStandard?: string | null;
+    lineHeightRelaxed?: string | null;
+    lineHeightLoose?: string | null;
+    letterSpacingTight?: string | null;
+    letterSpacingStandard?: string | null;
+    letterSpacingWide?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorPrimary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorSecondary?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorAccent?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorText?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgPrimaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryLight?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryMedium?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgSecondaryDark?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffWhite?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorLightGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorMediumGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorDarkGrey?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorOffBlack?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorBgBlack?: string | null;
+    /**
+     * Hex-waarde. Status-kleuren: nodig voor formulier-validaties en notificaties.
+     */
+    colorSuccess?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorWarning?: string | null;
+    /**
+     * Hex-waarde, bv. #4338ca
+     */
+    colorError?: string | null;
+    borderRadiusNone?: string | null;
+    borderRadiusSmall?: string | null;
+    borderRadiusStandard?: string | null;
+    borderRadiusMedium?: string | null;
+    borderRadiusLarge?: string | null;
+    borderRadiusFull?: string | null;
+    borderWidthNone?: string | null;
+    borderWidthThin?: string | null;
+    borderWidthStandard?: string | null;
+    borderWidthThick?: string | null;
+    boxShadowNone?: string | null;
+    /**
+     * bv. 0 1px 2px rgba(0,0,0,.1)
+     */
+    boxShadowSmall?: string | null;
+    boxShadowStandard?: string | null;
+    boxShadowLarge?: string | null;
+    boxShadowXl?: string | null;
+    spacingXs?: string | null;
+    spacingSmall?: string | null;
+    spacingStandard?: string | null;
+    spacingMedium?: string | null;
+    spacingLarge?: string | null;
+    spacingXl?: string | null;
+    spacingXxl?: string | null;
+    maxWidthSmall?: string | null;
+    maxWidthStandard?: string | null;
+    maxWidthMedium?: string | null;
+    maxWidthLarge?: string | null;
+    maxWidthFull?: string | null;
+    /**
+     * 1:1 — dwingt geüploade afbeeldingen via object-fit: cover in een vast grid.
+     */
+    aspectRatioSquare?: string | null;
+    /**
+     * 16:9
+     */
+    aspectRatioVideo?: string | null;
+    /**
+     * 4:3
+     */
+    aspectRatioPhoto?: string | null;
+    /**
+     * 3:4
+     */
+    aspectRatioPortrait?: string | null;
+    /**
+     * bv. 100ms ease
+     */
+    transitionFast?: string | null;
+    transitionStandard?: string | null;
+    transitionSlow?: string | null;
+    opacityLight?: number | null;
+    opacityStandard?: number | null;
+    opacityHeavy?: number | null;
+    opacitySolid?: number | null;
+    zIndexBase?: number | null;
+    zIndexAbove?: number | null;
+    zIndexDropdown?: number | null;
+    zIndexOverlay?: number | null;
+    zIndexModal?: number | null;
   };
   sections?:
     | {
@@ -427,6 +932,108 @@ export interface Page {
                   id?: string | null;
                   blockName?: string | null;
                   blockType: 'fotoTekst';
+                }
+              | {
+                  align?: ('left' | 'center') | null;
+                  /**
+                   * Bijv. 'DIENSTEN' of 'WAAROM WIJ'. Optioneel.
+                   */
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'sectionHeading';
+                }
+              | {
+                  columns?: ('2' | '3' | '4') | null;
+                  items?:
+                    | {
+                        /**
+                         * Emoji of korte tekst als icoon, bijv. '⚡' of '24/7'.
+                         */
+                        icon?: string | null;
+                        heading: string;
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'uspGrid';
+                }
+              | {
+                  items?:
+                    | {
+                        /**
+                         * Bijv. '500+' of '98%'.
+                         */
+                        value: string;
+                        label: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'stats';
+                }
+              | {
+                  style?: ('solid' | 'soft') | null;
+                  heading: string;
+                  text?: string | null;
+                  cta: {
+                    label: string;
+                    href: string;
+                  };
+                  secondaryCta?: {
+                    label?: string | null;
+                    href?: string | null;
+                  };
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'ctaBanner';
+                }
+              | {
+                  layout?: ('grid' | 'single') | null;
+                  items?:
+                    | {
+                        quote: string;
+                        name: string;
+                        role?: string | null;
+                        avatar?: (number | null) | Media;
+                        /**
+                         * 1 t/m 5 sterren. Leeg = geen sterren tonen.
+                         */
+                        rating?: number | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'testimonials';
+                }
+              | {
+                  /**
+                   * Bijv. 'Vertrouwd door'. Optioneel.
+                   */
+                  heading?: string | null;
+                  logos?:
+                    | {
+                        image: number | Media;
+                        /**
+                         * Bedrijfsnaam, voor alt-tekst.
+                         */
+                        name?: string | null;
+                        /**
+                         * Optionele link naar de klant/partner.
+                         */
+                        href?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'logoBar';
                 }
             )[]
           | null;
@@ -680,22 +1287,93 @@ export interface SiteTemplatesSelect<T extends boolean = true> {
   theme?:
     | T
     | {
-        colors?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-              background?: T;
-              text?: T;
-            };
-        fonts?:
-          | T
-          | {
-              heading?: T;
-              body?: T;
-            };
-        borderRadius?: T;
-        maxPageWidth?: T;
+        fontSizeXs?: T;
+        fontSizeSmall?: T;
+        fontSizeStandard?: T;
+        fontSizeMedium?: T;
+        fontSizeLarge?: T;
+        fontSizeXl?: T;
+        fontSizeXxl?: T;
+        fontFamilyPrimary?: T;
+        fontFamilySecondary?: T;
+        fontFamilyText?: T;
+        fontFamilyAccent?: T;
+        fontFamilyMono?: T;
+        fontWeightLight?: T;
+        fontWeightStandard?: T;
+        fontWeightMedium?: T;
+        fontWeightBold?: T;
+        fontWeightHeavy?: T;
+        lineHeightTight?: T;
+        lineHeightStandard?: T;
+        lineHeightRelaxed?: T;
+        lineHeightLoose?: T;
+        letterSpacingTight?: T;
+        letterSpacingStandard?: T;
+        letterSpacingWide?: T;
+        colorPrimary?: T;
+        colorSecondary?: T;
+        colorAccent?: T;
+        colorText?: T;
+        colorBgPrimaryLight?: T;
+        colorBgPrimaryMedium?: T;
+        colorBgPrimaryDark?: T;
+        colorBgSecondaryLight?: T;
+        colorBgSecondaryMedium?: T;
+        colorBgSecondaryDark?: T;
+        colorWhite?: T;
+        colorOffWhite?: T;
+        colorLightGrey?: T;
+        colorMediumGrey?: T;
+        colorDarkGrey?: T;
+        colorOffBlack?: T;
+        colorBgBlack?: T;
+        colorSuccess?: T;
+        colorWarning?: T;
+        colorError?: T;
+        borderRadiusNone?: T;
+        borderRadiusSmall?: T;
+        borderRadiusStandard?: T;
+        borderRadiusMedium?: T;
+        borderRadiusLarge?: T;
+        borderRadiusFull?: T;
+        borderWidthNone?: T;
+        borderWidthThin?: T;
+        borderWidthStandard?: T;
+        borderWidthThick?: T;
+        boxShadowNone?: T;
+        boxShadowSmall?: T;
+        boxShadowStandard?: T;
+        boxShadowLarge?: T;
+        boxShadowXl?: T;
+        spacingXs?: T;
+        spacingSmall?: T;
+        spacingStandard?: T;
+        spacingMedium?: T;
+        spacingLarge?: T;
+        spacingXl?: T;
+        spacingXxl?: T;
+        maxWidthSmall?: T;
+        maxWidthStandard?: T;
+        maxWidthMedium?: T;
+        maxWidthLarge?: T;
+        maxWidthFull?: T;
+        aspectRatioSquare?: T;
+        aspectRatioVideo?: T;
+        aspectRatioPhoto?: T;
+        aspectRatioPortrait?: T;
+        transitionFast?: T;
+        transitionStandard?: T;
+        transitionSlow?: T;
+        opacityLight?: T;
+        opacityStandard?: T;
+        opacityHeavy?: T;
+        opacitySolid?: T;
+        zIndexBase?: T;
+        zIndexAbove?: T;
+        zIndexDropdown?: T;
+        zIndexOverlay?: T;
+        zIndexModal?: T;
       };
   updatedAt?: T;
   createdAt?: T;
@@ -713,22 +1391,93 @@ export interface SitesSelect<T extends boolean = true> {
   theme?:
     | T
     | {
-        colors?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-              background?: T;
-              text?: T;
-            };
-        fonts?:
-          | T
-          | {
-              heading?: T;
-              body?: T;
-            };
-        borderRadius?: T;
-        maxPageWidth?: T;
+        fontSizeXs?: T;
+        fontSizeSmall?: T;
+        fontSizeStandard?: T;
+        fontSizeMedium?: T;
+        fontSizeLarge?: T;
+        fontSizeXl?: T;
+        fontSizeXxl?: T;
+        fontFamilyPrimary?: T;
+        fontFamilySecondary?: T;
+        fontFamilyText?: T;
+        fontFamilyAccent?: T;
+        fontFamilyMono?: T;
+        fontWeightLight?: T;
+        fontWeightStandard?: T;
+        fontWeightMedium?: T;
+        fontWeightBold?: T;
+        fontWeightHeavy?: T;
+        lineHeightTight?: T;
+        lineHeightStandard?: T;
+        lineHeightRelaxed?: T;
+        lineHeightLoose?: T;
+        letterSpacingTight?: T;
+        letterSpacingStandard?: T;
+        letterSpacingWide?: T;
+        colorPrimary?: T;
+        colorSecondary?: T;
+        colorAccent?: T;
+        colorText?: T;
+        colorBgPrimaryLight?: T;
+        colorBgPrimaryMedium?: T;
+        colorBgPrimaryDark?: T;
+        colorBgSecondaryLight?: T;
+        colorBgSecondaryMedium?: T;
+        colorBgSecondaryDark?: T;
+        colorWhite?: T;
+        colorOffWhite?: T;
+        colorLightGrey?: T;
+        colorMediumGrey?: T;
+        colorDarkGrey?: T;
+        colorOffBlack?: T;
+        colorBgBlack?: T;
+        colorSuccess?: T;
+        colorWarning?: T;
+        colorError?: T;
+        borderRadiusNone?: T;
+        borderRadiusSmall?: T;
+        borderRadiusStandard?: T;
+        borderRadiusMedium?: T;
+        borderRadiusLarge?: T;
+        borderRadiusFull?: T;
+        borderWidthNone?: T;
+        borderWidthThin?: T;
+        borderWidthStandard?: T;
+        borderWidthThick?: T;
+        boxShadowNone?: T;
+        boxShadowSmall?: T;
+        boxShadowStandard?: T;
+        boxShadowLarge?: T;
+        boxShadowXl?: T;
+        spacingXs?: T;
+        spacingSmall?: T;
+        spacingStandard?: T;
+        spacingMedium?: T;
+        spacingLarge?: T;
+        spacingXl?: T;
+        spacingXxl?: T;
+        maxWidthSmall?: T;
+        maxWidthStandard?: T;
+        maxWidthMedium?: T;
+        maxWidthLarge?: T;
+        maxWidthFull?: T;
+        aspectRatioSquare?: T;
+        aspectRatioVideo?: T;
+        aspectRatioPhoto?: T;
+        aspectRatioPortrait?: T;
+        transitionFast?: T;
+        transitionStandard?: T;
+        transitionSlow?: T;
+        opacityLight?: T;
+        opacityStandard?: T;
+        opacityHeavy?: T;
+        opacitySolid?: T;
+        zIndexBase?: T;
+        zIndexAbove?: T;
+        zIndexDropdown?: T;
+        zIndexOverlay?: T;
+        zIndexModal?: T;
       };
   billing?:
     | T
@@ -743,6 +1492,30 @@ export interface SitesSelect<T extends boolean = true> {
     | {
         projectId?: T;
         deployHookUrl?: T;
+      };
+  settings?:
+    | T
+    | {
+        general?:
+          | T
+          | {
+              siteName?: T;
+              favicon?: T;
+              locale?: T;
+            };
+        seo?:
+          | T
+          | {
+              metaTitle?: T;
+              metaDescription?: T;
+              ogImage?: T;
+            };
+        analytics?:
+          | T
+          | {
+              gaId?: T;
+              headScripts?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;
@@ -778,22 +1551,93 @@ export interface PagesSelect<T extends boolean = true> {
   themeOverrides?:
     | T
     | {
-        colors?:
-          | T
-          | {
-              primary?: T;
-              secondary?: T;
-              background?: T;
-              text?: T;
-            };
-        fonts?:
-          | T
-          | {
-              heading?: T;
-              body?: T;
-            };
-        borderRadius?: T;
-        maxPageWidth?: T;
+        fontSizeXs?: T;
+        fontSizeSmall?: T;
+        fontSizeStandard?: T;
+        fontSizeMedium?: T;
+        fontSizeLarge?: T;
+        fontSizeXl?: T;
+        fontSizeXxl?: T;
+        fontFamilyPrimary?: T;
+        fontFamilySecondary?: T;
+        fontFamilyText?: T;
+        fontFamilyAccent?: T;
+        fontFamilyMono?: T;
+        fontWeightLight?: T;
+        fontWeightStandard?: T;
+        fontWeightMedium?: T;
+        fontWeightBold?: T;
+        fontWeightHeavy?: T;
+        lineHeightTight?: T;
+        lineHeightStandard?: T;
+        lineHeightRelaxed?: T;
+        lineHeightLoose?: T;
+        letterSpacingTight?: T;
+        letterSpacingStandard?: T;
+        letterSpacingWide?: T;
+        colorPrimary?: T;
+        colorSecondary?: T;
+        colorAccent?: T;
+        colorText?: T;
+        colorBgPrimaryLight?: T;
+        colorBgPrimaryMedium?: T;
+        colorBgPrimaryDark?: T;
+        colorBgSecondaryLight?: T;
+        colorBgSecondaryMedium?: T;
+        colorBgSecondaryDark?: T;
+        colorWhite?: T;
+        colorOffWhite?: T;
+        colorLightGrey?: T;
+        colorMediumGrey?: T;
+        colorDarkGrey?: T;
+        colorOffBlack?: T;
+        colorBgBlack?: T;
+        colorSuccess?: T;
+        colorWarning?: T;
+        colorError?: T;
+        borderRadiusNone?: T;
+        borderRadiusSmall?: T;
+        borderRadiusStandard?: T;
+        borderRadiusMedium?: T;
+        borderRadiusLarge?: T;
+        borderRadiusFull?: T;
+        borderWidthNone?: T;
+        borderWidthThin?: T;
+        borderWidthStandard?: T;
+        borderWidthThick?: T;
+        boxShadowNone?: T;
+        boxShadowSmall?: T;
+        boxShadowStandard?: T;
+        boxShadowLarge?: T;
+        boxShadowXl?: T;
+        spacingXs?: T;
+        spacingSmall?: T;
+        spacingStandard?: T;
+        spacingMedium?: T;
+        spacingLarge?: T;
+        spacingXl?: T;
+        spacingXxl?: T;
+        maxWidthSmall?: T;
+        maxWidthStandard?: T;
+        maxWidthMedium?: T;
+        maxWidthLarge?: T;
+        maxWidthFull?: T;
+        aspectRatioSquare?: T;
+        aspectRatioVideo?: T;
+        aspectRatioPhoto?: T;
+        aspectRatioPortrait?: T;
+        transitionFast?: T;
+        transitionStandard?: T;
+        transitionSlow?: T;
+        opacityLight?: T;
+        opacityStandard?: T;
+        opacityHeavy?: T;
+        opacitySolid?: T;
+        zIndexBase?: T;
+        zIndexAbove?: T;
+        zIndexDropdown?: T;
+        zIndexOverlay?: T;
+        zIndexModal?: T;
       };
   sections?:
     | T
@@ -841,6 +1685,97 @@ export interface PagesSelect<T extends boolean = true> {
                     image?: T;
                     heading?: T;
                     text?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+              sectionHeading?:
+                | T
+                | {
+                    align?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+              uspGrid?:
+                | T
+                | {
+                    columns?: T;
+                    items?:
+                      | T
+                      | {
+                          icon?: T;
+                          heading?: T;
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              stats?:
+                | T
+                | {
+                    items?:
+                      | T
+                      | {
+                          value?: T;
+                          label?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              ctaBanner?:
+                | T
+                | {
+                    style?: T;
+                    heading?: T;
+                    text?: T;
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                        };
+                    secondaryCta?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              testimonials?:
+                | T
+                | {
+                    layout?: T;
+                    items?:
+                      | T
+                      | {
+                          quote?: T;
+                          name?: T;
+                          role?: T;
+                          avatar?: T;
+                          rating?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              logoBar?:
+                | T
+                | {
+                    heading?: T;
+                    logos?:
+                      | T
+                      | {
+                          image?: T;
+                          name?: T;
+                          href?: T;
+                          id?: T;
+                        };
                     id?: T;
                     blockName?: T;
                   };
