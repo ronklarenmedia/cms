@@ -1,0 +1,39 @@
+---
+// Losstaande statistieken-rij (zelfde velden als Hero's ingebouwde
+// "centered-proof"-statistieken, zie apps/cms/src/blocks/stats.ts).
+export interface Props {
+  items: { value: string; label: string }[];
+}
+
+const { items } = Astro.props;
+---
+
+<dl class="stats">
+  {items.map((item) => (
+    <>
+      <dt class="stats__value">{item.value}</dt>
+      <dd class="stats__label">{item.label}</dd>
+    </>
+  ))}
+</dl>
+
+<style>
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: var(--var-spacing-large, 2rem);
+    text-align: center;
+    margin: 0;
+  }
+  .stats__value {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-xxl, 2.5rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    color: var(--var-color-primary, #4338ca);
+  }
+  .stats__label {
+    margin: 0;
+    opacity: 0.7;
+    font-size: var(--var-font-size-standard, 1rem);
+  }
+</style>

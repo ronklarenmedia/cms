@@ -1,0 +1,173 @@
+---
+// 3 varianten (zie apps/cms/src/blocks/stepBox.ts): met afbeelding +
+// nummerbadge, met icoon + vervaagd cijfer op de achtergrond, of kaal.
+export interface Props {
+  variant?: "image" | "icon" | "numbered";
+  eyebrow?: string;
+  heading: string;
+  subheading?: string;
+  cta?: { label?: string; href?: string };
+  steps: { image?: { url: string; alt?: string | null } | null; icon?: string; title: string; text?: string }[];
+}
+
+const { variant = "icon", eyebrow, heading, subheading, cta, steps } = Astro.props;
+---
+
+<div class="step-box">
+  <div class="step-box__header">
+    <div>
+      {eyebrow && <p class="step-box__eyebrow">{eyebrow}</p>}
+      <h2 class="step-box__heading">{heading}</h2>
+    </div>
+    {subheading && <p class="step-box__subheading">{subheading}</p>}
+    {cta?.label && cta?.href && <a class="step-box__cta" href={cta.href}>{cta.label}</a>}
+  </div>
+
+  <div class:list={["step-box__grid", `step-box__grid--${variant}`]}>
+    {steps.map((step, i) => (
+      <div class="step-box__item">
+        {variant === "image" && (
+          <div class="step-box__image-wrap">
+            {step.image?.url && <img class="step-box__image" src={step.image.url} alt={step.image.alt || ""} />}
+            <span class="step-box__badge">{String(i + 1).padStart(2, "0")}</span>
+          </div>
+        )}
+        {variant === "icon" && (
+          <>
+            {step.icon && <span class="step-box__icon" aria-hidden="true">{step.icon}</span>}
+            <span class="step-box__ghost-number" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+          </>
+        )}
+        <p class="step-box__title">{step.title}</p>
+        {step.text && <p class="step-box__text">{step.text}</p>}
+        {variant === "numbered" && <span class="step-box__number">{i + 1}</span>}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .step-box__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--var-spacing-standard, 1rem);
+    margin-bottom: var(--var-spacing-xl, 3rem);
+  }
+  .step-box__eyebrow {
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
+    letter-spacing: var(--var-letter-spacing-wide, 0.05em);
+    text-transform: uppercase;
+    color: var(--var-color-primary, #4338ca);
+    margin: 0 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .step-box__heading {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-xl, 2rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0;
+  }
+  .step-box__subheading {
+    opacity: 0.75;
+    max-width: var(--var-max-width-small, 640px);
+    margin: 0;
+  }
+  .step-box__cta {
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--var-border-radius-standard, 0.5rem);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-weight: var(--var-font-weight-bold, 600);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .step-box__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--var-spacing-large, 2rem);
+  }
+
+  .step-box__item {
+    position: relative;
+    padding: var(--var-spacing-standard, 1rem);
+  }
+  .step-box__grid--image .step-box__item,
+  .step-box__grid--icon .step-box__item {
+    background: var(--var-color-bg-secondary-light, #f8fafc);
+    border-radius: var(--var-border-radius-medium, 0.75rem);
+    padding: var(--var-spacing-large, 2rem) var(--var-spacing-standard, 1rem) var(--var-spacing-standard, 1rem);
+  }
+
+  .step-box__image-wrap {
+    position: relative;
+    margin: calc(-1 * var(--var-spacing-large, 2rem)) calc(-1 * var(--var-spacing-standard, 1rem)) var(--var-spacing-standard, 1rem);
+  }
+  .step-box__image {
+    width: 100%;
+    aspect-ratio: var(--var-aspect-ratio-photo, 4/3);
+    object-fit: cover;
+    border-radius: var(--var-border-radius-medium, 0.75rem) var(--var-border-radius-medium, 0.75rem) 0 0;
+  }
+  .step-box__badge {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--var-border-radius-full, 999px);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-weight: var(--var-font-weight-bold, 700);
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+
+  .step-box__icon {
+    display: inline-block;
+    font-size: var(--var-font-size-xl, 2rem);
+    color: var(--var-color-primary, #4338ca);
+  }
+  .step-box__ghost-number {
+    position: absolute;
+    bottom: 0.25rem;
+    right: 0.75rem;
+    font-size: 3rem;
+    font-weight: var(--var-font-weight-bold, 700);
+    color: var(--var-color-light-grey, #e2e8f0);
+    line-height: 1;
+    z-index: 0;
+  }
+
+  .step-box__title {
+    position: relative;
+    z-index: 1;
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: var(--var-spacing-small, 0.5rem) 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .step-box__text {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    opacity: 0.75;
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+
+  .step-box__number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: var(--var-spacing-standard, 1rem);
+    border-radius: var(--var-border-radius-full, 999px);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 700);
+  }
+</style>

@@ -146,6 +146,9 @@ export interface User {
   site?: (number | null) | Site;
   updatedAt: string;
   createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -1035,6 +1038,371 @@ export interface Page {
                   blockName?: string | null;
                   blockType: 'logoBar';
                 }
+              | {
+                  variant?: ('formInfo' | 'split' | 'locations') | null;
+                  /**
+                   * Bijv. 'NEEM CONTACT OP'. Optioneel.
+                   */
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  image?: (number | null) | Media;
+                  submitLabel?: string | null;
+                  /**
+                   * Optioneel — endpoint waar het formulier naartoe post (bijv. Formspree-URL). Leeg = niet-functioneel voorbeeld.
+                   */
+                  formAction?: string | null;
+                  contactInfo?:
+                    | {
+                        /**
+                         * Emoji of korte tekst, bijv. '📍' of '☎'.
+                         */
+                        icon?: string | null;
+                        /**
+                         * Bijv. 'Adres', 'Telefoon', 'E-mail'.
+                         */
+                        label: string;
+                        value: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  locations?:
+                    | {
+                        name: string;
+                        phone?: string | null;
+                        email?: string | null;
+                        address?: string | null;
+                        cta?: {
+                          label?: string | null;
+                          href?: string | null;
+                        };
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'contact';
+                }
+              | {
+                  variant?: ('image' | 'icon' | 'numbered') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  cta?: {
+                    label?: string | null;
+                    href?: string | null;
+                  };
+                  steps?:
+                    | {
+                        /**
+                         * Gebruikt bij variant 'Afbeelding + nummerbadge'.
+                         */
+                        image?: (number | null) | Media;
+                        /**
+                         * Emoji of korte tekst als icoon.
+                         */
+                        icon?: string | null;
+                        title: string;
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'stepBox';
+                }
+              | {
+                  variant?: ('cards' | 'photo') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  cta?: {
+                    label?: string | null;
+                    href?: string | null;
+                  };
+                  columns?: ('2' | '3' | '4') | null;
+                  members?:
+                    | {
+                        photo?: (number | null) | Media;
+                        name: string;
+                        role?: string | null;
+                        /**
+                         * Alleen gebruikt bij variant 'Kaarten'.
+                         */
+                        bio?: string | null;
+                        /**
+                         * Alleen gebruikt bij variant 'Kaarten'.
+                         */
+                        email?: string | null;
+                        /**
+                         * Alleen gebruikt bij variant 'Kaarten'. Bijv. 'Meer info'.
+                         */
+                        ctaLabel?: string | null;
+                        /**
+                         * Alleen gebruikt bij variant 'Portretfoto's'.
+                         */
+                        socials?:
+                          | {
+                              /**
+                               * Bijv. 'Twitter' of '𝕏'.
+                               */
+                              label: string;
+                              href: string;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'teamGrid';
+                }
+              | {
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  tiers?:
+                    | {
+                        name: string;
+                        /**
+                         * Bijv. '€29' of 'Op aanvraag'.
+                         */
+                        price: string;
+                        /**
+                         * Bijv. 'per maand'. Optioneel.
+                         */
+                        period?: string | null;
+                        description?: string | null;
+                        features?:
+                          | {
+                              text: string;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        cta?: {
+                          label?: string | null;
+                          href?: string | null;
+                        };
+                        featured?: boolean | null;
+                        /**
+                         * Bijv. 'Meest gekozen'. Alleen zichtbaar als 'Uitgelicht' aanstaat.
+                         */
+                        badge?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'pricingTable';
+                }
+              | {
+                  eyebrow?: string | null;
+                  heading?: string | null;
+                  subheading?: string | null;
+                  columns?: ('2' | '3' | '4') | null;
+                  images?:
+                    | {
+                        image: number | Media;
+                        caption?: string | null;
+                        span?: ('normal' | 'wide' | 'tall') | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'gallery';
+                }
+              | {
+                  variant?: ('centered' | 'split') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  image?: (number | null) | Media;
+                  items?:
+                    | {
+                        question: string;
+                        answer: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'faq';
+                }
+              | {
+                  variant?: ('detailed' | 'simple') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  items?:
+                    | {
+                        /**
+                         * Klein label links. Alleen bij 'Uitgebreid'.
+                         */
+                        tag?: string | null;
+                        title: string;
+                        /**
+                         * Alleen bij 'Uitgebreid'.
+                         */
+                        text?: string | null;
+                        /**
+                         * Optioneel — toont een pijl als dit is ingevuld.
+                         */
+                        href?: string | null;
+                        /**
+                         * Alleen bij 'Simpel'.
+                         */
+                        tags?:
+                          | {
+                              text: string;
+                              id?: string | null;
+                            }[]
+                          | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'list';
+                }
+              | {
+                  eyebrow?: string | null;
+                  heading?: string | null;
+                  columns?: ('1' | '2') | null;
+                  body: {
+                    root: {
+                      type: string;
+                      children: {
+                        type: any;
+                        version: number;
+                        [k: string]: unknown;
+                      }[];
+                      direction: ('ltr' | 'rtl') | null;
+                      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                      indent: number;
+                      version: number;
+                    };
+                    [k: string]: unknown;
+                  };
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'richText';
+                }
+              | {
+                  eyebrow?: string | null;
+                  heading?: string | null;
+                  subheading?: string | null;
+                  poster: number | Media;
+                  /**
+                   * Voor directe afspelen op de pagina. Leeg laten als je 'Externe video-link' gebruikt.
+                   */
+                  videoFile?: (number | null) | Media;
+                  /**
+                   * YouTube/Vimeo-URL — de play-knop linkt hiernaartoe als er geen video-bestand is.
+                   */
+                  videoUrl?: string | null;
+                  features?:
+                    | {
+                        /**
+                         * Emoji of korte tekst.
+                         */
+                        icon?: string | null;
+                        title: string;
+                        text?: string | null;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'video';
+                }
+              | {
+                  variant?: ('centered' | 'split') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  image?: (number | null) | Media;
+                  showNameField?: boolean | null;
+                  submitLabel?: string | null;
+                  /**
+                   * Optioneel — endpoint waar het formulier naartoe post.
+                   */
+                  formAction?: string | null;
+                  /**
+                   * Kleine tekst onder het formulier, bijv. privacy-mededeling.
+                   */
+                  disclaimer?: string | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'emailOptin';
+                }
+              | {
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  columns?: ('1' | '2') | null;
+                  items?:
+                    | {
+                        image?: (number | null) | Media;
+                        name: string;
+                        description?: string | null;
+                        /**
+                         * Bijv. '€20' of 'Op aanvraag'.
+                         */
+                        price: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'priceList';
+                }
+              | {
+                  variant?: ('horizontal' | 'vertical') | null;
+                  eyebrow?: string | null;
+                  heading: string;
+                  subheading?: string | null;
+                  items?:
+                    | {
+                        /**
+                         * Bijv. '2024' of 'Q1 2025'.
+                         */
+                        date: string;
+                        /**
+                         * Emoji, alleen bij Verticaal.
+                         */
+                        icon?: string | null;
+                        title: string;
+                        text?: string | null;
+                        cta?: {
+                          label?: string | null;
+                          href?: string | null;
+                        };
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'timeline';
+                }
+              | {
+                  variant?: ('bar' | 'iconsRound') | null;
+                  heading?: string | null;
+                  text?: string | null;
+                  links?:
+                    | {
+                        /**
+                         * Bijv. 'Instagram' of '📷'.
+                         */
+                        label: string;
+                        href: string;
+                        id?: string | null;
+                      }[]
+                    | null;
+                  id?: string | null;
+                  blockName?: string | null;
+                  blockType: 'social';
+                }
             )[]
           | null;
         id?: string | null;
@@ -1189,6 +1557,9 @@ export interface UsersSelect<T extends boolean = true> {
   site?: T;
   updatedAt?: T;
   createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
@@ -1773,6 +2144,299 @@ export interface PagesSelect<T extends boolean = true> {
                       | {
                           image?: T;
                           name?: T;
+                          href?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              contact?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    image?: T;
+                    submitLabel?: T;
+                    formAction?: T;
+                    contactInfo?:
+                      | T
+                      | {
+                          icon?: T;
+                          label?: T;
+                          value?: T;
+                          id?: T;
+                        };
+                    locations?:
+                      | T
+                      | {
+                          name?: T;
+                          phone?: T;
+                          email?: T;
+                          address?: T;
+                          cta?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                              };
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              stepBox?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                        };
+                    steps?:
+                      | T
+                      | {
+                          image?: T;
+                          icon?: T;
+                          title?: T;
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              teamGrid?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    cta?:
+                      | T
+                      | {
+                          label?: T;
+                          href?: T;
+                        };
+                    columns?: T;
+                    members?:
+                      | T
+                      | {
+                          photo?: T;
+                          name?: T;
+                          role?: T;
+                          bio?: T;
+                          email?: T;
+                          ctaLabel?: T;
+                          socials?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              pricingTable?:
+                | T
+                | {
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    tiers?:
+                      | T
+                      | {
+                          name?: T;
+                          price?: T;
+                          period?: T;
+                          description?: T;
+                          features?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          cta?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                              };
+                          featured?: T;
+                          badge?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              gallery?:
+                | T
+                | {
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    columns?: T;
+                    images?:
+                      | T
+                      | {
+                          image?: T;
+                          caption?: T;
+                          span?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              faq?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    image?: T;
+                    items?:
+                      | T
+                      | {
+                          question?: T;
+                          answer?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              list?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    items?:
+                      | T
+                      | {
+                          tag?: T;
+                          title?: T;
+                          text?: T;
+                          href?: T;
+                          tags?:
+                            | T
+                            | {
+                                text?: T;
+                                id?: T;
+                              };
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              richText?:
+                | T
+                | {
+                    eyebrow?: T;
+                    heading?: T;
+                    columns?: T;
+                    body?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+              video?:
+                | T
+                | {
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    poster?: T;
+                    videoFile?: T;
+                    videoUrl?: T;
+                    features?:
+                      | T
+                      | {
+                          icon?: T;
+                          title?: T;
+                          text?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              emailOptin?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    image?: T;
+                    showNameField?: T;
+                    submitLabel?: T;
+                    formAction?: T;
+                    disclaimer?: T;
+                    id?: T;
+                    blockName?: T;
+                  };
+              priceList?:
+                | T
+                | {
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    columns?: T;
+                    items?:
+                      | T
+                      | {
+                          image?: T;
+                          name?: T;
+                          description?: T;
+                          price?: T;
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              timeline?:
+                | T
+                | {
+                    variant?: T;
+                    eyebrow?: T;
+                    heading?: T;
+                    subheading?: T;
+                    items?:
+                      | T
+                      | {
+                          date?: T;
+                          icon?: T;
+                          title?: T;
+                          text?: T;
+                          cta?:
+                            | T
+                            | {
+                                label?: T;
+                                href?: T;
+                              };
+                          id?: T;
+                        };
+                    id?: T;
+                    blockName?: T;
+                  };
+              social?:
+                | T
+                | {
+                    variant?: T;
+                    heading?: T;
+                    text?: T;
+                    links?:
+                      | T
+                      | {
+                          label?: T;
                           href?: T;
                           id?: T;
                         };

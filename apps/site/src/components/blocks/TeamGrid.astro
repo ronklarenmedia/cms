@@ -1,0 +1,169 @@
+---
+// 2 varianten (zie apps/cms/src/blocks/teamGrid.ts).
+export interface Props {
+  variant?: "cards" | "photo";
+  eyebrow?: string;
+  heading: string;
+  subheading?: string;
+  cta?: { label?: string; href?: string };
+  columns?: "2" | "3" | "4";
+  members: {
+    photo?: { url: string; alt?: string | null } | null;
+    name: string;
+    role?: string;
+    bio?: string;
+    email?: string;
+    ctaLabel?: string;
+    socials?: { label: string; href: string }[];
+  }[];
+}
+
+const { variant = "cards", eyebrow, heading, subheading, cta, columns = "3", members } = Astro.props;
+---
+
+<div class="team-grid">
+  <div class="team-grid__header">
+    <div>
+      {eyebrow && <p class="team-grid__eyebrow">{eyebrow}</p>}
+      <h2 class="team-grid__heading">{heading}</h2>
+      {subheading && <p class="team-grid__subheading">{subheading}</p>}
+    </div>
+    {variant === "photo" && cta?.label && cta?.href && (
+      <a class="team-grid__cta" href={cta.href}>{cta.label}</a>
+    )}
+  </div>
+
+  <div class:list={["team-grid__grid", `team-grid__grid--${columns}col`, `team-grid__grid--${variant}`]}>
+    {members.map((member) => (
+      <div class="team-grid__member">
+        {member.photo?.url && (
+          <img class="team-grid__photo" src={member.photo.url} alt={member.photo.alt || member.name} />
+        )}
+        <p class="team-grid__name">{member.name}</p>
+        {member.role && <p class="team-grid__role">{member.role}</p>}
+        {variant === "cards" && (
+          <>
+            {member.bio && <p class="team-grid__bio">{member.bio}</p>}
+            {member.ctaLabel && <span class="team-grid__member-cta">{member.ctaLabel}</span>}
+            {member.email && <p class="team-grid__email">{member.email}</p>}
+          </>
+        )}
+        {variant === "photo" && member.socials && member.socials.length > 0 && (
+          <div class="team-grid__socials">
+            {member.socials.map((s) => (
+              <a class="team-grid__social" href={s.href}>{s.label}</a>
+            ))}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .team-grid__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--var-spacing-standard, 1rem);
+    margin-bottom: var(--var-spacing-xl, 3rem);
+  }
+  .team-grid__eyebrow {
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
+    letter-spacing: var(--var-letter-spacing-wide, 0.05em);
+    text-transform: uppercase;
+    color: var(--var-color-primary, #4338ca);
+    margin: 0 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .team-grid__heading {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-xl, 2rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0 0 var(--var-spacing-small, 0.5rem);
+  }
+  .team-grid__subheading {
+    opacity: 0.75;
+    max-width: var(--var-max-width-small, 640px);
+    margin: 0;
+  }
+  .team-grid__cta {
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--var-border-radius-standard, 0.5rem);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-weight: var(--var-font-weight-bold, 600);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .team-grid__grid {
+    display: grid;
+    gap: var(--var-spacing-large, 2rem);
+  }
+  .team-grid__grid--2col { grid-template-columns: repeat(2, 1fr); }
+  .team-grid__grid--3col { grid-template-columns: repeat(3, 1fr); }
+  .team-grid__grid--4col { grid-template-columns: repeat(4, 1fr); }
+
+  .team-grid__grid--cards .team-grid__member {
+    text-align: center;
+    padding: var(--var-spacing-large, 2rem);
+    border-radius: var(--var-border-radius-medium, 0.75rem);
+    background: var(--var-color-bg-secondary-light, #f8fafc);
+  }
+  .team-grid__grid--cards .team-grid__photo {
+    width: 5rem;
+    height: 5rem;
+    border-radius: var(--var-border-radius-full, 999px);
+    object-fit: cover;
+    margin: 0 auto var(--var-spacing-standard, 1rem);
+  }
+  .team-grid__grid--photo .team-grid__photo {
+    width: 100%;
+    aspect-ratio: var(--var-aspect-ratio-photo, 4/5);
+    object-fit: cover;
+    border-radius: var(--var-border-radius-medium, 0.75rem);
+    margin-bottom: var(--var-spacing-standard, 1rem);
+  }
+
+  .team-grid__name {
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0;
+  }
+  .team-grid__role {
+    margin: 0.15rem 0 0;
+    opacity: 0.65;
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+  .team-grid__bio {
+    margin: var(--var-spacing-small, 0.5rem) 0;
+    opacity: 0.75;
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+  .team-grid__member-cta {
+    display: inline-block;
+    padding: 0.6rem 1.5rem;
+    border-radius: var(--var-border-radius-full, 999px);
+    background: var(--var-color-primary, #4338ca);
+    color: var(--var-color-white, #fff);
+    font-weight: var(--var-font-weight-bold, 600);
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+  .team-grid__email {
+    margin: var(--var-spacing-small, 0.5rem) 0 0;
+    font-size: var(--var-font-size-small, 0.875rem);
+    opacity: 0.6;
+  }
+
+  .team-grid__socials {
+    display: flex;
+    gap: var(--var-spacing-small, 0.5rem);
+  }
+  .team-grid__social {
+    color: var(--var-color-primary, #4338ca);
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
+    text-decoration: none;
+  }
+</style>

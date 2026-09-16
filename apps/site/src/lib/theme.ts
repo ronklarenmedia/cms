@@ -5,8 +5,7 @@
 // nieuw token in themeFields.ts hoeft hier niet apart toegevoegd te worden
 // zolang de conventie standhoudt.
 //
-// Nog niet gekoppeld aan een layout/.astro-component — dat gebeurt bij de
-// blocks-herbouw (zie project-memory over de Hero-block-beslissing).
+// Gekoppeld in src/pages/preview/[id].astro (mergeTheme + themeToCssVars).
 
 export type SiteTheme = Partial<{
   // Typografie
@@ -111,6 +110,19 @@ export type SiteTheme = Partial<{
 
 function toKebabVar(key: string): string {
   return `--var-${key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase()}`;
+}
+
+// Pagina-specifieke themeOverrides winnen per-veld van het site-thema —
+// lege/null/undefined overrides erven gewoon door (zie Pages.themeOverrides
+// admin-omschrijving: "leeg = erf van de site-instellingen").
+export function mergeTheme(base: SiteTheme = {}, overrides: SiteTheme = {}): SiteTheme {
+  const merged: SiteTheme = { ...base };
+  for (const [key, value] of Object.entries(overrides)) {
+    if (value !== undefined && value !== null && value !== "") {
+      (merged as Record<string, unknown>)[key] = value;
+    }
+  }
+  return merged;
 }
 
 export function themeToCssVars(theme: SiteTheme = {}): string {

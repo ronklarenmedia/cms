@@ -11,13 +11,13 @@ export interface Props {
   variant?: "centered" | "centered-proof" | "split" | "video-bg" | "full-bleed";
   heading: string;
   subheading?: string;
-  imageUrl?: string;
+  image?: { url: string; alt?: string | null } | null;
   badge?: string;
   cta?: { label?: string; href?: string };
   stats?: { value: string; label: string }[];
 }
 
-const { variant = "centered", heading, subheading, imageUrl, badge, cta, stats } = Astro.props;
+const { variant = "centered", heading, subheading, image, badge, cta, stats } = Astro.props;
 ---
 
 <section class:list={["hero", `hero--${variant}`]}>
@@ -27,7 +27,7 @@ const { variant = "centered", heading, subheading, imageUrl, badge, cta, stats }
   {cta?.label && cta?.href && (
     <a class="hero__cta" href={cta.href}>{cta.label}</a>
   )}
-  {imageUrl && <img class="hero__image" src={imageUrl} alt="" />}
+  {image?.url && <img class="hero__image" src={image.url} alt={image.alt || ""} />}
   {stats && stats.length > 0 && (
     <dl class="hero__stats">
       {stats.map((stat) => (

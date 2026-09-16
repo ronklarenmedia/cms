@@ -4,7 +4,10 @@ import type { CollectionConfig } from "payload";
 // alleen de eigen site (zie access-control hieronder + doc §2/§5).
 export const Users: CollectionConfig = {
   slug: "users",
-  auth: true,
+  // useAPIKey: apps/site praat als API-key-gebruiker met Payload's REST API
+  // (zie apps/site/src/lib/payload-client.ts) — nodig voor zowel de
+  // productiebuild als de CMS-page-preview om pagina's te mogen lezen.
+  auth: { useAPIKey: true },
   admin: {
     useAsTitle: "email",
     group: "Platform",

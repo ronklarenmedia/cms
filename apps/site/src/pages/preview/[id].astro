@@ -1,0 +1,57 @@
+---
+// Read-only pagina-preview voor de CMS-admin (zie PROJECT_STATUS.md "Geen
+// page-preview"): haalt één pagina op via z'n ID (incl. concept-versie) en
+// rendert 'm met dezelfde Section/BlockRenderer-componenten en theme-tokens
+// als de echte site. Draait alleen on-demand (geen prerender), want de data
+// moet elke keer vers uit Payload komen.
+export const prerender = false;
+
+import Section from "../../components/sections/Section.astro";
+import BlockRenderer from "../../components/blocks/BlockRenderer.astro";
+import { getPageById } from "../../lib/payload-client";
+import { themeToCssVars, mergeTheme } from "../../lib/theme";
+
+const { id } = Astro.params;
+
+let page: any = null;
+let loadError: string | null = null;
+try {
+  page = id ? await getPageById(id, { draft: true }) : null;
+} catch (err) {
+  loadError = err instanceof Error ? err.message : String(err);
+}
+
+const site = page?.site && typeof page.site === "object" ? page.site : null;
+const theme = mergeTheme(site?.theme, page?.themeOverrides);
+---
+
+<html lang={site?.settings?.general?.locale || "nl"}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{page?.seo?.metaTitle || page?.title || "Voorbeeld"}</title>
+    <style set:html={themeToCssVars(theme)} />
+    <style>
+      /* Zonder dit erft body geen expliciete achtergrond/tekstkleur en kan de
+         browser een donker canvas forceren — dan is zwarte tekst (het
+         standaard-fallback van elk block) onzichtbaar. Zelfde
+         fallback-conventie als de blocks zelf (var(--var-color-*, ...)). */
+      body {
+        margin: 0;
+        background: var(--var-color-white, #fff);
+        color: var(--var-color-text, #1e293b);
+        font-family: var(--var-font-family-primary, system-ui, sans-serif);
+      }
+    </style>
+  </head>
+  <body>
+    {loadError && <p style="padding:2rem;color:#b91c1c;">Kon pagina niet laden: {loadError}</p>}
+    {!loadError && !page && <p style="padding:2rem;">Pagina niet gevonden.</p>}
+    {page?.sections?.map((section: any) => (
+      <Section width={section.width} layout={section.layout} background={section.background}>
+        {section.blocks?.map((block: any) => <BlockRenderer block={block} />)}
+      </Section>
+    ))}
+  </body>
+</html>

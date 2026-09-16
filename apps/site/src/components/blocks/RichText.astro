@@ -1,0 +1,79 @@
+---
+// Dekt CSV-categorieën "content" + "text-box" (zie apps/cms/src/blocks/richText.ts).
+import { lexicalToHtml } from "../../lib/lexical-to-html";
+
+export interface Props {
+  eyebrow?: string;
+  heading?: string;
+  columns?: "1" | "2";
+  body: unknown;
+}
+
+const { eyebrow, heading, columns = "1", body } = Astro.props;
+const html = lexicalToHtml(body);
+---
+
+<div class="rich-text">
+  {(eyebrow || heading) && (
+    <div class="rich-text__header">
+      {eyebrow && <p class="rich-text__eyebrow">{eyebrow}</p>}
+      {heading && <h2 class="rich-text__heading">{heading}</h2>}
+    </div>
+  )}
+  <div class:list={["rich-text__body", `rich-text__body--${columns}col`]} set:html={html} />
+</div>
+
+<style>
+  .rich-text__header {
+    margin-bottom: var(--var-spacing-large, 2rem);
+  }
+  .rich-text__eyebrow {
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
+    letter-spacing: var(--var-letter-spacing-wide, 0.05em);
+    text-transform: uppercase;
+    color: var(--var-color-primary, #4338ca);
+    margin: 0 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .rich-text__heading {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-xl, 2rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0;
+  }
+
+  .rich-text__body {
+    font-size: var(--var-font-size-standard, 1rem);
+    line-height: var(--var-line-height-relaxed, 1.6);
+  }
+  .rich-text__body--2col {
+    column-count: 2;
+    column-gap: var(--var-spacing-xl, 3rem);
+  }
+  .rich-text__body :global(p) {
+    margin: 0 0 var(--var-spacing-standard, 1rem);
+  }
+  .rich-text__body :global(h2),
+  .rich-text__body :global(h3),
+  .rich-text__body :global(h4) {
+    font-family: var(--var-font-family-primary, inherit);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: var(--var-spacing-large, 2rem) 0 var(--var-spacing-small, 0.5rem);
+    break-after: avoid;
+  }
+  .rich-text__body :global(ul),
+  .rich-text__body :global(ol) {
+    margin: 0 0 var(--var-spacing-standard, 1rem);
+    padding-left: 1.25rem;
+  }
+  .rich-text__body :global(a) {
+    color: var(--var-color-primary, #4338ca);
+  }
+  .rich-text__body :global(blockquote) {
+    margin: var(--var-spacing-standard, 1rem) 0;
+    padding-left: var(--var-spacing-standard, 1rem);
+    border-left: var(--var-border-width-standard, 2px) solid var(--var-color-primary, #4338ca);
+    opacity: 0.8;
+    break-inside: avoid;
+  }
+</style>

@@ -41,3 +41,10 @@ export async function getPageBySlug(slug: string) {
   );
   return result.docs?.[0] ?? null;
 }
+
+// Voor de CMS-preview-route: pagina op ID i.p.v. slug, met draft=true zodat
+// een nog niet gepubliceerd concept ook te bekijken is.
+export async function getPageById(id: string, opts: { draft?: boolean } = {}) {
+  const draftParam = opts.draft ? "&draft=true" : "";
+  return payloadFetch(`/api/pages/${id}?depth=2${draftParam}`);
+}

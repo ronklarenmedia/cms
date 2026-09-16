@@ -1,0 +1,115 @@
+---
+// Menu-achtige prijslijst met stippellijn tussen naam en prijs (zie
+// apps/cms/src/blocks/priceList.ts).
+export interface Props {
+  eyebrow?: string;
+  heading: string;
+  subheading?: string;
+  columns?: "1" | "2";
+  items: { image?: { url: string; alt?: string | null } | null; name: string; description?: string; price: string }[];
+}
+
+const { eyebrow, heading, subheading, columns = "2", items } = Astro.props;
+---
+
+<div class="price-list">
+  <div class="price-list__header">
+    {eyebrow && <p class="price-list__eyebrow">{eyebrow}</p>}
+    <h2 class="price-list__heading">{heading}</h2>
+    {subheading && <p class="price-list__subheading">{subheading}</p>}
+  </div>
+
+  <div class:list={["price-list__grid", `price-list__grid--${columns}col`]}>
+    {items.map((item) => (
+      <div class="price-list__item">
+        {item.image?.url && <img class="price-list__image" src={item.image.url} alt={item.image.alt || ""} />}
+        <div class="price-list__body">
+          <div class="price-list__row">
+            <p class="price-list__name">{item.name}</p>
+            <span class="price-list__leader" aria-hidden="true"></span>
+            <p class="price-list__price">{item.price}</p>
+          </div>
+          {item.description && <p class="price-list__description">{item.description}</p>}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .price-list__header {
+    text-align: center;
+    max-width: var(--var-max-width-small, 640px);
+    margin: 0 auto var(--var-spacing-xl, 3rem);
+  }
+  .price-list__eyebrow {
+    font-size: var(--var-font-size-small, 0.875rem);
+    font-weight: var(--var-font-weight-bold, 600);
+    letter-spacing: var(--var-letter-spacing-wide, 0.05em);
+    text-transform: uppercase;
+    color: var(--var-color-primary, #4338ca);
+    margin: 0 0 var(--var-spacing-xs, 0.25rem);
+  }
+  .price-list__heading {
+    font-family: var(--var-font-family-primary, inherit);
+    font-size: var(--var-font-size-xl, 2rem);
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0 0 var(--var-spacing-small, 0.5rem);
+  }
+  .price-list__subheading {
+    opacity: 0.75;
+    margin: 0;
+  }
+
+  .price-list__grid {
+    display: grid;
+    gap: var(--var-spacing-large, 2rem) var(--var-spacing-xl, 3rem);
+  }
+  .price-list__grid--2col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .price-list__item {
+    display: flex;
+    gap: var(--var-spacing-standard, 1rem);
+    align-items: flex-start;
+  }
+  .price-list__image {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: var(--var-border-radius-full, 999px);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .price-list__body {
+    flex: 1;
+    min-width: 0;
+  }
+  .price-list__row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+  .price-list__name {
+    font-weight: var(--var-font-weight-bold, 700);
+    margin: 0;
+    white-space: nowrap;
+  }
+  .price-list__leader {
+    flex: 1;
+    border-bottom: 2px dotted var(--var-color-light-grey, #d1d5db);
+    height: 0;
+    transform: translateY(-0.3rem);
+  }
+  .price-list__price {
+    margin: 0;
+    font-weight: var(--var-font-weight-bold, 700);
+    color: var(--var-color-primary, #4338ca);
+    white-space: nowrap;
+  }
+  .price-list__description {
+    margin: 0.15rem 0 0;
+    opacity: 0.7;
+    font-size: var(--var-font-size-small, 0.875rem);
+  }
+</style>

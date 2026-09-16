@@ -21,6 +21,15 @@ export const Pages: CollectionConfig = {
     delete: ({ req: { user } }) => user?.role === "admin",
   },
   fields: [
+    {
+      name: "previewLink",
+      type: "ui",
+      admin: {
+        components: {
+          Field: "/src/components/PagePreviewLink#PagePreviewLink",
+        },
+      },
+    },
     { name: "site", type: "relationship", relationTo: "sites", required: true },
     { name: "title", type: "text", required: true },
     { name: "slug", type: "text", required: true },

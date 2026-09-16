@@ -1,6 +1,35 @@
 # Project-status
 
-_Laatst bijgewerkt: 2026-09-16. Bedoeld als startpunt voor een nieuwe sessie/context window — lees dit eerst._
+_Laatst bijgewerkt: 2026-09-17 (nacht). Bedoeld als startpunt voor een nieuwe sessie/context window — lees dit eerst._
+
+## Nieuw vannacht: 13 blocks + block-showcase-pagina (2026-09-17)
+
+Opdracht was: "bouw vannacht door aan nieuwe blocks, kies verschillende, let op de opmaak, puur blocks — geen andere code aanpassen." Alle resterende CSV-categorieën gebouwd (Payload-config + Astro-renderer + registratie in `blocks/index.ts` en `BlockRenderer.astro`):
+`contact` (3 varianten: formInfo/split/locations), `stepBox` (image/icon/numbered — 125 CSV-voorbeelden, was over het hoofd gezien in het vorige blokkenplan), `teamGrid` (cards/photo), `pricingTable`, `gallery` (grid met per-image "span" voor bento-layout), `faq` (centered/split, native `<details>`, geen JS), `list` (detailed/simple), `richText` (dekt CSV-categorieën "content"+"text-box" samen, zie hieronder), `video` (mp4-upload of externe link), `emailOptin` (centered/split), `priceList` (los van pricingTable — menu-achtige lijst), `timeline` (horizontal/vertical), `social` (bar/iconsRound).
+
+**Bekijk alles in één keer:** pagina-id 2, slug `demo-nieuwe-blocks`, titel "DEMO — nieuwe blocks (mag je verwijderen)" — open `http://localhost:4321/preview/2` (cms + site devservers moeten draaien). Bevat alle 24 block-varianten met testdata. **Gerust verwijderen** als je 'm niet meer nodig hebt (Payload-admin → Pages).
+
+**`richText`-block (nieuw patroon):** eerste block met Payload's `type: "richText"` (lexicalEditor). Astro/Next hebben geen ingebouwde manier om dat naar HTML te renderen zonder de `@payloadcms/richtext-lexical`-dependency in `apps/site` te trekken — in plaats daarvan is er een **kleine, dependency-vrije serializer** geschreven: `apps/site/src/lib/lexical-to-html.ts` (dekt paragraph/heading/list/listitem/quote/link + bold/italic/underline/strikethrough/code). Werkt voor Payload's standaard-toolbar; exotischere lexical-features (tabellen, uploads-in-tekst, custom blocks-in-tekst) worden genegeerd.
+
+**2 echte bugs gevonden en gefixt tijdens het verifiëren** (via een tijdelijke testpagina, zie hierboven):
+1. `Contact.astro` (variant `split`) rendereerde de heading dubbel — een generieke intro-`div` én een split-specifieke intro renderden allebei `<h2>{heading}</h2>`. Gefixt: generieke intro toont alleen bij variant `formInfo`.
+2. Split-layout-afbeeldingen (`Contact`/`Faq`/`EmailOptin`, variant `split`) hadden geen `aspect-ratio` — een portret-afbeelding (zoals de test-upload, 1228×1737) blies de hele sectie honderden pixels hoger op dan bedoeld. Gefixt met `aspect-ratio` + `object-fit: cover`, zelfde patroon als `TeamGrid`'s foto-variant al gebruikte.
+
+**Kleine, bewust buiten de "puur blocks"-scope gemaakte uitzondering:** `apps/site/src/pages/preview/[id].astro` had nergens een expliciete `body { background; color }` — zonder theme (of met een donker thema) kon de browser een donker canvas forceren terwijl tekst standaard zwart bleef, dus onzichtbaar. Toegevoegd: `body { background: var(--var-color-white, #fff); color: var(--var-color-text, #1e293b); }`. Dit is geen block-bestand, maar zonder deze fix was geen enkel block (oud of nieuw) betrouwbaar zichtbaar in de preview.
+
+**Nog open uit de CSV-taxonomie:** Divider, Aankondigingsbalk (announcement bar), Working-hours (3 voorbeelden, erg niche) — geen van drieën had een eigen CSV-categorie/genoeg voorbeelden om nu te bouwen. `fotoTekst.ts`'s eventuele "full-width-duo"-variant is ook nog niet toegevoegd.
+
+**Server-geheugensteun:** tijdens het bouwen bleek dat een `richText`-veld toevoegen een **volledige herstart + `.next`-cache-clear** van de cms-devserver nodig had (niet alleen een herstart) — Next's RSC-client-manifest kon de nieuwe lexical-editor-featurecomponenten niet hot-reloaden. Als een nieuw veldtype rare "Could not find module ... in the React Client Manifest"-errors geeft: `rm -rf apps/cms/.next` en dan pas herstarten.
+
+## Let op: bekende server-instabiliteit (2026-09-16 avond)
+
+Tijdens deze sessie draaide gelijktijdig een cms-devserver van een ándere
+sessie op poort 3000. Die server gaf op een gegeven moment 500 "Something
+went wrong" terug op **alle** `/api/pages`-requests (zelfs een simpele
+`GET /api/pages` zonder auth), terwijl `/api/sites` wel gewoon werkte. Een
+verse cms-instantie (zelfde code, poort 3001) had dit probleem niet — dus dit
+is hoogstwaarschijnlijk een gestold/stuk proces van die andere sessie, geen
+codefout. **Als `/api/pages` weer 500's geeft: herstart de cms-devserver.**
 
 ## Wat dit is
 
@@ -35,6 +64,19 @@ Basis tabs-structuur op de `Sites`-collection (`apps/cms/src/collections/Sites.t
 - **6 nieuwe blocks gebouwd** (`apps/cms/src/blocks/`): `sectionHeading` (intro-kop, ontbrak nog in doc §7), `uspGrid` (icoon/titel/tekst-grid, 2-4 kolommen), `stats` (losse statistieken-rij), `ctaBanner` (solid/soft), `testimonials` (grid/single), `logoBar`. Alle 6 hebben **alleen inhoudsvelden, geen kleurkiezers** — styling komt automatisch uit de theme-tokens.
 - **Astro-renderers**: alleen voor `UspGrid` en `CtaBanner` gebouwd (`apps/site/src/components/blocks/`). De rest heeft nog geen renderer.
 
+### 4. (ongecommit, deze sessie) — Page-preview
+
+Opgepakt: de "Geen page-preview"-vraag uit "Bekende gaten" hieronder.
+
+- **Alle 8 blocks hebben nu een Astro-renderer**: `FotoTekst`, `SectionHeading`, `Stats`, `Testimonials`, `LogoBar` toegevoegd (`apps/site/src/components/blocks/`) naast de bestaande Hero/UspGrid/CtaBanner. `Hero.astro`'s `imageUrl: string`-prop is `image: { url, alt }`-object geworden (consistent met hoe Payload een upload-relatie met depth teruggeeft).
+- **`BlockRenderer.astro`**: één schakelpunt (`block.blockType` → component), zodat `[id].astro` niet zelf per blocktype hoeft te weten wat te renderen.
+- **`apps/site/src/pages/preview/[id].astro`**: nieuwe, niet-geprerenderde route (`export const prerender = false`) die een pagina op ID ophaalt (incl. concept via `draft=true`), site-theme + `themeOverrides` merget (`mergeTheme()` in `theme.ts`) en de secties/blocks rendert met de bestaande `Section`/`BlockRenderer`-componenten.
+- **`payload-client.ts`**: `getPageById(id, { draft })` toegevoegd naast de bestaande `getPageBySlug`.
+- **"Voorbeeld bekijken"-knop** op de Pages-admin (`apps/cms/src/components/PagePreviewLink.tsx`, zelfde patroon als `SiteQuickLinks.tsx`) — opent `{NEXT_PUBLIC_SITE_PREVIEW_URL:-http://localhost:4321}/preview/{id}` in een nieuw tabblad.
+- **API-key-auth aangezet**: `Users.ts` had `auth: true` zonder `useAPIKey` — de REST-calls van `apps/site` (`Authorization: users API-Key ...`) hadden dus nooit gewerkt. Nu `auth: { useAPIKey: true }`. Er is al een API-key gegenereerd voor de bestaande admin-user (info@ronklarenmedia.nl) en gezet in `apps/site/.env` (niet gecommit — zie `.env.example` voor uitleg waarom dit verplicht is).
+- **Niet gedaan**: dit is een read-only preview via een losse route, géén Payload `admin.livePreview`-iframe met live-typen-zonder-opslaan (dat vereist de `@payloadcms/live-preview`-postMessage-bridge, die niet triviaal op Astro's SSG/SSR-model past). De preview toont de laatst opgeslagen concept-versie; ververs de tab na wijzigingen.
+- **`apps/site` blijft verder een stub**: de préview-route is losstaand van `index.astro`/`[...slug].astro` — de "echte" site rendert nog niets vanuit Payload (zie hieronder).
+
 ## Hoe je een preset toevoegt (Gemini of anders)
 
 1. Genereer JSON conform `.claude/skills/theme-field-schema/example-preset.json` (exact 87 keys + `name`, geen extra/ontbrekende sleutels, `opacity*`/`zIndex*` als getal, de rest als string).
@@ -42,12 +84,11 @@ Basis tabs-structuur op de `Sites`-collection (`apps/cms/src/collections/Sites.t
 
 ## Bekende gaten / bewust uitgesteld
 
-- **`apps/site` is grotendeels een stub**: 1 placeholder-pagina (`index.astro`), niet gekoppeld aan Payload's API. `getPageBySlug`/`getSite` bestaan als functies in `apps/site/src/lib/payload-client.ts` maar worden nergens aangeroepen.
-- **Geen page-preview**: gebruiker wil een manier om een pagina (met zijn blocks) te kunnen bekijken — nog niet gebouwd. Kandidaat-aanpakken: Payload's ingebouwde `admin.livePreview`-config (iframe naar de Astro-site), of een simpelere read-only render-preview binnen de CMS zelf. Vereist waarschijnlijk eerst dat `apps/site` daadwerkelijk pagina's rendert vanuit Payload's data.
+- **`apps/site` heeft nu 2 dingen**: de oude placeholder-`index.astro` (nog steeds statisch, niet gekoppeld) én de nieuwe `/preview/[id]`-route die wél echt uit Payload rendert. `getPageBySlug`/`getSite` bestaan nog steeds ongebruikt — een echte productiesite (via slug, niet ID, en met `SITE_ID`-scoping) is nog niet gebouwd.
+- **Page-preview: gebouwd** (zie sessielog hierboven) — read-only via `/preview/{pageId}` + "Voorbeeld bekijken"-knop in de Pages-admin. Geen live-typen-zonder-opslaan (geen `admin.livePreview`-postMessage-bridge); dat blijft toekomstig werk als het nodig blijkt.
 - **SEO/AI-search-laag nog niet aangesloten**: metaTitle/metaDescription/ogImage-velden bestaan (Instellingen-tab), maar geen enkele `.astro`-layout leest ze uit. Geen JSON-LD, geen `llms.txt`, geen sitemap.
 - **Thema-tab UI is kaal**: alle 87 velden zijn plain `text`/`number`, geen colorpicker of font-dropdown — bewust, zie skill-bestand sectie D. Polish is toekomstig werk.
-- **10+ blocks nog te bouwen** (uit de CSV-taxonomie, grofweg op populariteit): Contact (101 voorbeelden — grootste gat), Prijstabel + Price-list, FAQ, Galerij, Team-grid, Tijdlijn, Video, Nieuwsbrief, Divider, Aankondigingsbalk, Social-feed.
-- **4 blocks hebben nog geen Astro-renderer**: `sectionHeading`, `stats`, `testimonials`, `logoBar` (Payload-config bestaat al, frontend-render nog niet).
+- **Blocks: alle CSV-categorieën met genoeg voorbeelden zijn nu gebouwd** (zie sessielog bovenaan). Nog open: Divider, Aankondigingsbalk, Working-hours (geen/weinig CSV-data) en een eventuele losse "full-width-duo"-variant op `fotoTekst`.
 
 ## Conventies om aan te houden
 
