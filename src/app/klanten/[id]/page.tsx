@@ -23,11 +23,11 @@ export default async function KlantDetailPage({
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-900">{customer.name}</h1>
+        <h1 className="text-[28px]">{customer.name}</h1>
         <form action={deleteWithId}>
           <button
             type="submit"
-            className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+            className="btn btn-secondary !text-danger"
           >
             Klant verwijderen
           </button>

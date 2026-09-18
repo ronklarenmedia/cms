@@ -12,19 +12,19 @@ export default async function KlantenPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Klanten</h1>
-          <p className="text-sm text-slate-500">{rows.length} klanten</p>
+          <h1 className="text-[28px]">Klanten</h1>
+          <p className="text-muted text-sm">{rows.length} {rows.length === 1 ? "klant" : "klanten"}</p>
         </div>
         <Link
           href="/klanten/nieuw"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500"
+          className="btn btn-primary"
         >
           + Nieuwe klant
         </Link>
       </div>
 
       {rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+        <div className="text-muted rounded-lg border border-dashed border-neutral-700 p-10 text-center text-sm">
           Nog geen klanten. Voeg de eerste toe met &ldquo;Nieuwe klant&rdquo;.
         </div>
       ) : (
@@ -33,29 +33,25 @@ export default async function KlantenPage() {
             <Link
               key={customer.id}
               href={`/klanten/${customer.id}`}
-              className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm hover:border-indigo-300 hover:shadow-md"
+              className="card elev-sm block !p-4 text-text no-underline transition-shadow hover:shadow-md"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="font-semibold text-slate-900">{customer.name}</div>
-                  <div className="text-sm text-slate-500">{customer.contactName}</div>
+                  <div className="card-title">{customer.name}</div>
+                  <div className="text-muted text-[13px]">{customer.contactName}</div>
                 </div>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                    customer.tier === "pro"
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "bg-slate-100 text-slate-600"
-                  }`}
+                  className={`tag ${customer.tier === "pro" ? "tag-accent" : "tag-neutral"}`}
                 >
                   {tierLabel[customer.tier]}
                 </span>
               </div>
-              <div className="mt-3 space-y-1 text-sm text-slate-600">
+              <div className="mt-3 space-y-1 text-[13px] text-text/80">
                 <div>{customer.email}</div>
                 {customer.phone ? <div>{customer.phone}</div> : null}
               </div>
               {customer.status === "inactive" ? (
-                <div className="mt-3 inline-block rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                <div className="tag tag-outline mt-3 self-start">
                   Inactief
                 </div>
               ) : null}

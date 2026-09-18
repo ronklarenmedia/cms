@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Customer } from "@/db/schema";
 
 export function CustomerForm({
@@ -11,8 +12,8 @@ export function CustomerForm({
 }) {
   return (
     <form action={action} className="max-w-lg space-y-5">
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+      <div className="field">
+        <label htmlFor="name">
           Bedrijfsnaam
         </label>
         <input
@@ -21,11 +22,11 @@ export function CustomerForm({
           type="text"
           required
           defaultValue={customer?.name}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="input"
         />
       </div>
-      <div>
-        <label htmlFor="contactName" className="block text-sm font-medium text-slate-700">
+      <div className="field">
+        <label htmlFor="contactName">
           Contactpersoon
         </label>
         <input
@@ -34,12 +35,12 @@ export function CustomerForm({
           type="text"
           required
           defaultValue={customer?.contactName}
-          className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          className="input"
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+        <div className="field">
+          <label htmlFor="email">
             E-mail
           </label>
           <input
@@ -48,11 +49,11 @@ export function CustomerForm({
             type="email"
             required
             defaultValue={customer?.email}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-slate-700">
+        <div className="field">
+          <label htmlFor="phone">
             Telefoon
           </label>
           <input
@@ -60,34 +61,34 @@ export function CustomerForm({
             name="phone"
             type="tel"
             defaultValue={customer?.phone ?? ""}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="input"
           />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="tier" className="block text-sm font-medium text-slate-700">
+        <div className="field">
+          <label htmlFor="tier">
             Plan
           </label>
           <select
             id="tier"
             name="tier"
             defaultValue={customer?.tier ?? "bojob"}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="input"
           >
             <option value="bojob">BOJOB</option>
             <option value="pro">PRO</option>
           </select>
         </div>
-        <div>
-          <label htmlFor="status" className="block text-sm font-medium text-slate-700">
+        <div className="field">
+          <label htmlFor="status">
             Status
           </label>
           <select
             id="status"
             name="status"
             defaultValue={customer?.status ?? "active"}
-            className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="input"
           >
             <option value="active">Actief</option>
             <option value="inactive">Inactief</option>
@@ -97,13 +98,13 @@ export function CustomerForm({
       <div className="flex items-center gap-3 pt-2">
         <button
           type="submit"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500"
+          className="btn btn-primary"
         >
           {submitLabel}
         </button>
-        <a href="/klanten" className="text-sm font-medium text-slate-600 hover:text-slate-900">
+        <Link href="/klanten" className="btn btn-ghost">
           Annuleren
-        </a>
+        </Link>
       </div>
     </form>
   );
