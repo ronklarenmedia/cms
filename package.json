@@ -1,20 +1,30 @@
 {
-  "name": "cms-platform",
-  "private": true,
+  "name": "ronklarenmedia-platform",
   "version": "0.1.0",
-  "engines": {
-    "node": ">=20"
-  },
+  "private": true,
   "scripts": {
-    "dev:cms": "pnpm --filter cms dev",
-    "dev:site": "pnpm --filter site dev",
-    "build:cms": "pnpm --filter cms build",
-    "build:site": "pnpm --filter site build"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "sharp"
-    ]
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "next": "16.3.5",
+    "pg": "^8.23.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.5",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

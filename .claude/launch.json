@@ -2,16 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "cms",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "cms", "dev"],
+      "name": "rkm-platform",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
       "port": 3000
-    },
-    {
-      "name": "site",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "site", "dev"],
-      "port": 4321
     }
   ]
 }
