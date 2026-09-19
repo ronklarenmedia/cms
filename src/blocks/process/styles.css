@@ -1,0 +1,189 @@
+/* Process — stappenplan en werkwijze */
+
+.blk-process {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-process__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-process__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-process__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-process__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Steps list */
+.blk-process__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-medium);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Base step item */
+.blk-process__step {
+  display: flex;
+  gap: var(--var-spacing-medium);
+}
+
+.blk-process__marker-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.blk-process__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--var-border-radius-full);
+  background: var(--blk-accent);
+  color: var(--blk-btn-fg);
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+  line-height: 1;
+  z-index: 1;
+}
+
+.blk-process__line {
+  position: absolute;
+  top: 2.75rem;
+  bottom: calc(-1 * var(--var-spacing-medium));
+  width: var(--var-border-width-standard);
+  background: var(--blk-line);
+}
+
+.blk-process__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  padding-bottom: var(--var-spacing-medium);
+}
+
+.blk-process__tag {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: var(--var-font-size-xs);
+  font-weight: var(--var-font-weight-medium);
+  color: var(--blk-accent);
+  text-transform: uppercase;
+  letter-spacing: var(--var-letter-spacing-wide);
+}
+
+.blk-process__step-title {
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-process__step-desc {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-standard);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Variant: Horizontaal op grotere schermen */
+@container blk (min-width: 48rem) {
+  .blk-process--horizontal .blk-process__steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+    gap: var(--var-spacing-large);
+  }
+
+  .blk-process--horizontal .blk-process__step {
+    flex-direction: column;
+    gap: var(--var-spacing-standard);
+  }
+
+  .blk-process--horizontal .blk-process__marker-wrap {
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+  }
+
+  .blk-process--horizontal .blk-process__line {
+    position: static;
+    flex-grow: 1;
+    height: var(--var-border-width-standard);
+    width: auto;
+    margin-left: var(--var-spacing-small);
+  }
+
+  .blk-process--horizontal .blk-process__body {
+    padding-bottom: 0;
+  }
+}
+
+/* Variant: Kaarten */
+.blk-process--cards .blk-process__steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--var-spacing-medium);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-process--cards .blk-process__steps {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-process--cards .blk-process__steps {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.blk-process--cards .blk-process__step {
+  flex-direction: column;
+  padding: var(--var-spacing-medium);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-medium);
+  background: var(--blk-tint);
+}
+
+.blk-process--cards .blk-process__line {
+  display: none;
+}
+
+.blk-process--cards .blk-process__marker-wrap {
+  align-self: flex-start;
+}
+
+.blk-process--cards .blk-process__body {
+  padding-bottom: 0;
+}
+
+/* Variant: Tijdlijn */
+.blk-process--timeline .blk-process__step {
+  padding-left: var(--var-spacing-small);
+}
+
+/* Footer */
+.blk-process__footer {
+  display: flex;
+  margin-top: var(--var-spacing-small);
+}

@@ -1,0 +1,81 @@
+/* Logo-bar — raster of rij van logo's */
+
+.blk-logo-bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-medium);
+  text-align: center;
+}
+
+.blk-logo-bar__eyebrow {
+  margin-bottom: var(--var-spacing-xs);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-logo-bar__heading {
+  font-size: var(--var-font-size-medium);
+  color: var(--blk-muted);
+}
+
+.blk-logo-bar__items {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--var-spacing-medium) var(--var-spacing-large);
+}
+
+.blk-logo-bar__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blk-logo-bar__link,
+.blk-logo-bar__wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 10rem;
+  max-height: 3.5rem;
+}
+
+.blk-logo-bar__link img,
+.blk-logo-bar__wrapper img {
+  max-height: 3rem;
+  width: auto;
+  object-fit: contain;
+}
+
+.blk-logo-bar__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Variant: Grayscale / gedimd */
+.blk-logo-bar--grayscale .blk-logo-bar__item {
+  opacity: var(--var-opacity-standard);
+  transition: opacity var(--var-transition-fast);
+}
+
+.blk-logo-bar--grayscale .blk-logo-bar__item:hover {
+  opacity: var(--var-opacity-solid);
+}
+
+/* Variant: Grid op grotere schermen */
+@container blk (min-width: 40rem) {
+  .blk-logo-bar--grid .blk-logo-bar__items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  }
+}

@@ -1,0 +1,183 @@
+/* Pricing — prijstabellen en tarieven */
+
+.blk-pricing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-pricing__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-pricing__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-pricing__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-pricing__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Grid */
+.blk-pricing__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--var-spacing-medium);
+  align-items: stretch;
+}
+
+@container blk (min-width: 40rem) {
+  .blk-pricing--count-2 .blk-pricing__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blk-pricing--count-3 .blk-pricing__grid,
+  .blk-pricing--count-4 .blk-pricing__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-pricing--count-3 .blk-pricing__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .blk-pricing--count-4 .blk-pricing__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Card */
+.blk-pricing__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: var(--var-spacing-large);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-large);
+  background: var(--blk-tint);
+  box-shadow: var(--var-box-shadow-small);
+  transition: transform var(--var-transition-standard), box-shadow var(--var-transition-standard);
+}
+
+.blk-pricing__card:hover {
+  box-shadow: var(--var-box-shadow-standard);
+}
+
+.blk-pricing__card--highlighted {
+  border-color: var(--blk-accent);
+  border-width: var(--var-border-width-standard);
+  box-shadow: var(--var-box-shadow-large);
+  background: var(--blk-tint);
+}
+
+/* Badge */
+.blk-pricing__badge {
+  position: absolute;
+  top: calc(-1 * var(--var-spacing-small));
+  right: var(--var-spacing-medium);
+  padding: var(--var-spacing-xs) var(--var-spacing-small);
+  border-radius: var(--var-border-radius-full);
+  background: var(--blk-accent);
+  color: var(--blk-btn-fg);
+  font-size: var(--var-font-size-xs);
+  font-weight: var(--var-font-weight-bold);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-pricing__card-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  margin-bottom: var(--var-spacing-standard);
+}
+
+.blk-pricing__plan-name {
+  font-size: var(--var-font-size-large);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-pricing__plan-desc {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+  line-height: var(--var-line-height-standard);
+}
+
+/* Price */
+.blk-pricing__price-box {
+  display: flex;
+  align-items: baseline;
+  gap: var(--var-spacing-xs);
+  margin-bottom: var(--var-spacing-medium);
+  padding-bottom: var(--var-spacing-medium);
+  border-bottom: var(--var-border-width-thin) solid var(--blk-line);
+}
+
+.blk-pricing__price {
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-xl);
+  font-weight: var(--var-font-weight-heavy);
+  line-height: var(--var-line-height-tight);
+}
+
+.blk-pricing__period {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+}
+
+/* Features */
+.blk-pricing__features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-small);
+  margin-bottom: var(--var-spacing-large);
+  flex-grow: 1;
+}
+
+.blk-pricing__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--var-spacing-small);
+  font-size: var(--var-font-size-small);
+  color: var(--blk-fg);
+}
+
+.blk-pricing__check {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.8rem;
+  border-right: var(--var-border-width-standard) solid var(--blk-accent);
+  border-bottom: var(--var-border-width-standard) solid var(--blk-accent);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  margin-right: var(--var-spacing-xs);
+}
+
+/* Action button */
+.blk-pricing__action {
+  margin-top: auto;
+}
+
+.blk-pricing__action .blk-btn {
+  width: 100%;
+  text-align: center;
+}
+
+/* Minimal variant */
+.blk-pricing--minimal .blk-pricing__card {
+  padding: var(--var-spacing-medium);
+  border-radius: var(--var-border-radius-standard);
+}

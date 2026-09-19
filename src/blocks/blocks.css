@@ -4,8 +4,17 @@
    Breekpunten: mobiel < 40rem, tablet 40–64rem, desktop ≥ 64rem. */
 
 @import "./hero/styles.css";
+@import "./section-heading/styles.css";
+@import "./stats/styles.css";
+@import "./logo-bar/styles.css";
+@import "./testimonials/styles.css";
+@import "./text-image/styles.css";
 @import "./usp-grid/styles.css";
 @import "./cta-banner/styles.css";
+@import "./faq/styles.css";
+@import "./pricing/styles.css";
+@import "./process/styles.css";
+@import "./team/styles.css";
 @import "./site-header/styles.css";
 @import "./site-footer/styles.css";
 

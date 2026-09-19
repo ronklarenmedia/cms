@@ -1,0 +1,75 @@
+/* Text-image — tekst en afbeelding naast elkaar */
+
+.blk-text-image {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-text-image__eyebrow {
+  margin-bottom: var(--var-spacing-xs);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-text-image__heading {
+  font-size: var(--var-font-size-large);
+}
+
+.blk-text-image__body {
+  margin-top: var(--var-spacing-small);
+  color: var(--blk-muted);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-text-image .blk-btns {
+  margin-top: var(--var-spacing-medium);
+}
+
+.blk-text-image__media {
+  border-radius: var(--var-border-radius-medium);
+  overflow: hidden;
+}
+
+.blk-text-image__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Aspect ratio variaties */
+.blk-text-image--ratio-square .blk-text-image__media img { aspect-ratio: var(--var-aspect-ratio-square); }
+.blk-text-image--ratio-video .blk-text-image__media img { aspect-ratio: var(--var-aspect-ratio-video); }
+.blk-text-image--ratio-photo .blk-text-image__media img { aspect-ratio: var(--var-aspect-ratio-photo); }
+.blk-text-image--ratio-portrait .blk-text-image__media img { aspect-ratio: var(--var-aspect-ratio-portrait); }
+
+/* Variant: Kaarten */
+.blk-text-image--cards {
+  padding: var(--var-spacing-medium);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-large);
+  background: var(--blk-tint);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-text-image__heading {
+    font-size: var(--var-font-size-xl);
+  }
+
+  .blk-text-image {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--var-spacing-xl);
+  }
+
+  .blk-text-image--image-left .blk-text-image__text {
+    order: 2;
+  }
+  .blk-text-image--image-left .blk-text-image__media {
+    order: 1;
+  }
+}

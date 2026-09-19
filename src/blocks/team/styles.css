@@ -1,0 +1,159 @@
+/* Team — teamleden met foto's, rollen en bio's */
+
+.blk-team {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-team__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-team__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-team__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-team__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Grid */
+.blk-team__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--var-spacing-medium);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-team--cols-2 .blk-team__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .blk-team--cols-3 .blk-team__grid,
+  .blk-team--cols-4 .blk-team__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--var-spacing-large);
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-team--cols-3 .blk-team__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .blk-team--cols-4 .blk-team__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Member item */
+.blk-team__member {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--var-border-radius-medium);
+  overflow: hidden;
+}
+
+.blk-team__media {
+  overflow: hidden;
+  border-radius: var(--var-border-radius-standard);
+  background: var(--blk-tint);
+}
+
+.blk-team__media img {
+  width: 100%;
+  aspect-ratio: var(--var-aspect-ratio-portrait);
+  object-fit: cover;
+  transition: transform var(--var-transition-slow);
+}
+
+.blk-team__member:hover .blk-team__media img {
+  transform: scale(1.03);
+}
+
+.blk-team__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  padding-top: var(--var-spacing-small);
+}
+
+.blk-team__name {
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-team__role {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+}
+
+.blk-team__bio {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+  line-height: var(--var-line-height-standard);
+}
+
+/* Variant: Kaarten */
+.blk-team--cards .blk-team__member {
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  background: var(--blk-tint);
+}
+
+.blk-team--cards .blk-team__media {
+  border-radius: 0;
+}
+
+.blk-team--cards .blk-team__info {
+  padding: var(--var-spacing-medium);
+}
+
+/* Variant: Ronde portretten */
+.blk-team--round .blk-team__member {
+  align-items: center;
+  text-align: center;
+}
+
+.blk-team--round .blk-team__media {
+  width: 9rem;
+  height: 9rem;
+  border-radius: var(--var-border-radius-full);
+}
+
+.blk-team--round .blk-team__media img {
+  aspect-ratio: var(--var-aspect-ratio-square);
+  border-radius: var(--var-border-radius-full);
+}
+
+/* Variant: Minimalistisch */
+.blk-team--minimal .blk-team__member {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--var-spacing-medium);
+}
+
+.blk-team--minimal .blk-team__media {
+  width: 5rem;
+  height: 5rem;
+  flex-shrink: 0;
+  border-radius: var(--var-border-radius-full);
+}
+
+.blk-team--minimal .blk-team__media img {
+  aspect-ratio: var(--var-aspect-ratio-square);
+  border-radius: var(--var-border-radius-full);
+}

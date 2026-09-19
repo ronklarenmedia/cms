@@ -16,7 +16,7 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Klanten | Echt (overzicht, detail met websites, nieuw/wijzigen/verwijderen) |
 | Websites | Echt (galerij, aanmaken, builder, voorbeeld, status Live/Concept) — **publiceren doet nog niets buiten de status** |
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
-| Blocks | 5 stuks: `hero`, `usp-grid`, `cta-banner`, `site-header`, `site-footer` |
+| Blocks | 14 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `site-header`, `site-footer` (de meeste door Gemini gebouwd, gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
 | Platform-dashboard (`/`), Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
@@ -96,7 +96,7 @@ Phosphor-icons. **Dit is niet de Next.js uit je hoofd**: `AGENTS.md` verwijst na
 ```
 src/app/            routes (klanten, websites, componenten, login, api/auth, mockup-pagina's)
 src/app/websites/   builder (SiteBuilder, SchemaForm, PageSettingsForm), acties, SiteFrame, layout-slots, seo, sections
-src/blocks/         het block-systeem (contract, registry, Section, BlockRenderer, theme, 5 blocks, README)
+src/blocks/         het block-systeem (contract, registry, Section, BlockRenderer, theme, 14 blocks, README)
 src/db/             Drizzle-schema (schema.ts) en verbinding (index.ts)
 src/lib/            auth.ts (Better Auth), auth-client.ts, session.ts (sessiecontrole)
 src/mockup/         overgenomen Claude Design-mockup; nog in gebruik voor de mockup-schermen
@@ -161,9 +161,13 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 1. ✅ Login en rollen, verwijder-bug.
 2. ✅ Sitebrede header/footer, ✅ SEO per pagina.
    - ⏳ **Afbeeldingen uploaden**: wacht op keuze opslag (zie §8). Tot dan alleen URL-velden.
-   - ⏳ **Resterende blocks** (FAQ, team, prijzen, stappen, tijdlijn, cases, galerij, breadcrumbs, video, lijst,
-     stats, logo-bar, testimonials, tekst+beeld…): bij Gemini, zie de brief. Blocks die client-JS of een backend
-     nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding) eerst overleggen.
+   - ⏳ **Resterende blocks** (tijdlijn, cases, galerij, breadcrumbs, video, lijst…): bij Gemini, zie de brief. Blocks die
+     client-JS of een backend nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding) eerst overleggen.
+   - Bekende puntjes in de blocks van Gemini (niet blokkerend): `testimonials` levert `Review`-JSON-LD zonder
+     `itemReviewed` (Google gebruikt dat niet voor review-snippets) en de sterren hebben `aria-label` op een gewone `div`
+     (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel
+     voorgelezen); `team` zet `position` op de `Person` in plaats van op een `ListItem` en gebruikt een relatieve
+     `image`-URL in de JSON-LD.
 3. **Design kits**: eerst het model kiezen (zie §8). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
 4. **Echt publiceren**: sites serveren (per domein), domeinen/DNS, versiegeschiedenis en terugrollen (snapshot bij

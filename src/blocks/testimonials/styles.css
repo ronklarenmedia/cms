@@ -1,0 +1,132 @@
+/* Testimonials — grid, kaarten of enkele grote quote */
+
+.blk-testimonials {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-testimonials--cols-1 { --blk-cols: 1; }
+.blk-testimonials--cols-2 { --blk-cols: 2; }
+.blk-testimonials--cols-3 { --blk-cols: 3; }
+
+.blk-testimonials__eyebrow {
+  margin-bottom: var(--var-spacing-xs);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-testimonials__heading {
+  font-size: var(--var-font-size-large);
+}
+
+.blk-testimonials__intro {
+  max-width: var(--var-max-width-small);
+  margin-top: var(--var-spacing-small);
+  color: var(--blk-muted);
+}
+
+.blk-testimonials__items {
+  display: grid;
+  gap: var(--var-spacing-medium);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.blk-testimonials__figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.blk-testimonials__rating {
+  margin-bottom: var(--var-spacing-small);
+  color: var(--var-color-accent);
+  font-size: var(--var-font-size-standard);
+  letter-spacing: 0.1em;
+}
+
+.blk-testimonials__quote {
+  margin: 0;
+  flex: 1;
+  font-size: var(--var-font-size-standard);
+  line-height: var(--var-line-height-relaxed);
+  color: var(--blk-fg);
+}
+
+.blk-testimonials__author {
+  display: flex;
+  align-items: center;
+  gap: var(--var-spacing-standard);
+  margin-top: var(--var-spacing-medium);
+}
+
+.blk-testimonials__avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: var(--var-border-radius-full);
+  overflow: hidden;
+  background: var(--blk-tint);
+}
+
+.blk-testimonials__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.blk-testimonials__name {
+  font-size: var(--var-font-size-standard);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-testimonials__role {
+  margin-top: var(--var-spacing-xs);
+  font-size: var(--var-font-size-small);
+  color: var(--blk-muted);
+}
+
+/* Variant: Kaarten & Grid */
+.blk-testimonials--cards .blk-testimonials__item,
+.blk-testimonials--grid .blk-testimonials__item {
+  padding: var(--var-spacing-medium);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-medium);
+  background: var(--blk-tint);
+}
+
+/* Variant: Single grote quote */
+.blk-testimonials--single {
+  text-align: center;
+}
+.blk-testimonials--single .blk-testimonials__quote {
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-medium);
+  max-width: var(--var-max-width-standard);
+  margin-inline: auto;
+}
+.blk-testimonials--single .blk-testimonials__author {
+  justify-content: center;
+}
+
+@container blk (min-width: 40rem) {
+  .blk-testimonials__heading {
+    font-size: var(--var-font-size-xl);
+  }
+  .blk-testimonials--single .blk-testimonials__quote {
+    font-size: var(--var-font-size-large);
+  }
+  .blk-testimonials__items {
+    grid-template-columns: repeat(min(var(--blk-cols), 2), minmax(0, 1fr));
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-testimonials__items {
+    grid-template-columns: repeat(var(--blk-cols), minmax(0, 1fr));
+  }
+}

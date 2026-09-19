@@ -1,0 +1,62 @@
+/* Section Heading — gecentreerd, links of gesplitst */
+
+.blk-section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-medium);
+}
+
+.blk-section-heading__eyebrow {
+  margin-bottom: var(--var-spacing-xs);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-section-heading__heading {
+  font-size: var(--var-font-size-large);
+}
+
+.blk-section-heading__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+}
+
+.blk-section-heading__aside {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-medium);
+}
+
+/* Variant: Gecentreerd */
+.blk-section-heading--centered {
+  text-align: center;
+}
+.blk-section-heading--centered .blk-section-heading__intro {
+  max-width: var(--var-max-width-small);
+  margin-inline: auto;
+}
+.blk-section-heading--centered .blk-btns {
+  justify-content: center;
+}
+
+/* Variant: Links */
+.blk-section-heading--left .blk-section-heading__intro {
+  max-width: var(--var-max-width-small);
+}
+
+/* Container queries voor responsive maten en split layout */
+@container blk (min-width: 40rem) {
+  .blk-section-heading__heading {
+    font-size: var(--var-font-size-xl);
+  }
+
+  .blk-section-heading--split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: var(--var-spacing-large);
+  }
+}

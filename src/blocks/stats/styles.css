@@ -1,0 +1,102 @@
+/* Stats — kengetallen in 2 tot 4 kolommen */
+
+.blk-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-stats--cols-2 { --blk-cols: 2; }
+.blk-stats--cols-3 { --blk-cols: 3; }
+.blk-stats--cols-4 { --blk-cols: 4; }
+
+.blk-stats__eyebrow {
+  margin-bottom: var(--var-spacing-xs);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+.blk-stats__heading {
+  font-size: var(--var-font-size-large);
+}
+.blk-stats__intro {
+  max-width: var(--var-max-width-small);
+  margin-top: var(--var-spacing-small);
+  color: var(--blk-muted);
+}
+
+.blk-stats__items {
+  display: grid;
+  gap: var(--var-spacing-medium);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.blk-stats__item {
+  display: flex;
+  flex-direction: column;
+}
+
+.blk-stats__value {
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-xl);
+  font-weight: var(--var-font-weight-bold);
+  line-height: var(--var-line-height-tight);
+  color: var(--blk-accent);
+}
+
+.blk-stats__label {
+  margin-top: var(--var-spacing-xs);
+  font-weight: var(--var-font-weight-medium);
+  font-size: var(--var-font-size-standard);
+  color: var(--blk-fg);
+}
+
+.blk-stats__description {
+  margin-top: var(--var-spacing-xs);
+  font-size: var(--var-font-size-small);
+  color: var(--blk-muted);
+}
+
+/* Variant: Kaarten */
+.blk-stats--cards .blk-stats__item {
+  padding: var(--var-spacing-medium);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-medium);
+  background: var(--blk-tint);
+}
+
+/* Variant: Scheidingslijnen */
+.blk-stats--bordered .blk-stats__item {
+  padding-bottom: var(--var-spacing-medium);
+  border-bottom: var(--var-border-width-thin) solid var(--blk-line);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-stats__heading {
+    font-size: var(--var-font-size-xl);
+  }
+  .blk-stats__value {
+    font-size: var(--var-font-size-xxl);
+  }
+  .blk-stats__items {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .blk-stats--bordered .blk-stats__item {
+    padding-bottom: 0;
+    padding-right: var(--var-spacing-medium);
+    border-bottom: none;
+    border-right: var(--var-border-width-thin) solid var(--blk-line);
+  }
+  .blk-stats--bordered .blk-stats__item:last-child {
+    border-right: none;
+    padding-right: 0;
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-stats__items {
+    grid-template-columns: repeat(var(--blk-cols), minmax(0, 1fr));
+  }
+}
