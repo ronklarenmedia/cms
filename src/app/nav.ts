@@ -1,62 +1,50 @@
-import {
-  AppWindow,
-  Browsers,
-  ChartLineUp,
-  Coins,
-  FileText,
-  GearSix,
-  type Icon,
-  PenNib,
-  Palette,
-  Plus,
-  PuzzlePiece,
-  SquaresFour,
-  UsersThree,
-} from "@phosphor-icons/react";
-
-export type NavChild = { label: string; icon: Icon; href?: string };
+// Menustructuur uit de Claude Design-mockup. `icon` is een Phosphor-icoonnaam (zonder "ph-").
+export type NavChild = { label: string; icon: string; href: string };
 export type NavItem = NavChild & { children?: NavChild[]; gapAfter?: boolean };
 
-// Menustructuur uit de Claude Design-mockup. Items zonder `href` hebben nog geen pagina
-// en verschijnen uitgeschakeld in het menu.
 export const nav: NavItem[] = [
-  { label: "Platform", icon: SquaresFour, gapAfter: true },
+  { label: "Platform", icon: "squares-four", href: "/", gapAfter: true },
   {
     label: "Klanten",
-    icon: UsersThree,
+    icon: "users-three",
     href: "/klanten",
-    children: [{ label: "Nieuwe klant", icon: Plus, href: "/klanten/nieuw" }],
+    children: [{ label: "Nieuwe klant", icon: "plus", href: "/klanten/nieuw" }],
   },
   {
     label: "Websites",
-    icon: Browsers,
-    children: [{ label: "Nieuwe website", icon: Plus }],
+    icon: "browsers",
+    href: "/websites",
+    children: [{ label: "Nieuwe website", icon: "plus", href: "/websites/nieuw" }],
   },
   {
     label: "Apps",
-    icon: AppWindow,
+    icon: "app-window",
+    href: "/apps",
     gapAfter: true,
-    children: [{ label: "Nieuwe app", icon: Plus }],
+    children: [{ label: "Nieuwe app", icon: "plus", href: "/apps/nieuw" }],
   },
   {
     label: "Componenten",
-    icon: PuzzlePiece,
-    children: [{ label: "Editor", icon: PenNib }],
+    icon: "puzzle-piece",
+    href: "/componenten",
+    children: [{ label: "Editor", icon: "pen-nib", href: "/componenten/editor" }],
   },
   {
     label: "Design kits",
-    icon: Palette,
+    icon: "palette",
+    href: "/design-kits",
     gapAfter: true,
-    children: [{ label: "Editor", icon: PenNib }],
+    children: [{ label: "Editor", icon: "pen-nib", href: "/design-kits/editor" }],
   },
   {
     label: "Rapportages",
-    icon: ChartLineUp,
+    icon: "chart-line-up",
+    href: "/rapportages/klanten",
     gapAfter: true,
     children: [
-      { label: "Klantrapporten", icon: FileText },
-      { label: "Omzet & marge", icon: Coins },
+      { label: "Klantrapporten", icon: "file-text", href: "/rapportages/klanten" },
+      { label: "Omzet & marge", icon: "coins", href: "/rapportages/omzet" },
     ],
   },
-  { label: "Instellingen", icon: GearSix },
+  { label: "Instellingen", icon: "gear-six", href: "/instellingen" },
 ];

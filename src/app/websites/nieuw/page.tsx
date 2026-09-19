@@ -1,0 +1,5 @@
+import { MockupScreen } from "@/mockup/MockupScreen";
+
+export default function Page() {
+  return <MockupScreen active="websites/nieuw" title="Nieuwe website" />;
+}

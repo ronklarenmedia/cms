@@ -1,64 +1,38 @@
-import Link from "next/link";
-import { desc } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
+import { MockupScreen } from "@/mockup/MockupScreen";
 
-const tierLabel = { bojob: "BOJOB", pro: "PRO" } as const;
+const plan = {
+  pro: { label: "Pro", tag: "tag tag-accent" },
+  bojob: { label: "BOJOB", tag: "tag tag-neutral" },
+} as const;
+
+const monogram = (name: string) =>
+  name
+    .split(" ")
+    .filter((w) => /[a-z]/i.test(w[0]))
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
 
 export default async function KlantenPage() {
-  const rows = await db.select().from(customers).orderBy(desc(customers.createdAt));
+  const rows = await db.select().from(customers).orderBy(asc(customers.name));
 
-  return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-[28px]">Klanten</h1>
-          <p className="text-muted text-sm">{rows.length} {rows.length === 1 ? "klant" : "klanten"}</p>
-        </div>
-        <Link
-          href="/klanten/nieuw"
-          className="btn btn-primary"
-        >
-          + Nieuwe klant
-        </Link>
-      </div>
+  // Vorm van de roster uit de mockup; de kaarten tonen alleen wat het datamodel kent.
+  const roster = rows.map((c) => ({
+    id: c.id,
+    name: c.name,
+    cp: c.contactName,
+    tel: c.phone ?? "—",
+    mail: c.email,
+    plan: plan[c.tier].label,
+    planTag: plan[c.tier].tag,
+    letter: c.name[0].toUpperCase(),
+    monogram: monogram(c.name),
+    services: c.status === "inactive" ? [{ label: "Inactief" }] : [],
+  }));
 
-      {rows.length === 0 ? (
-        <div className="text-muted rounded-lg border border-dashed border-neutral-700 p-10 text-center text-sm">
-          Nog geen klanten. Voeg de eerste toe met &ldquo;Nieuwe klant&rdquo;.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((customer) => (
-            <Link
-              key={customer.id}
-              href={`/klanten/${customer.id}`}
-              className="card elev-sm block !p-4 text-text no-underline transition-shadow hover:shadow-md"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="card-title">{customer.name}</div>
-                  <div className="text-muted text-[13px]">{customer.contactName}</div>
-                </div>
-                <span
-                  className={`tag ${customer.tier === "pro" ? "tag-accent" : "tag-neutral"}`}
-                >
-                  {tierLabel[customer.tier]}
-                </span>
-              </div>
-              <div className="mt-3 space-y-1 text-[13px] text-text/80">
-                <div>{customer.email}</div>
-                {customer.phone ? <div>{customer.phone}</div> : null}
-              </div>
-              {customer.status === "inactive" ? (
-                <div className="tag tag-outline mt-3 self-start">
-                  Inactief
-                </div>
-              ) : null}
-            </Link>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  return <MockupScreen active="klanten" title="Klanten" roster={roster} />;
 }

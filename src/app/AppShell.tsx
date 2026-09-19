@@ -4,14 +4,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Bell, CaretDown, CaretRight, MagnifyingGlass, SidebarSimple } from "@phosphor-icons/react";
 import { nav, type NavChild, type NavItem } from "./nav";
 
 const itemBase =
   "flex w-full items-center gap-3 rounded-md px-3 py-[7px] text-left text-[13.5px]";
 const childBase =
   "flex w-full items-center gap-2 rounded-sm px-3 py-[5px] text-left text-[12.5px]";
-const disabledCls = "cursor-not-allowed opacity-45";
 
 function NavEntry({
   entry,
@@ -24,30 +22,14 @@ function NavEntry({
   iconSize: number;
   collapsed: boolean;
 }) {
-  const Icon = entry.icon;
-  const content = (
-    <>
-      <Icon size={iconSize} className="w-4 flex-none" />
-      {collapsed ? null : <span className="min-w-0 flex-1 truncate">{entry.label}</span>}
-    </>
-  );
-  const justify = collapsed ? "justify-center" : "justify-start";
-
-  if (!entry.href) {
-    return (
-      <button
-        type="button"
-        disabled
-        title={`${entry.label} — binnenkort`}
-        className={`${className} ${justify} ${disabledCls}`}
-      >
-        {content}
-      </button>
-    );
-  }
   return (
-    <Link href={entry.href} title={entry.label} className={`${className} ${justify}`}>
-      {content}
+    <Link
+      href={entry.href}
+      title={entry.label}
+      className={`${className} ${collapsed ? "justify-center" : "justify-start"}`}
+    >
+      <i className={`ph ph-${entry.icon} w-4 flex-none text-center`} style={{ fontSize: iconSize }} />
+      {collapsed ? null : <span className="min-w-0 flex-1 truncate">{entry.label}</span>}
     </Link>
   );
 }
@@ -77,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`grid h-screen overflow-hidden bg-bg text-text ${
+      className={`grid h-screen grid-rows-[minmax(0,1fr)] overflow-hidden bg-bg text-text ${
         collapsed ? "grid-cols-[60px_minmax(0,1fr)]" : "grid-cols-[224px_minmax(0,1fr)]"
       }`}
     >
@@ -106,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             title="Menu in-/uitklappen"
             className="btn btn-ghost size-[26px] flex-none !p-0 !text-neutral-500 hover:!text-accent"
           >
-            <SidebarSimple size={15} />
+            <i className="ph ph-sidebar-simple text-[15px]" />
           </button>
         </div>
 
@@ -132,10 +114,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     collapsed={collapsed}
                   />
                   {!collapsed && kids.length > 0 ? (
-                    <CaretDown
-                      size={11}
-                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 opacity-70"
-                    />
+                    <i className="ph ph-caret-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] opacity-70" />
                   ) : null}
                 </div>
                 {open ? (
@@ -180,17 +159,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="whitespace-nowrap text-text/72">{crumbRoot}</span>
             {pageTitle ? (
               <>
-                <CaretRight size={11} className="text-neutral-700" />
+                <i className="ph ph-caret-right text-[11px] text-neutral-700" />
                 <span className="whitespace-nowrap font-heading font-medium">{pageTitle}</span>
               </>
             ) : null}
           </div>
           <div className="ml-auto flex max-w-[520px] flex-1 items-center justify-end gap-3">
             <div className="relative min-w-0 max-w-[440px] flex-1">
-              <MagnifyingGlass
-                size={14}
-                className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-text/70"
-              />
+              <i className="ph ph-magnifying-glass pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-text/70" />
               <input
                 type="search"
                 placeholder="Zoek klanten, websites, apps of pagina's"
@@ -198,7 +174,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               />
             </div>
             <button type="button" title="Meldingen" className="btn btn-icon btn-secondary">
-              <Bell size={16} />
+              <i className="ph ph-bell" />
             </button>
           </div>
         </div>

@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { MockupScreen } from "@/mockup/MockupScreen";
 
 export default function Home() {
-  redirect("/klanten");
+  return <MockupScreen active="platform" title="Platform" />;
 }
