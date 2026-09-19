@@ -15,6 +15,7 @@ export const initialState = {
   setTab: "thema", wide: true, repClient: "Meridian Studio",
   compVariant: 0, compBp: 0, compLayer: "Heading", compPad: 64,
   compHeading: "Merkwerk dat blijft staan", compSize: 40, compMedia: true,
+  bPage: "Home", bSection: "Hero", bDevice: "desktop", bLevel: "pages",
 };
 
 export class MockupLogic {
@@ -261,6 +262,81 @@ export class MockupLogic {
     };
   }
 
+  builderVals() {
+    const selPage = this.state.bPage ?? "Home";
+    const selSection = this.state.bSection ?? "Hero";
+    const device = this.state.bDevice ?? "desktop";
+    const accent = "var(--color-accent)";
+    const soft = "color-mix(in srgb, var(--color-text) 70%, transparent)";
+
+    const pages = [
+      ["Home", "ph ph-house"], ["Over ons", "ph ph-users"], ["Diensten", "ph ph-squares-four"],
+      ["Projecten", "ph ph-images"], ["Nieuws", "ph ph-article"], ["Contact", "ph ph-envelope-simple"],
+      ["Privacy", "ph ph-shield-check"],
+    ].map(([label, icon]) => {
+      const on = label === selPage;
+      return {
+        label, icon, on,
+        bg: on ? "color-mix(in srgb, var(--color-accent) 16%, transparent)" : "transparent",
+        fg: on ? "var(--color-accent-200)" : soft,
+        ring: on ? "inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent)" : "none",
+        select: () => this.setState({ bPage: label, bLevel: "sections" }),
+      };
+    });
+    const level = this.state.bLevel ?? "pages";
+
+    const sections = [
+      ["Hero", "ph ph-image-square", 230, 1], ["Intro", "ph ph-text-align-left", 130, 0],
+      ["Diensten", "ph ph-grid-four", 210, 0], ["USP-balk", "ph ph-check-circle", 80, 1],
+      ["Cases", "ph ph-cards", 220, 0], ["Review", "ph ph-quotes", 130, 1],
+      ["CTA", "ph ph-cursor-click", 140, 0], ["Footer", "ph ph-rows", 150, 2],
+    ].map(([label, icon, h, tone]) => {
+      const on = label === selSection;
+      return {
+        label, icon, on,
+        height: h + "px",
+        paper: tone === 1 ? "#eceae5" : tone === 2 ? "#23212b" : "#f6f4f0",
+        ink: tone === 2 ? "#cfcbd8" : "#3a3740",
+        outline: on ? "2px solid var(--color-accent)" : "2px solid transparent",
+        badgeShow: on,
+        bg: on ? "color-mix(in srgb, var(--color-accent) 16%, transparent)" : "transparent",
+        fg: on ? "var(--color-accent-200)" : soft,
+        ring: on ? "inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent)" : "none",
+        select: () => this.setState({ bSection: label }),
+      };
+    });
+
+    const devices = [["desktop", "ph ph-monitor"], ["tablet", "ph ph-device-tablet"], ["mobiel", "ph ph-device-mobile"]]
+      .map(([id, icon]) => ({
+        icon, id,
+        bg: device === id ? "color-mix(in srgb, var(--color-accent) 16%, transparent)" : "transparent",
+        fg: device === id ? "var(--color-accent-200)" : soft,
+        select: () => this.setState({ bDevice: id }),
+      }));
+
+    const canvasWidth = device === "desktop" ? "100%" : device === "tablet" ? "760px" : "390px";
+
+    const setFields = [
+      { label: "Variant", type: "select", options: ["Beeld links", "Beeld rechts", "Volledige breedte", "Gecentreerd"] },
+      { label: "Achtergrond", type: "swatch" },
+      { label: "Hoogte", type: "select", options: ["Compact", "Normaal", "Volledig scherm"] },
+      { label: "Uitlijning", type: "seg", options: ["Links", "Midden", "Rechts"] },
+    ];
+
+    return {
+      bPages: pages, bSections: sections, bDevices: devices,
+      bTrackShift: level === "sections" ? "-50%" : "0%",
+      bNavTitle: level === "sections" ? selPage : "Pagina's",
+      bShowBack: level === "sections",
+      bAddTitle: level === "sections" ? "Sectie toevoegen" : "Pagina toevoegen",
+      bBack: () => this.setState({ bLevel: "pages" }),
+      bSelPage: selPage, bSelSection: selSection,
+      bCanvasWidth: canvasWidth,
+      bSetFields: setFields,
+      bSectionMeta: selSection + " · sectie-instellingen",
+    };
+  }
+
   renderVals() {
     const active = this.props.active;
 
@@ -482,6 +558,8 @@ export class MockupLogic {
       ...this.compEditorVals(),
       ...this.settingsVals(),
       ...this.reportVals(),
+      ...this.builderVals(),
+      showBuilder: active === "websites/nieuw",
       showRepClient: active === "rapportages/klanten",
       showRepFin: active === "rapportages/omzet",
       showSettings: active === "instellingen",

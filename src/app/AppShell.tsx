@@ -36,7 +36,10 @@ function NavEntry({
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [userCollapsed, setCollapsed] = useState(false);
+  // De website-builder heeft alle breedte nodig: menu ingeklapt en geen padding rond de inhoud.
+  const isBuilder = pathname === "/websites/nieuw";
+  const collapsed = isBuilder || userCollapsed;
 
   const childOn = (c: NavChild) => c.href === pathname;
   const hasActiveChild = (item: NavItem) => item.children?.some(childOn) ?? false;
@@ -179,7 +182,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <main className="min-h-0 flex-1 overflow-auto p-8">{children}</main>
+        <main className={`min-h-0 flex-1 ${isBuilder ? "overflow-hidden" : "overflow-auto p-8"}`}>
+          {children}
+        </main>
       </div>
     </div>
   );
