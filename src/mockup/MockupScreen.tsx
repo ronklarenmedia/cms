@@ -4,8 +4,6 @@ import type { ComponentType } from "react";
 import { useMockupVals } from "./MockupProvider";
 import type { Vals } from "./logic";
 import { BuilderScreen } from "./screens/Builder";
-import { ComponentEditorScreen } from "./screens/ComponentEditor";
-import { ComponentenScreen } from "./screens/Componenten";
 import { DesignKitEditorScreen } from "./screens/DesignKitEditor";
 import { DesignKitsScreen } from "./screens/DesignKits";
 import { GalerijScreen } from "./screens/Galerij";
@@ -23,8 +21,6 @@ const screens: Record<string, ComponentType<{ v: Vals }>> = {
   websites: GalerijScreen,
   "websites/nieuw": BuilderScreen,
   apps: GalerijScreen,
-  componenten: ComponentenScreen,
-  "componenten/editor": ComponentEditorScreen,
   designkits: DesignKitsScreen,
   "designkits/editor": DesignKitEditorScreen,
   instellingen: InstellingenScreen,
