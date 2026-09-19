@@ -1,0 +1,35 @@
+/* CTA-band — variant bepaalt de lay-out, de achtergrond komt uit de sectie-instellingen. */
+
+.blk-cta-banner {
+  display: grid;
+  gap: var(--var-spacing-medium);
+  justify-items: center;
+  text-align: center;
+}
+.blk-cta-banner__heading {
+  font-size: var(--var-font-size-large);
+}
+.blk-cta-banner__body {
+  max-width: var(--var-max-width-small);
+  margin-top: var(--var-spacing-small);
+  color: var(--blk-muted);
+}
+.blk-cta-banner .blk-btns {
+  justify-content: center;
+}
+
+@container blk (min-width: 40rem) {
+  .blk-cta-banner__heading {
+    font-size: var(--var-font-size-xl);
+  }
+  .blk-cta-banner--split {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    justify-items: stretch;
+    gap: var(--var-spacing-xl);
+    text-align: left;
+  }
+  .blk-cta-banner--split .blk-btns {
+    justify-content: flex-end;
+  }
+}

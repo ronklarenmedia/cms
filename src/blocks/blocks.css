@@ -1,0 +1,179 @@
+/* Basis-CSS voor alle blocks + één @import per block. Eén gedeeld, cachebaar bestand.
+   Regels: alleen var(--var-*)-tokens, geen kleurwaarden, geen !important, responsiviteit met
+   container queries (@container blk) zodat het builder-canvas de breedte kan simuleren.
+   Breekpunten: mobiel < 40rem, tablet 40–64rem, desktop ≥ 64rem. */
+
+@import "./hero/styles.css";
+@import "./usp-grid/styles.css";
+@import "./cta-banner/styles.css";
+
+.blk-root {
+  container: blk / inline-size;
+}
+
+/* De visuele sectie: achtergrond, ruimte en lokale kleurvariabelen (--blk-*). */
+.blk {
+  --blk-fg: var(--var-color-text);
+  --blk-muted: color-mix(in srgb, var(--blk-fg) 72%, transparent);
+  --blk-line: color-mix(in srgb, var(--blk-fg) 16%, transparent);
+  --blk-tint: color-mix(in srgb, var(--blk-fg) 6%, transparent);
+  --blk-accent: var(--var-color-primary);
+  --blk-btn-bg: var(--var-color-primary);
+  --blk-btn-fg: var(--var-color-white);
+
+  font-family: var(--var-font-family-text);
+  font-size: var(--var-font-size-standard);
+  font-weight: var(--var-font-weight-standard);
+  line-height: var(--var-line-height-standard);
+  letter-spacing: var(--var-letter-spacing-standard);
+  color: var(--blk-fg);
+  text-align: left;
+}
+
+.blk--align-center {
+  text-align: center;
+}
+
+/* Achtergronden: elke waarde is een token; donkere vlakken zetten hun lokale kleuren om. */
+.blk--bg-off-white {
+  background: var(--var-color-off-white);
+}
+.blk--bg-primary-light {
+  background: var(--var-color-bg-primary-light);
+}
+.blk--bg-secondary-light {
+  background: var(--var-color-bg-secondary-light);
+}
+.blk--bg-primary,
+.blk--bg-primary-dark,
+.blk--bg-black {
+  --blk-fg: var(--var-color-white);
+  --blk-accent: var(--var-color-white);
+  --blk-btn-bg: var(--var-color-white);
+  --blk-btn-fg: var(--var-color-text);
+}
+.blk--bg-primary {
+  background: var(--var-color-primary);
+  --blk-btn-fg: var(--var-color-primary);
+}
+.blk--bg-primary-dark {
+  background: var(--var-color-bg-primary-dark);
+  --blk-btn-fg: var(--var-color-bg-primary-dark);
+}
+.blk--bg-black {
+  background: var(--var-color-bg-black);
+  --blk-btn-fg: var(--var-color-bg-black);
+}
+
+/* Verticale ruimte en breedte uit de spacing- en max-width-tokens. */
+.blk--py-xs { padding-block: var(--var-spacing-xs); }
+.blk--py-small { padding-block: var(--var-spacing-small); }
+.blk--py-standard { padding-block: var(--var-spacing-standard); }
+.blk--py-medium { padding-block: var(--var-spacing-medium); }
+.blk--py-large { padding-block: var(--var-spacing-large); }
+.blk--py-xl { padding-block: var(--var-spacing-xl); }
+.blk--py-xxl { padding-block: var(--var-spacing-xxl); }
+
+.blk__inner {
+  margin-inline: auto;
+  padding-inline: var(--var-spacing-standard);
+}
+.blk__inner--small { max-width: var(--var-max-width-small); }
+.blk__inner--standard { max-width: var(--var-max-width-standard); }
+.blk__inner--medium { max-width: var(--var-max-width-medium); }
+.blk__inner--large { max-width: var(--var-max-width-large); }
+.blk__inner--full { max-width: var(--var-max-width-full); }
+
+/* Zichtbaarheid per apparaat, gemeten aan de containerbreedte. */
+@container blk (max-width: 39.99rem) {
+  .blk--hide-mobile { display: none; }
+}
+@container blk (min-width: 40rem) and (max-width: 63.99rem) {
+  .blk--hide-tablet { display: none; }
+}
+@container blk (min-width: 64rem) {
+  .blk--hide-desktop { display: none; }
+}
+
+/* Gedeelde typografie binnen een block. :where() geeft deze regels specificiteit 0, zodat
+   elke klasse van een block (.blk-hero__body, .blk-btn--primary, …) ze altijd kan overschrijven. */
+:where(.blk) :is(h1, h2, h3, h4) {
+  margin: 0;
+  color: inherit;
+  font-family: var(--var-font-family-primary);
+  font-weight: var(--var-font-weight-bold);
+  line-height: var(--var-line-height-tight);
+  letter-spacing: var(--var-letter-spacing-tight);
+  text-transform: none;
+}
+:where(.blk) p {
+  margin: 0;
+}
+:where(.blk) ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+:where(.blk) a {
+  color: inherit;
+}
+:where(.blk) img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Gedeelde knoppen (parts/Buttons.tsx). */
+.blk-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--var-spacing-small);
+}
+.blk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--var-spacing-small) var(--var-spacing-medium);
+  border: var(--var-border-width-standard) solid transparent;
+  border-radius: var(--var-border-radius-standard);
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-standard);
+  font-weight: var(--var-font-weight-medium);
+  line-height: var(--var-line-height-tight);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    opacity var(--var-transition-fast),
+    background-color var(--var-transition-fast);
+}
+.blk-btn--primary {
+  background: var(--blk-btn-bg);
+  color: var(--blk-btn-fg);
+}
+.blk-btn--primary:hover {
+  opacity: var(--var-opacity-heavy);
+}
+.blk-btn--secondary {
+  border-color: currentColor;
+  background: transparent;
+  color: var(--blk-fg);
+}
+.blk-btn--secondary:hover {
+  background: var(--blk-tint);
+}
+.blk-btn:focus-visible {
+  outline: var(--var-border-width-standard) solid var(--blk-fg);
+  outline-offset: var(--var-spacing-xs);
+}
+
+/* Alleen in development: foutmelding als een sectie niet aan zijn schema voldoet. */
+.blk-error {
+  margin: var(--var-spacing-standard);
+  padding: var(--var-spacing-standard);
+  border: var(--var-border-width-standard) solid var(--var-color-error);
+  border-radius: var(--var-border-radius-standard);
+  color: var(--var-color-error);
+  font-family: var(--var-font-family-mono);
+  font-size: var(--var-font-size-small);
+  white-space: pre-wrap;
+}

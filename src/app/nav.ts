@@ -27,7 +27,10 @@ export const nav: NavItem[] = [
     label: "Componenten",
     icon: "puzzle-piece",
     href: "/componenten",
-    children: [{ label: "Editor", icon: "pen-nib", href: "/componenten/editor" }],
+    children: [
+      { label: "Editor", icon: "pen-nib", href: "/componenten/editor" },
+      { label: "Showcase", icon: "eye", href: "/componenten/showcase" },
+    ],
   },
   {
     label: "Design kits",
