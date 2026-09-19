@@ -4,6 +4,9 @@ import { nextCookies } from "better-auth/next-js";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
 
+/** Het inlogbeleid; ook getoond onder Instellingen → Beveiliging, zodat scherm en configuratie niet uit elkaar lopen. */
+export const authPolicy = { minPasswordLength: 12, sessionDays: 7 } as const;
+
 // Inloggen met e-mail en wachtwoord. Registreren staat uit: accounts worden bewust aangemaakt
 // (`npm run create-user`), zodat niemand zichzelf toegang kan geven tot het platform.
 export const auth = betterAuth({
@@ -12,10 +15,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     disableSignUp: true,
-    minPasswordLength: 12,
+    minPasswordLength: authPolicy.minPasswordLength,
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // een week
+    expiresIn: 60 * 60 * 24 * authPolicy.sessionDays,
     updateAge: 60 * 60 * 24, // verlengen bij gebruik, maximaal één keer per dag
   },
   user: {

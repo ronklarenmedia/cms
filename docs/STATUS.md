@@ -18,7 +18,8 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
 | Blocks | 5 stuks: `hero`, `usp-grid`, `cta-banner`, `site-header`, `site-footer` |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
-| Platform-dashboard (`/`), Design kits (+ editor), Instellingen, Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
+| Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
+| Platform-dashboard (`/`), Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
 | Zoekbalk en belletje bovenin | Nog niet functioneel |
 
 ## 2. Thuis verder werken
@@ -69,6 +70,19 @@ klantpagina toont zijn websites.
 - Voorbeeld: `/websites/[id]/voorbeeld/[pagina]` — zonder platformmenu, met thema, header/footer en SEO-metadata.
   Een voorbeeld staat altijd op noindex.
 
+**Instellingen** — `/instellingen/[tab]`; alle tabs vragen `requireStaff()`.
+- *Algemeen*: platformnaam (staat in het menu en de tabbladtitel), beheerdomein, taal, tijdzone, support-/afzenderadres,
+  telefoon, KvK. Opgeslagen in `platform_settings` (één rij); alleen een platform-admin mag wijzigen. Niet alle velden doen
+  al iets: de naam werkt direct, de rest is opgeslagen voor e-mail/facturen/hosting (staat zo bij de velden). Ontbreekt de
+  rij of de tabel, dan gelden de standaardwaarden in `src/lib/platform-settings-schema.ts` (de app loopt niet stuk).
+- *Team & rollen*: lijst met gebruikers; een platform-admin wijzigt rol (en bij een klantgebruiker de klant). Je kunt je
+  eigen rol niet wijzigen. Nieuwe gebruikers maak je aan met `npm run create-user`.
+- *Beveiliging*: eigen sessies bekijken en beëindigen (via Better Auth), uitloggen op alle andere apparaten, en het
+  inlogbeleid (`authPolicy` in `src/lib/auth.ts`, dezelfde waarden als de configuratie).
+- *Koppelingen*: alleen status. Neon wordt live gemeten (één query, responstijd); de rest staat op "Niet gekoppeld".
+- *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
+  (`src/app/instellingen/tabs.ts`), geen schakelaars die niets doen.
+
 **Componenten** — `/componenten` (miniaturen, gebruik per site, aantal tokens), `/componenten/editor?block=…`
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
 `/componenten/showcase`.
@@ -92,8 +106,8 @@ docs/               gemini-blocks-brief.md, dit bestand
 
 **Datamodel** (`src/db/schema.ts`): `customers`; `sites` (`theme` jsonb = overrides op de 87 tokens uit
 `src/blocks/theme.ts`, `layout` jsonb = `{header, footer}`, `status` draft/live); `pages` (`content` jsonb = lijst
-secties, `slug` leeg = homepage, SEO-velden); `user`, `session`, `account`, `verification` (Better Auth, met `role` en
-`customerId`).
+secties, `slug` leeg = homepage, SEO-velden); `platform_settings` (één rij, `id = 1` afgedwongen met een CHECK);
+`user`, `session`, `account`, `verification` (Better Auth, met `role` en `customerId`).
 
 **Sectie-formaat**: `{ id, type, variant, content, settings }`. `BlockRenderer` valideert tegen het Zod-schema van
 het block. Dezelfde validatie draait in de builder (`sections.ts`) en op de server (`parseSections`), en ongeldige
@@ -137,6 +151,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - De Better Auth-waarschuwing "Base URL is not set" is lokaal onschuldig; zet `BETTER_AUTH_URL` in productie.
 - Authenticated schermen zijn door Claude niet visueel te testen (geen wachtwoorden invoeren, geen accounts
   aanmaken). Test die zelf, of log in de browserpane zelf in.
+- `src/lib/platform-settings-schema.ts` (types, standaardwaarden, validatie) mag ook in client-componenten; `platform-settings.ts`
+  leest de database en mag dat **niet** (dan komt `pg` in de browserbundel en faalt `npm run build`).
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
@@ -173,9 +189,12 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.
-- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers` en de
+- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings` en de
   kolommen `sites.layout`, `pages.seo_title`, `pages.seo_description`, `pages.og_image`, `pages.noindex` moeten
-  bestaan (geen migratiebestanden; zie §6). Gebruik `drizzle-kit export --sql` als naslag.
+  bestaan (geen migratiebestanden; zie §6). Gebruik `drizzle-kit export --sql` als naslag. `platform_settings` is lokaal al
+  aangemaakt (dezelfde Neon-database); staat productie op een andere database, maak hem dan daar aan met de DDL uit
+  `drizzle-kit export --sql` (`CREATE TABLE "platform_settings"` + de foreign key naar `user`). Zonder de tabel werkt de app nog
+  wel (standaardwaarden), maar opslaan onder Instellingen → Algemeen mislukt met een melding.
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
 
 ## 10. Werkafspraken

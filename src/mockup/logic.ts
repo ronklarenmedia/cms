@@ -12,7 +12,7 @@ export type LogicProps = { active: string; roster?: any[]; sites?: any[] };
 
 export const initialState = {
   kitAccent: 2, kitPaper: 0, kitFont: 0, kitRadius: 10,
-  setTab: "thema", wide: true, repClient: "Meridian Studio",
+  wide: true, repClient: "Meridian Studio",
   compVariant: 0, compBp: 0, compLayer: "Heading", compPad: 64,
   compHeading: "Merkwerk dat blijft staan", compSize: 40, compMedia: true,
   bPage: "Home", bSection: "Hero", bDevice: "desktop", bLevel: "pages",
@@ -102,53 +102,6 @@ export class MockupLogic {
       ].map(([name, plan, omzet, kosten, marge, pct]) => ({ name, plan, omzet, kosten, marge, pct })),
       finChurn: [["Nieuw deze maand", "Bakker & Zoon, Amberhout Interieur", "+€ 410", "#2e9c6a"], ["Opgezegd", "Elsinga Advocaten (per 1 okt)", "−€ 95", "#d94662"], ["Upgrade", "Kade & Co naar Agency", "+€ 240", "#2e9c6a"]]
         .map(([label, note, val, color]) => ({ label, note, val, color })),
-    };
-  }
-
-  settingsVals() {
-    const tabs = [
-      ["algemeen", "Algemeen"], ["thema", "Thema"], ["koppelingen", "Koppelingen"], ["ai", "AI"],
-      ["team", "Team & rollen"], ["plannen", "Plannen & facturatie"], ["domeinen", "Domeinen & DNS"],
-      ["publicatie", "Publicatie & omgevingen"], ["notificaties", "Notificaties & webhooks"],
-      ["beveiliging", "Beveiliging & logging"], ["compliance", "Compliance & data"],
-    ];
-    const tab = this.state.setTab;
-    const stubs = {
-      team: ["Gebruikers en uitnodigingen", "Rollen: platform-admin, medewerker, klantgebruiker", "Rechten per klant of werkruimte", "Tweestapsverificatie verplichten", "SSO / Google Workspace"],
-      plannen: ["Plandefinities: Starter, Pro, Agency", "Prijzen, kortingen en proefperiode", "Limieten per plan (sites, apps, AI-credits)", "BTW en factuurgegevens", "Betaalmethoden en herinneringen"],
-      domeinen: ["Standaarddomein voor werkruimtes", "Wildcard-DNS en SSL-uitgifte", "Aangepaste domeinen goedkeuren", "Redirect- en www-beleid"],
-      publicatie: ["Omgevingen: preview, staging, productie", "Build-hooks en deploy-limieten", "Automatisch publiceren na goedkeuring", "Terugrolbeleid en bewaartermijn versies"],
-      notificaties: ["E-mailafzender en templates", "Slack- of Teams-kanaal per gebeurtenis", "Webhooks voor deploys en incidenten", "Statuspagina-abonnementen"],
-      beveiliging: ["Sessieduur en apparaatbeheer", "Audit log en export", "IP-allowlist voor beheer", "Back-ups en herstelpunten", "API-tokens en scopes"],
-      compliance: ["Verwerkersovereenkomsten per klant", "Datalocatie en bewaartermijnen", "Cookiemelding en toestemming", "Uitvoer- en verwijderverzoeken (AVG)"],
-    };
-    return {
-      setTabs: tabs.map(([id, label]) => {
-        const on = id === tab;
-        return {
-          label,
-          bg: on ? "color-mix(in srgb, var(--color-accent) 12%, transparent)" : "transparent",
-          fg: on ? "var(--color-accent-200)" : "color-mix(in srgb, var(--color-text) 78%, transparent)",
-          ring: on ? "inset 0 0 0 1px var(--color-accent)" : "none",
-          select: () => this.setState({ setTab: id }),
-        };
-      }),
-      setTabAlgemeen: tab === "algemeen",
-      setTabThema: tab === "thema",
-      setTabKoppelingen: tab === "koppelingen",
-      setTabAI: tab === "ai",
-      setStubItems: (stubs[tab] || []).map(t => ({ t })),
-      setStubShow: !!stubs[tab],
-      setStubTitle: (tabs.find(t => t[0] === tab) || ["", ""])[1],
-      setServices: [
-        ["Vercel", "ph ph-triangle", "Verbonden", "team_ronklaren · 412 projecten", "#2e9c6a"],
-        ["Cloudflare", "ph ph-cloud", "Verbonden", "Zone ronklaren.app · wildcard actief", "#2e9c6a"],
-        ["Neon", "ph ph-database", "Verbonden", "eu-central-1 · 37 databases", "#2e9c6a"],
-        ["Stripe", "ph ph-credit-card", "Verbonden", "Live-modus · webhooks ok", "#2e9c6a"],
-        ["Resend", "ph ph-envelope-simple", "Aandacht", "Domein niet geverifieerd", "#c4881c"],
-        ["Moneybird", "ph ph-receipt", "Verbonden", "Administratie · facturen & BTW", "#2e9c6a"],
-        ["GitHub", "ph ph-git-branch", "Niet verbonden", "Voor eigen componentrepo's", "#d94662"],
-      ].map(([name, icon, state, note, color]) => ({ name, icon, state, note, color })),
     };
   }
 
@@ -558,7 +511,6 @@ export class MockupLogic {
       kitGroups, kitIndex,
       ...this.kitEditorVals(),
       ...this.compEditorVals(),
-      ...this.settingsVals(),
       ...this.reportVals(),
       ...this.builderVals(),
       showBuilder: active === "websites/nieuw",

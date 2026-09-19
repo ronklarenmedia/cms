@@ -51,7 +51,15 @@ function NavEntry({
   );
 }
 
-export function AppShell({ children, user }: { children: React.ReactNode; user: SessionUser | null }) {
+export function AppShell({
+  children,
+  user,
+  platformName,
+}: {
+  children: React.ReactNode;
+  user: SessionUser | null;
+  platformName: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [userCollapsed, setCollapsed] = useState(false);
@@ -68,7 +76,7 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
     !hasActiveChild(item) &&
     (pathname === item.href || pathname.startsWith(`${item.href}/`));
 
-  let crumbRoot = "Ron Klaren Media";
+  let crumbRoot = platformName;
   let pageTitle = "";
   for (const item of nav) {
     const child = item.children?.find(childOn);
@@ -98,14 +106,14 @@ export function AppShell({ children, user }: { children: React.ReactNode; user: 
         >
           <Image
             src="/logo.png"
-            alt="Ron Klaren Media"
+            alt={platformName}
             width={28}
             height={28}
             className="flex-none rounded-full"
           />
           {collapsed ? null : (
             <div className="min-w-0 flex-1 truncate font-heading text-sm font-medium">
-              Ron Klaren Media
+              {platformName}
             </div>
           )}
           <button

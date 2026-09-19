@@ -1,5 +1,5 @@
-import { MockupScreen } from "@/mockup/MockupScreen";
+import { redirect } from "next/navigation";
 
-export default function Page() {
-  return <MockupScreen active="instellingen" title="Instellingen" />;
+export default function InstellingenPage() {
+  redirect("/instellingen/algemeen");
 }

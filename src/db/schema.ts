@@ -140,5 +140,26 @@ export const pages = pgTable(
   (t) => [unique("pages_site_slug_unique").on(t.siteId, t.slug)],
 );
 
+// Platformbrede instellingen (Instellingen → Algemeen). Eén rij: de CHECK dwingt id = 1 af.
+// Ontbreekt de rij, dan gelden de standaardwaarden uit src/lib/platform-settings.ts.
+export const platformSettings = pgTable(
+  "platform_settings",
+  {
+    id: integer("id").primaryKey().default(1),
+    platformName: varchar("platform_name", { length: 120 }).notNull().default("Ron Klaren Media"),
+    adminDomain: varchar("admin_domain", { length: 255 }),
+    language: varchar("language", { length: 8 }).notNull().default("nl"),
+    timezone: varchar("timezone", { length: 64 }).notNull().default("Europe/Amsterdam"),
+    supportEmail: varchar("support_email", { length: 255 }),
+    senderName: varchar("sender_name", { length: 120 }),
+    phone: varchar("phone", { length: 50 }),
+    kvk: varchar("kvk", { length: 20 }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedBy: text("updated_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [check("platform_settings_singleton", sql`${t.id} = 1`)],
+);
+
 export type Site = typeof sites.$inferSelect;
+export type PlatformSettingsRow = typeof platformSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;

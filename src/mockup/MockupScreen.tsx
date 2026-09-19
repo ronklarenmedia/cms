@@ -7,7 +7,6 @@ import { BuilderScreen } from "./screens/Builder";
 import { DesignKitEditorScreen } from "./screens/DesignKitEditor";
 import { DesignKitsScreen } from "./screens/DesignKits";
 import { GalerijScreen } from "./screens/Galerij";
-import { InstellingenScreen } from "./screens/Instellingen";
 import { KlantenScreen } from "./screens/Klanten";
 import { PlaceholderScreen } from "./screens/Placeholder";
 import { PlatformScreen } from "./screens/Platform";
@@ -23,7 +22,6 @@ const screens: Record<string, ComponentType<{ v: Vals }>> = {
   apps: GalerijScreen,
   designkits: DesignKitsScreen,
   "designkits/editor": DesignKitEditorScreen,
-  instellingen: InstellingenScreen,
   "rapportages/klanten": RapportKlantenScreen,
   "rapportages/omzet": RapportOmzetScreen,
 };
