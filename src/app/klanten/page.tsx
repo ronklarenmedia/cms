@@ -1,8 +1,8 @@
 import { asc } from "drizzle-orm";
-import { connection } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { MockupScreen } from "@/mockup/MockupScreen";
+import { requireStaff } from "@/lib/session";
 
 const plan = {
   pro: { label: "Pro", tag: "tag tag-accent" },
@@ -19,7 +19,7 @@ const monogram = (name: string) =>
     .toUpperCase();
 
 export default async function KlantenPage() {
-  await connection(); // toont live database-data, dus niet voorrenderen bij de build
+  await requireStaff(); // controle op de sessie; maakt de pagina ook dynamisch (live database-data)
   const rows = await db.select().from(customers).orderBy(asc(customers.name));
 
   // Vorm van de roster uit de mockup; de kaarten tonen alleen wat het datamodel kent.

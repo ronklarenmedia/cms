@@ -1,10 +1,11 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { count, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { customers, sites } from "@/db/schema";
+import { requireAdmin, requireStaff } from "@/lib/session";
 
 function readCustomerInput(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -22,6 +23,7 @@ function readCustomerInput(formData: FormData) {
 }
 
 export async function createCustomer(formData: FormData) {
+  await requireStaff();
   const input = readCustomerInput(formData);
   await db.insert(customers).values(input);
   revalidatePath("/klanten");
@@ -29,6 +31,7 @@ export async function createCustomer(formData: FormData) {
 }
 
 export async function updateCustomer(id: string, formData: FormData) {
+  await requireStaff();
   const input = readCustomerInput(formData);
   await db
     .update(customers)
@@ -38,8 +41,21 @@ export async function updateCustomer(id: string, formData: FormData) {
   redirect("/klanten");
 }
 
+const FOREIGN_KEY_VIOLATION = "23503";
+
+/** Een klant met websites kan niet verwijderd worden: die websites zouden hun eigenaar verliezen. */
 export async function deleteCustomer(id: string) {
-  await db.delete(customers).where(eq(customers.id, id));
+  await requireAdmin();
+  const [{ n }] = await db.select({ n: count() }).from(sites).where(eq(sites.customerId, id));
+  if (n > 0) redirect(`/klanten/${id}?fout=sites`);
+
+  try {
+    await db.delete(customers).where(eq(customers.id, id));
+  } catch (e) {
+    // Er kwam net een website bij tussen de controle en het verwijderen.
+    if ((e as { code?: string }).code === FOREIGN_KEY_VIOLATION) redirect(`/klanten/${id}?fout=sites`);
+    throw e;
+  }
   revalidatePath("/klanten");
   redirect("/klanten");
 }

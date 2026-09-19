@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:blocks": "tsx scripts/check-blocks.ts"
+    "check:blocks": "tsx scripts/check-blocks.ts",
+    "create-user": "tsx --env-file=.env.local scripts/create-user.ts"
   },
   "dependencies": {
     "@phosphor-icons/web": "^2.1.2",
+    "better-auth": "^1.7.5",
     "drizzle-orm": "^0.45.2",
     "next": "16.3.5",
     "pg": "^8.23.0",

@@ -8,9 +8,11 @@ import { db } from "@/db";
 import { pages, sites } from "@/db/schema";
 import { isUuid } from "../../../ids";
 import { PreviewLinks } from "../PreviewLinks";
+import { requireStaff } from "@/lib/session";
 
 // Voorbeeld van een pagina zoals de bezoeker hem ziet: zonder platform-menu, met het thema van de site.
 export default async function VoorbeeldPage({ params }: { params: Promise<{ id: string; pagina?: string[] }> }) {
+  await requireStaff();
   const { id, pagina } = await params;
   if (!isUuid(id)) notFound();
   const slug = pagina?.[0] ?? "";

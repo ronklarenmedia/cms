@@ -1,12 +1,12 @@
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
-import { connection } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { NewSiteForm } from "./NewSiteForm";
+import { requireStaff } from "@/lib/session";
 
 export default async function NieuweWebsitePage() {
-  await connection(); // toont live database-data, dus niet voorrenderen bij de build
+  await requireStaff(); // controle op de sessie; maakt de pagina ook dynamisch (live database-data)
   const rows = await db
     .select({ id: customers.id, name: customers.name })
     .from(customers)

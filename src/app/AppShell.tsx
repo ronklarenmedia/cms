@@ -2,9 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
+import type { SessionUser } from "@/lib/session";
 import { nav, type NavChild, type NavItem } from "./nav";
+
+const roleLabel: Record<SessionUser["role"], string> = {
+  "platform-admin": "Platform-admin",
+  medewerker: "Medewerker",
+  klantgebruiker: "Klantgebruiker",
+};
+
+const initials = (name: string) =>
+  name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase() || "?";
 
 const itemBase =
   "flex w-full items-center gap-3 rounded-md px-3 py-[7px] text-left text-[13.5px]";
@@ -34,8 +51,9 @@ function NavEntry({
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, user }: { children: React.ReactNode; user: SessionUser | null }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [userCollapsed, setCollapsed] = useState(false);
   // De website-builder heeft alle breedte nodig: menu ingeklapt en geen padding rond de inhoud.
   const isBuilder = /^\/websites\/(?!nieuw$)[^/]+$/.test(pathname);
@@ -62,7 +80,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }
 
-  if (isPreview) return <>{children}</>;
+  // Voorbeeld en inlogscherm staan los van het platform-menu.
+  if (isPreview || pathname === "/login") return <>{children}</>;
 
   return (
     <div
@@ -147,15 +166,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="flex items-center gap-3 border-t border-divider p-3">
-          <div className="grid size-[26px] flex-none place-items-center rounded-full bg-neutral-800 font-heading text-[11px] text-neutral-200">
-            RK
+          <div
+            className="grid size-[26px] flex-none place-items-center rounded-full bg-neutral-800 font-heading text-[11px] text-neutral-200"
+            title={user ? `${user.name} · ${user.email}` : undefined}
+          >
+            {user ? initials(user.name) : "?"}
           </div>
           {collapsed ? null : (
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[12.5px]">Ron Klaren</div>
-              <div className="text-[10.5px] text-text/70">Platform-admin</div>
+              <div className="truncate text-[12.5px]">{user?.name ?? "Niet ingelogd"}</div>
+              <div className="text-[10.5px] text-text/70">{user ? roleLabel[user.role] : ""}</div>
             </div>
           )}
+          {user && !collapsed ? (
+            <button
+              type="button"
+              title="Uitloggen"
+              className="btn btn-ghost size-[26px] flex-none !p-0 !text-neutral-500 hover:!text-accent"
+              onClick={async () => {
+                await authClient.signOut();
+                router.replace("/login");
+                router.refresh();
+              }}
+            >
+              <i className="ph ph-sign-out text-[15px]" />
+            </button>
+          ) : null}
         </div>
       </div>
 

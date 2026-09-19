@@ -1,10 +1,10 @@
-import { connection } from "next/server";
 import { blocks, getBlock } from "@/blocks/registry";
 import { blockTokens, blockUsage } from "../data";
 import { ComponentWorkbench } from "./ComponentWorkbench";
+import { requireStaff } from "@/lib/session";
 
 export default async function ComponentEditorPage({ searchParams }: { searchParams: Promise<{ block?: string }> }) {
-  await connection(); // gebruik per site komt uit de database
+  await requireStaff(); // controle op de sessie; maakt de pagina ook dynamisch (live database-data)
   const { block } = await searchParams;
   const initial = (block && getBlock(block)) || blocks[0];
   const [usage, tokens] = await Promise.all([blockUsage(), blockTokens()]);

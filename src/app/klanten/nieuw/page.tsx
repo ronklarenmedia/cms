@@ -1,7 +1,9 @@
+import { requireStaff } from "@/lib/session";
 import { CustomerForm } from "../CustomerForm";
 import { createCustomer } from "../actions";
 
-export default function NieuweKlantPage() {
+export default async function NieuweKlantPage() {
+  await requireStaff();
   return (
     <div className="flex max-w-[720px] flex-col gap-[var(--space-6)]">
       <div>

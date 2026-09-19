@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
 import { customers, pages, sites } from "@/db/schema";
+import { NOT_LOGGED_IN, requireAdmin, staffUser } from "@/lib/session";
 import { parseSections, slugify, starterSections, themeOptions, type StarterId } from "./sections";
 
 export type ActionState = { error?: string } | undefined;
@@ -15,6 +16,7 @@ const isUniqueViolation = (e: unknown) =>
   typeof e === "object" && e !== null && "code" in e && (e as { code: unknown }).code === "23505";
 
 export async function createSite(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!(await staffUser())) return { error: NOT_LOGGED_IN };
   const name = String(formData.get("name") ?? "").trim();
   const customerId = String(formData.get("customerId") ?? "");
   const themeId = String(formData.get("theme") ?? "");
@@ -55,6 +57,7 @@ export async function createSite(_prev: ActionState, formData: FormData): Promis
 
 /** Slaat de secties van één pagina op. Ongeldige secties worden geweigerd, zodat de opslag altijd rendert. */
 export async function savePage(pageId: string, sections: SectionData[]): Promise<Result> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   const parsed = parseSections(sections);
   if (!parsed.ok) return parsed;
   const updated = await db
@@ -70,6 +73,7 @@ export async function savePage(pageId: string, sections: SectionData[]): Promise
 export type PageDTO = { id: string; slug: string; title: string; sections: SectionData[] };
 
 export async function addPage(siteId: string, title: string): Promise<Result<{ page: PageDTO }>> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   title = title.trim();
   if (!title) return { ok: false, error: "Geef de pagina een titel." };
   const base = slugify(title) || "pagina";
@@ -92,6 +96,7 @@ export async function addPage(siteId: string, title: string): Promise<Result<{ p
 }
 
 export async function renamePage(pageId: string, title: string): Promise<Result> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   title = title.trim();
   if (!title) return { ok: false, error: "Geef de pagina een titel." };
   await db.update(pages).set({ title, updatedAt: new Date() }).where(eq(pages.id, pageId));
@@ -99,6 +104,7 @@ export async function renamePage(pageId: string, title: string): Promise<Result>
 }
 
 export async function deletePage(pageId: string): Promise<Result> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   const [page] = await db.select({ slug: pages.slug }).from(pages).where(eq(pages.id, pageId));
   if (!page) return { ok: true };
   if (page.slug === "") return { ok: false, error: "De homepagina kan niet worden verwijderd." };
@@ -107,6 +113,7 @@ export async function deletePage(pageId: string): Promise<Result> {
 }
 
 export async function setSiteStatus(siteId: string, status: "draft" | "live"): Promise<Result> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   const updated = await db
     .update(sites)
     .set({ status, publishedAt: status === "live" ? new Date() : null, updatedAt: new Date() })
@@ -118,6 +125,7 @@ export async function setSiteStatus(siteId: string, status: "draft" | "live"): P
 }
 
 export async function deleteSite(siteId: string) {
+  await requireAdmin();
   await db.delete(sites).where(eq(sites.id, siteId));
   revalidatePath("/websites");
   redirect("/websites");

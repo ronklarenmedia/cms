@@ -7,7 +7,7 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import { CATEGORIES, type AnyBlock, type SectionData } from "@/blocks/contract";
 import { blocks, getBlock } from "@/blocks/registry";
 import { themeToCssVars, type SiteTheme } from "@/blocks/theme";
-import { addPage, deletePage, renamePage, savePage, setSiteStatus, type PageDTO } from "./actions";
+import { addPage, deletePage, deleteSite, renamePage, savePage, setSiteStatus, type PageDTO } from "./actions";
 import { blockJsonSchemas, SchemaFields } from "./SchemaForm";
 import { describeIssue, newSection, sectionIssues, sectionsProblems } from "./sections";
 
@@ -111,7 +111,15 @@ function Library({ onPick, onClose }: { onPick: (block: AnyBlock) => void; onClo
   );
 }
 
-export function SiteBuilder({ site, initialPages }: { site: BuilderSite; initialPages: PageDTO[] }) {
+export function SiteBuilder({
+  site,
+  initialPages,
+  canDelete,
+}: {
+  site: BuilderSite;
+  initialPages: PageDTO[];
+  canDelete: boolean;
+}) {
   const [pages, setPages] = useState<PageDTO[]>(initialPages);
   const [pageId, setPageId] = useState(initialPages[0]?.id ?? "");
   const [level, setLevel] = useState<"pages" | "sections">("sections");
@@ -352,6 +360,14 @@ export function SiteBuilder({ site, initialPages }: { site: BuilderSite; initial
     if (!res.ok) return setNotice(res.error);
     setSiteStatusState(next);
     setNotice(next === "live" ? "Website staat op Live." : "Website staat weer op Concept.");
+  };
+
+  const removeSite = async () => {
+    if (!window.confirm(`Website "${site.name}" met alle pagina's definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+    // Er wordt straks toch weg genavigeerd: geen "niet opgeslagen"-waarschuwing meer.
+    clearTimeout(timer.current);
+    dirty.current.clear();
+    await deleteSite(site.id); // stuurt door naar /websites
   };
 
   // Canvas: links volgen we niet, klikken selecteren alleen.
@@ -708,6 +724,11 @@ export function SiteBuilder({ site, initialPages }: { site: BuilderSite; initial
                 Terug naar alle websites
               </Link>
             </div>
+            {canDelete ? (
+              <button type="button" className="btn btn-secondary mt-8 !text-danger" onClick={() => void removeSite()}>
+                <i className="ph ph-trash" /> Website verwijderen
+              </button>
+            ) : null}
           </div>
         )}
       </div>

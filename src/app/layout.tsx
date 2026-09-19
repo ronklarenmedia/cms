@@ -5,6 +5,7 @@ import { AppShell } from "./AppShell";
 import { MockupProvider } from "@/mockup/MockupProvider";
 import "./globals.css";
 import "@/mockup/hover.css";
+import { getSessionUser } from "@/lib/session";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 // Voorbeeldlettertypes voor de design-kit- en componenteditor.
@@ -17,9 +18,12 @@ export const metadata: Metadata = {
   description: "Beheeromgeving voor klanten, websites en apps",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Alleen voor het menu (naam en rol); de echte toegangscontrole staat bij de data zelf.
+  const user = await getSessionUser();
+
   return (
     <html
       lang="nl"
@@ -27,7 +31,7 @@ export default function RootLayout({
     >
       <body className="antialiased">
         <MockupProvider>
-          <AppShell>{children}</AppShell>
+          <AppShell user={user}>{children}</AppShell>
         </MockupProvider>
       </body>
     </html>
