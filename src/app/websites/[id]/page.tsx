@@ -30,9 +30,19 @@ export default async function WebsiteBuilderPage({ params }: { params: Promise<{
         slug: row.site.slug,
         status: row.site.status,
         theme: row.site.theme,
+        layout: row.site.layout,
         customerName: row.customerName,
       }}
-      initialPages={pageRows.map((p) => ({ id: p.id, slug: p.slug, title: p.title, sections: p.content }))}
+      initialPages={pageRows.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        sections: p.content,
+        seoTitle: p.seoTitle,
+        seoDescription: p.seoDescription,
+        ogImage: p.ogImage,
+        noindex: p.noindex,
+      }))}
     />
   );
 }

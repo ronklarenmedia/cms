@@ -1,0 +1,143 @@
+/* Site-header — mobile-first: onder 64rem een <details>-menu, daarboven een balk met uitklapmenu's. */
+
+.blk-site-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--var-spacing-standard);
+}
+
+.blk-site-header__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--var-spacing-small);
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+  text-decoration: none;
+}
+/* Een vaste hoogte (geen max-height): dan is de breedte van het logo eenduidig en blijft de naam ernaast op één regel. */
+.blk-site-header__brand img {
+  flex: none;
+  width: auto;
+  height: 2.5rem;
+}
+
+/* Desktopelementen zijn standaard verborgen; het mobiele menu is standaard zichtbaar. */
+.blk-site-header__nav,
+.blk-site-header__cta {
+  display: none;
+}
+
+.blk-site-header__toggle {
+  padding: var(--var-spacing-small) var(--var-spacing-standard);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-standard);
+  font-weight: var(--var-font-weight-medium);
+  cursor: pointer;
+  list-style: none;
+}
+.blk-site-header__toggle::-webkit-details-marker {
+  display: none;
+}
+.blk-site-header__toggle:focus-visible {
+  outline: var(--var-border-width-standard) solid var(--blk-fg);
+  outline-offset: var(--var-spacing-xs);
+}
+
+/* Het uitgeklapte mobiele menu ligt over de pagina heen, op een eigen vlak dat leesbaar blijft
+   op elke sectie-achtergrond. */
+.blk-site-header__panel {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: 100%;
+  z-index: var(--var-z-index-dropdown);
+  display: grid;
+  gap: var(--var-spacing-standard);
+  padding: var(--var-spacing-standard);
+  border-radius: var(--var-border-radius-standard);
+  background: var(--var-color-white);
+  color: var(--var-color-text);
+  box-shadow: var(--var-box-shadow-large);
+  --blk-btn-bg: var(--var-color-primary);
+  --blk-btn-fg: var(--var-color-white);
+}
+
+.blk-site-header__list {
+  display: grid;
+  gap: var(--var-spacing-small);
+}
+.blk-site-header__link,
+.blk-site-header__sublink {
+  display: inline-block;
+  padding-block: var(--var-spacing-xs);
+  font-weight: var(--var-font-weight-medium);
+  text-decoration: none;
+}
+.blk-site-header__link:hover,
+.blk-site-header__sublink:hover {
+  text-decoration: underline;
+}
+.blk-site-header__sub {
+  display: grid;
+  gap: var(--var-spacing-xs);
+  padding-inline-start: var(--var-spacing-standard);
+}
+.blk-site-header__sublink {
+  font-weight: var(--var-font-weight-standard);
+}
+
+@container blk (min-width: 64rem) {
+  .blk-site-header__menu {
+    display: none;
+  }
+  .blk-site-header__nav {
+    display: block;
+    margin-inline-start: auto;
+  }
+  .blk-site-header__cta {
+    display: block;
+  }
+
+  .blk-site-header__list--bar {
+    display: flex;
+    align-items: center;
+    gap: var(--var-spacing-large);
+  }
+  .blk-site-header__list--bar .blk-site-header__item {
+    position: relative;
+  }
+
+  /* Uitklapmenu: opent bij hover of toetsenbordfocus, zonder JavaScript. */
+  .blk-site-header__list--bar .blk-site-header__sub {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    z-index: var(--var-z-index-dropdown);
+    display: none;
+    min-width: 12rem;
+    padding: var(--var-spacing-small);
+    border-radius: var(--var-border-radius-standard);
+    background: var(--var-color-white);
+    color: var(--var-color-text);
+    box-shadow: var(--var-box-shadow-large);
+  }
+  .blk-site-header__list--bar .blk-site-header__item:hover > .blk-site-header__sub,
+  .blk-site-header__list--bar .blk-site-header__item:focus-within > .blk-site-header__sub {
+    display: grid;
+  }
+
+  /* Gecentreerd: naam boven, menu eronder. */
+  .blk-site-header--centered {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--var-spacing-medium);
+  }
+  .blk-site-header--centered .blk-site-header__nav {
+    margin-inline-start: 0;
+  }
+  .blk-site-header--centered .blk-site-header__list--bar {
+    justify-content: center;
+  }
+}

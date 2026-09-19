@@ -3,8 +3,10 @@
 import type { AnyBlock } from "./contract";
 import { ctaBanner } from "./cta-banner";
 import { hero } from "./hero";
+import { siteFooter } from "./site-footer";
+import { siteHeader } from "./site-header";
 import { uspGrid } from "./usp-grid";
 
-export const blocks: AnyBlock[] = [hero, uspGrid, ctaBanner];
+export const blocks: AnyBlock[] = [hero, uspGrid, ctaBanner, siteHeader, siteFooter];
 
 export const getBlock = (slug: string) => blocks.find((b) => b.slug === slug);

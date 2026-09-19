@@ -51,7 +51,7 @@ in plaats van het contract of de checker aan te passen om je block door te krijg
 | `text-image` | Content | tekst + beeld: beeld links / rechts (vergelijk `fotoTekst` in de oude code) |
 
 **Batch 2:** `faq` (`<details>` + `FAQPage`-JSON-LD), `team-grid`, `pricing-table`, `steps`, `timeline`, `cases-grid`, `gallery`.
-**Batch 3:** `footer-compact`, `footer-extended`, `breadcrumbs`, `video`, `list`.
+**Batch 3:** `breadcrumbs`, `video`, `list`. (De sitebrede `site-header` en `site-footer` bestaan al, met varianten; een extra footer-lay-out is dus een nieuwe *variant* van `site-footer`, geen los block. Zulke sitebrede blocks staan in `src/app/websites/layout-slots.ts` en mogen nooit als gewone paginasectie worden gebruikt.)
 
 **Nog niet — eerst overleggen** (vereisen client-JS of een backend): topbar met dropdown, mega-menu, mobiel menu, hero-slider, beeldcarrousel,
 reviewslider, tabs, winkelwagen-drawer, checkout-stap, meerstaps aanvraag, zoeken met filters, cookiemelding, contactformulier, nieuwsbriefblok.

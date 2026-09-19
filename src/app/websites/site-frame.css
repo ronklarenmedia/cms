@@ -1,0 +1,5 @@
+/* De header ligt boven de rest van de pagina, zodat uitklapmenu's niet achter latere secties verdwijnen. */
+.site-frame__header {
+  position: relative;
+  z-index: var(--var-z-index-dropdown);
+}

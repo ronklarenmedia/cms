@@ -1,7 +1,9 @@
 // Gedeelde helpers voor secties: gebruikt door de builder (client) én de server actions.
 import { sectionSchemaFor, type AnyBlock, type SectionData } from "@/blocks/contract";
 import { getBlock } from "@/blocks/registry";
+import type { SiteLayout } from "@/db/schema";
 import { fieldLabel } from "./labels";
+import { emptyLayout, slotBlockSlugs, slots, type Slot } from "./layout-slots";
 import type { SiteTheme } from "@/blocks/theme";
 import { themes, type ThemeId } from "@/blocks/theme";
 import type { ZodType, z } from "zod";
@@ -37,6 +39,25 @@ export function starterSections(starter: StarterId, siteName: string): SectionDa
   const hero = out.find((s) => s.type === "hero");
   if (hero) hero.content = { ...(hero.content as object), heading: siteName };
   return out;
+}
+
+/** Header en footer van een nieuwe site: de eerste voorbeelden van de blocks, met de naam van de site ingevuld. */
+export function starterLayout(siteName: string): SiteLayout {
+  const layout = emptyLayout();
+  const header = getBlock("site-header");
+  const footer = getBlock("site-footer");
+  if (header) {
+    const s = newSection(header);
+    // Geen voorbeeldlogo en geen verzonnen pagina's: alleen de naam en een link naar de homepagina.
+    s.content = { brand: siteName, links: [{ label: "Home", href: "/", children: [] }] };
+    layout.header.push(s);
+  }
+  if (footer) {
+    const s = newSection(footer);
+    s.content = { brand: siteName, copyright: `© ${new Date().getFullYear()} ${siteName}` };
+    layout.footer.push(s);
+  }
+  return layout;
 }
 
 export const themeOptions = (Object.keys(themes) as ThemeId[]).map((id) => ({
@@ -99,7 +120,13 @@ export function sectionsProblems(sections: SectionData[]): string[] {
 }
 
 /** Zet ongevalideerde invoer om naar de genormaliseerde (met defaults aangevulde) secties, of geeft fouten terug. */
-export function parseSections(input: unknown): { ok: true; sections: SectionData[] } | { ok: false; error: string } {
+/** Waar de secties komen te staan: een gewone pagina (geen header/footer-blocks) of een slot (alleen zijn eigen blocks). */
+export type Placement = { kind: "page" } | { kind: "slot"; slot: Slot };
+
+export function parseSections(
+  input: unknown,
+  placement: Placement = { kind: "page" },
+): { ok: true; sections: SectionData[] } | { ok: false; error: string } {
   if (!Array.isArray(input)) return { ok: false, error: "Ongeldige paginadata." };
   const seen = new Set<string>();
   const sections: SectionData[] = [];
@@ -107,6 +134,11 @@ export function parseSections(input: unknown): { ok: true; sections: SectionData
     const type = (raw as { type?: unknown } | null)?.type;
     const block = typeof type === "string" ? getBlock(type) : undefined;
     if (!block) return { ok: false, error: `Onbekend bloktype "${String(type)}".` };
+    const allowedHere =
+      placement.kind === "page" ? !slotBlockSlugs.has(block.slug) : slots[placement.slot].allowed.includes(block.slug);
+    if (!allowedHere) {
+      return { ok: false, error: `${block.label} mag ${placement.kind === "page" ? "niet op een gewone pagina" : `niet in de ${slots[placement.slot].label.toLowerCase()}`} staan.` };
+    }
     const parsed = schemaOf(block).safeParse(raw);
     if (!parsed.success) {
       const first = parsed.error.issues[0];

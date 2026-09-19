@@ -172,6 +172,8 @@ function Field({
           <input
             className="input"
             type="text"
+            // De builder levert een <datalist id="site-paths"> met de pagina's van de site; zonder die lijst doet dit niets.
+            list={name === "href" ? "site-paths" : undefined}
             value={String(value ?? "")}
             onChange={(e) => commit(e.target.value)}
             style={{ fontSize: 11.5, padding: "6px 8px" }}

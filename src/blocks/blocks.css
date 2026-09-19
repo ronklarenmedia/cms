@@ -6,6 +6,8 @@
 @import "./hero/styles.css";
 @import "./usp-grid/styles.css";
 @import "./cta-banner/styles.css";
+@import "./site-header/styles.css";
+@import "./site-footer/styles.css";
 
 .blk-root {
   container: blk / inline-size;

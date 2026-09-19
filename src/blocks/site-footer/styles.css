@@ -1,0 +1,97 @@
+/* Site-footer — variant bepaalt de lay-out; achtergrond en ruimte komen uit de sectie-instellingen. */
+
+.blk-site-footer {
+  display: grid;
+  gap: var(--var-spacing-large);
+  font-size: var(--var-font-size-small);
+}
+
+.blk-site-footer__main {
+  display: grid;
+  gap: var(--var-spacing-large);
+}
+
+.blk-site-footer__brand {
+  font-family: var(--var-font-family-primary);
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+.blk-site-footer__description {
+  max-width: var(--var-max-width-small);
+  margin-top: var(--var-spacing-small);
+  color: var(--blk-muted);
+}
+
+.blk-site-footer__contact {
+  display: grid;
+  gap: var(--var-spacing-xs);
+  margin-top: var(--var-spacing-standard);
+  font-style: normal;
+  color: var(--blk-muted);
+}
+.blk-site-footer__contact-link {
+  text-decoration: none;
+}
+.blk-site-footer__contact-link:hover {
+  text-decoration: underline;
+}
+
+.blk-site-footer__column-title {
+  margin-bottom: var(--var-spacing-small);
+  font-weight: var(--var-font-weight-bold);
+}
+.blk-site-footer__links {
+  display: grid;
+  gap: var(--var-spacing-xs);
+}
+.blk-site-footer__links--row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--var-spacing-xs) var(--var-spacing-medium);
+}
+.blk-site-footer__link {
+  color: var(--blk-muted);
+  text-decoration: none;
+}
+.blk-site-footer__link:hover {
+  color: var(--blk-fg);
+  text-decoration: underline;
+}
+.blk-site-footer__link:focus-visible,
+.blk-site-footer__contact-link:focus-visible {
+  outline: var(--var-border-width-standard) solid var(--blk-fg);
+  outline-offset: var(--var-spacing-xs);
+}
+
+.blk-site-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--var-spacing-small) var(--var-spacing-large);
+  padding-top: var(--var-spacing-standard);
+  border-top: var(--var-border-width-thin) solid var(--blk-line);
+  color: var(--blk-muted);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-site-footer--columns .blk-site-footer__main {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .blk-site-footer--columns .blk-site-footer__about {
+    grid-column: 1 / -1;
+  }
+  .blk-site-footer--simple .blk-site-footer__main {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-site-footer--columns .blk-site-footer__main {
+    grid-template-columns: minmax(0, 2fr) repeat(auto-fit, minmax(0, 1fr));
+  }
+  .blk-site-footer--columns .blk-site-footer__about {
+    grid-column: auto;
+  }
+}

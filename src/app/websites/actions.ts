@@ -1,13 +1,15 @@
 "use server";
 
-import { eq, max } from "drizzle-orm";
+import { eq, max, sql } from "drizzle-orm";
+import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
 import { customers, pages, sites } from "@/db/schema";
 import { NOT_LOGGED_IN, requireAdmin, staffUser } from "@/lib/session";
-import { parseSections, slugify, starterSections, themeOptions, type StarterId } from "./sections";
+import { isSlot, type Slot } from "./layout-slots";
+import { parseSections, slugify, starterLayout, starterSections, themeOptions, type StarterId } from "./sections";
 
 export type ActionState = { error?: string } | undefined;
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
@@ -35,7 +37,7 @@ export async function createSite(_prev: ActionState, formData: FormData): Promis
     const slug = attempt === 1 ? base : `${base}-${attempt}`;
     try {
       const site = await db.transaction(async (tx) => {
-        const [created] = await tx.insert(sites).values({ customerId, name, slug, theme }).returning({ id: sites.id });
+        const [created] = await tx.insert(sites).values({ customerId, name, slug, theme, layout: starterLayout(name) }).returning({ id: sites.id });
         await tx.insert(pages).values({
           siteId: created.id,
           slug: "",
@@ -70,7 +72,19 @@ export async function savePage(pageId: string, sections: SectionData[]): Promise
   return { ok: true };
 }
 
-export type PageDTO = { id: string; slug: string; title: string; sections: SectionData[] };
+export type PageDTO = {
+  id: string;
+  slug: string;
+  title: string;
+  sections: SectionData[];
+  seoTitle: string | null;
+  seoDescription: string | null;
+  ogImage: string | null;
+  noindex: boolean;
+};
+
+/** De velden die een pagina-instellingenformulier kan wijzigen. */
+export type PageSettings = Pick<PageDTO, "slug" | "title" | "seoTitle" | "seoDescription" | "ogImage" | "noindex">;
 
 export async function addPage(siteId: string, title: string): Promise<Result<{ page: PageDTO }>> {
   if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
@@ -86,13 +100,110 @@ export async function addPage(siteId: string, title: string): Promise<Result<{ p
         .insert(pages)
         .values({ siteId, slug, title, position: (last ?? 0) + 1, content: [] })
         .returning();
-      return { ok: true, page: { id: row.id, slug: row.slug, title: row.title, sections: [] } };
+      return {
+        ok: true,
+        page: {
+          id: row.id,
+          slug: row.slug,
+          title: row.title,
+          sections: [],
+          seoTitle: null,
+          seoDescription: null,
+          ogImage: null,
+          noindex: false,
+        },
+      };
     } catch (e) {
       if (isUniqueViolation(e)) continue;
       throw e;
     }
   }
   return { ok: false, error: "Kon geen unieke paginanaam vinden." };
+}
+
+/** Slaat de secties van de header of footer op. Alleen blocks die voor die slot bedoeld zijn worden geaccepteerd. */
+export async function saveLayout(siteId: string, slot: Slot, sections: SectionData[]): Promise<Result> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
+  if (!isSlot(slot)) return { ok: false, error: "Onbekende plek." };
+  const parsed = parseSections(sections, { kind: "slot", slot });
+  if (!parsed.ok) return parsed;
+  // jsonb_set vervangt alleen deze slot, zodat het opslaan van de header en de footer elkaar niet overschrijven.
+  const updated = await db
+    .update(sites)
+    .set({
+      layout: sql`jsonb_set(${sites.layout}, ${`{${slot}}`}::text[], ${JSON.stringify(parsed.sections)}::jsonb)`,
+      updatedAt: new Date(),
+    })
+    .where(eq(sites.id, siteId))
+    .returning({ id: sites.id });
+  if (updated.length === 0) return { ok: false, error: "Deze website bestaat niet meer." };
+  return { ok: true };
+}
+
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => (v === "" ? null : v));
+
+const pageSettingsSchema = z.object({
+  title: z.string().trim().min(1, "Geef de pagina een titel.").max(255),
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(100)
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "De URL mag alleen kleine letters, cijfers en streepjes bevatten."),
+  seoTitle: optionalText(255),
+  seoDescription: optionalText(400),
+  ogImage: optionalText(500).refine((v) => v === null || v.startsWith("/") || /^https?:\/\//.test(v), {
+    message: "De afbeelding moet een link zijn (https://…) of een pad dat met / begint.",
+  }),
+  noindex: z.boolean(),
+});
+
+/** Titel, URL en SEO-velden van één pagina. De URL van de homepagina staat vast. */
+export async function updatePageSettings(pageId: string, input: PageSettings): Promise<Result<{ settings: PageSettings }>> {
+  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
+  const [page] = await db.select({ slug: pages.slug }).from(pages).where(eq(pages.id, pageId));
+  if (!page) return { ok: false, error: "Deze pagina bestaat niet meer." };
+  const isHome = page.slug === "";
+
+  // De homepagina houdt zijn lege URL; voor de validatie geven we een geldige plaatsvervanger mee.
+  const parsed = pageSettingsSchema.safeParse({ ...input, slug: isHome ? "home" : input.slug });
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const data = parsed.data;
+  const slug = isHome ? "" : data.slug;
+
+  try {
+    await db
+      .update(pages)
+      .set({
+        title: data.title,
+        slug,
+        seoTitle: data.seoTitle,
+        seoDescription: data.seoDescription,
+        ogImage: data.ogImage,
+        noindex: data.noindex,
+        updatedAt: new Date(),
+      })
+      .where(eq(pages.id, pageId));
+  } catch (e) {
+    if (isUniqueViolation(e)) return { ok: false, error: "Deze URL wordt al door een andere pagina gebruikt." };
+    throw e;
+  }
+  return {
+    ok: true,
+    settings: {
+      slug,
+      title: data.title,
+      seoTitle: data.seoTitle,
+      seoDescription: data.seoDescription,
+      ogImage: data.ogImage,
+      noindex: data.noindex,
+    },
+  };
 }
 
 export async function renamePage(pageId: string, title: string): Promise<Result> {

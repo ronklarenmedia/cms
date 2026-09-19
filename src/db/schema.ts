@@ -95,6 +95,9 @@ export const verification = pgTable(
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 
+/** Sitebrede secties die op elke pagina staan (zie src/app/websites/layout-slots.ts). */
+export type SiteLayout = { header: SectionData[]; footer: SectionData[] };
+
 export const siteStatusEnum = pgEnum("site_status", ["draft", "live"]);
 
 export const sites = pgTable("sites", {
@@ -106,6 +109,7 @@ export const sites = pgTable("sites", {
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   // Overrides op de `defaultTheme`-tokens (zie src/blocks/theme.ts).
   theme: jsonb("theme").$type<SiteTheme>().notNull().default({}),
+  layout: jsonb("layout").$type<SiteLayout>().notNull().default({ header: [], footer: [] }),
   status: siteStatusEnum("status").notNull().default("draft"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -125,6 +129,11 @@ export const pages = pgTable(
     position: integer("position").notNull().default(0),
     // Lijst secties, zie src/blocks/README.md ("Hoe een sectie wordt opgeslagen").
     content: jsonb("content").$type<SectionData[]>().notNull().default([]),
+    // SEO: leeg = terugvallen op de paginatitel. Zie src/app/websites/seo.ts.
+    seoTitle: varchar("seo_title", { length: 255 }),
+    seoDescription: varchar("seo_description", { length: 400 }),
+    ogImage: text("og_image"),
+    noindex: boolean("noindex").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

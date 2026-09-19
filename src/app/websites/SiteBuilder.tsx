@@ -7,9 +7,13 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import { CATEGORIES, type AnyBlock, type SectionData } from "@/blocks/contract";
 import { blocks, getBlock } from "@/blocks/registry";
 import { themeToCssVars, type SiteTheme } from "@/blocks/theme";
-import { addPage, deletePage, deleteSite, renamePage, savePage, setSiteStatus, type PageDTO } from "./actions";
+import type { SiteLayout } from "@/db/schema";
+import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, setSiteStatus, type PageDTO, type PageSettings } from "./actions";
+import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
+import { PageSettingsForm } from "./PageSettingsForm";
 import { blockJsonSchemas, SchemaFields } from "./SchemaForm";
 import { describeIssue, newSection, sectionIssues, sectionsProblems } from "./sections";
+import { SiteFrame } from "./SiteFrame";
 
 export type BuilderSite = {
   id: string;
@@ -17,6 +21,7 @@ export type BuilderSite = {
   slug: string;
   status: "draft" | "live";
   theme: SiteTheme;
+  layout: SiteLayout;
   customerName: string;
 };
 
@@ -38,7 +43,8 @@ const iconBtn = "btn btn-ghost size-5 flex-none !p-0 !text-[12px]";
 
 const pageIcon = (slug: string) => (slug === "" ? "house" : "file-text");
 const headingOf = (s: SectionData) => {
-  const h = (s.content as { heading?: unknown } | null)?.heading;
+  const c = s.content as { heading?: unknown; brand?: unknown } | null;
+  const h = c?.heading ?? c?.brand;
   return typeof h === "string" ? h : "";
 };
 
@@ -56,7 +62,42 @@ const CanvasSection = memo(function CanvasSection({ section }: { section: Sectio
   return <BlockSection section={section} />;
 });
 
-function Library({ onPick, onClose }: { onPick: (block: AnyBlock) => void; onClose: () => void }) {
+/** De secties van één plek (pagina, header of footer) in het canvas; klikken selecteert en schakelt naar die plek. */
+function CanvasArea({
+  list,
+  area,
+  selectedId,
+  onPick,
+  registerRef,
+}: {
+  list: SectionData[];
+  area: Slot | null;
+  selectedId: string | null;
+  onPick: (area: Slot | null, id: string) => void;
+  registerRef: (id: string, el: HTMLDivElement | null) => void;
+}) {
+  return (
+    <>
+      {list.map((s) => (
+        <div key={s.id} ref={(el) => registerRef(s.id, el)} className="relative cursor-pointer" onClick={() => onPick(area, s.id)}>
+          <CanvasSection section={s} />
+          <div
+            className="pointer-events-none absolute inset-0 hover:outline-2"
+            style={{ outline: s.id === selectedId ? "2px solid var(--color-accent)" : "none", outlineOffset: -2 }}
+          />
+          {s.id === selectedId ? (
+            <div className="pointer-events-none absolute left-0 top-0 bg-accent px-2 py-[3px] text-[10.5px] tracking-[0.04em] text-neutral-900">
+              {area ? `${slots[area].label} · ` : ""}
+              {getBlock(s.type)?.label ?? s.type}
+            </div>
+          ) : null}
+        </div>
+      ))}
+    </>
+  );
+}
+
+function Library({ available, onPick, onClose }: { available: AnyBlock[]; onPick: (block: AnyBlock) => void; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -81,7 +122,7 @@ function Library({ onPick, onClose }: { onPick: (block: AnyBlock) => void; onClo
           </button>
         </div>
         {CATEGORIES.map((category) => {
-          const inCategory = blocks.filter((b) => b.category === category && b.status !== "verouderd");
+          const inCategory = available.filter((b) => b.category === category && b.status !== "verouderd");
           if (inCategory.length === 0) return null;
           return (
             <div key={category} className="flex flex-col gap-2">
@@ -134,9 +175,15 @@ export function SiteBuilder({
   const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [layout, setLayout] = useState<SiteLayout>(site.layout);
+  // Welke sitebrede plek (header/footer) wordt bewerkt; null = de gekozen pagina.
+  const [editing, setEditing] = useState<Slot | null>(null);
+  const [rightTab, setRightTab] = useState<"section" | "page">("section");
 
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
-  const sections = page?.sections ?? [];
+  // Alles wat bewerkt, opgeslagen en ongedaan gemaakt wordt hoort bij één "plek": een pagina-id, "header" of "footer".
+  const areaKey: string = editing ?? page?.id ?? "";
+  const sections = editing ? layout[editing] : (page?.sections ?? []);
   const selected = sections.find((s) => s.id === sectionId) ?? null;
   const selectedBlock = selected ? getBlock(selected.type) : undefined;
 
@@ -145,7 +192,11 @@ export function SiteBuilder({
   useEffect(() => {
     pagesRef.current = pages;
   }, [pages]);
-  const dirty = useRef(new Map<string, number>()); // pagina-id → versie van de laatste bewerking
+  const layoutRef = useRef(layout);
+  useEffect(() => {
+    layoutRef.current = layout;
+  }, [layout]);
+  const dirty = useRef(new Map<string, number>()); // plek (pagina-id, "header" of "footer") → versie van de laatste bewerking
   const version = useRef(0);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const lock = useRef<Promise<unknown>>(Promise.resolve());
@@ -159,19 +210,21 @@ export function SiteBuilder({
     clearTimeout(timer.current);
     if (dirty.current.size === 0) return true;
     setStatus({ kind: "saving" });
-    for (const [id, v] of [...dirty.current]) {
-      const target = pagesRef.current.find((p) => p.id === id);
+    for (const [key, v] of [...dirty.current]) {
+      const slot = isSlot(key) ? key : null;
+      const targetPage = slot ? undefined : pagesRef.current.find((p) => p.id === key);
+      const target = slot ? layoutRef.current[slot] : targetPage?.sections;
       if (!target) {
-        dirty.current.delete(id);
+        dirty.current.delete(key);
         continue;
       }
-      const problems = sectionsProblems(target.sections);
+      const problems = sectionsProblems(target);
       if (problems.length > 0) {
         setStatus({ kind: "error", message: `Niet opgeslagen: ${problems[0]}` });
         return false;
       }
       try {
-        const res = await savePage(id, target.sections);
+        const res = slot ? await saveLayout(site.id, slot, target) : await savePage(key, target);
         if (!res.ok) {
           setStatus({ kind: "error", message: `Niet opgeslagen: ${res.error}` });
           return false;
@@ -181,7 +234,7 @@ export function SiteBuilder({
         return false;
       }
       // Alleen "schoon" als er tijdens het opslaan niets meer is bewerkt.
-      if (dirty.current.get(id) === v) dirty.current.delete(id);
+      if (dirty.current.get(key) === v) dirty.current.delete(key);
     }
     if (dirty.current.size === 0) setStatus({ kind: "saved" });
     else {
@@ -224,39 +277,44 @@ export function SiteBuilder({
   // ── Bewerken van secties ───────────────────────────────────────────────────
   const lastEdit = useRef<{ key: string | null; at: number }>({ key: null, at: 0 });
 
-  /** Zet de secties van de huidige pagina; opeenvolgende bewerkingen met dezelfde `coalesce` vormen één undo-stap. */
+  const setAreaSections = (key: string, next: SectionData[]) => {
+    if (isSlot(key)) setLayout((l) => ({ ...l, [key]: next }));
+    else setPages((ps) => ps.map((p) => (p.id === key ? { ...p, sections: next } : p)));
+  };
+
+  /** Zet de secties van de bewerkte plek; opeenvolgende bewerkingen met dezelfde `coalesce` vormen één undo-stap. */
   const commit = (next: SectionData[], coalesce?: string) => {
-    if (!page) return;
+    if (!areaKey) return;
     const now = nowMs();
     const merge = !!coalesce && lastEdit.current.key === coalesce && now - lastEdit.current.at < 1000;
     lastEdit.current = { key: coalesce ?? null, at: now };
-    const before = page.sections;
+    const before = sections;
     setHist((h) => {
-      const cur = h[page.id] ?? { past: [], future: [] };
-      return { ...h, [page.id]: { past: merge ? cur.past : [...cur.past, before].slice(-100), future: [] } };
+      const cur = h[areaKey] ?? { past: [], future: [] };
+      return { ...h, [areaKey]: { past: merge ? cur.past : [...cur.past, before].slice(-100), future: [] } };
     });
-    setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, sections: next } : p)));
-    markDirty(page.id);
+    setAreaSections(areaKey, next);
+    markDirty(areaKey);
   };
 
-  const history = (page && hist[page.id]) || { past: [], future: [] };
+  const history = (areaKey && hist[areaKey]) || { past: [], future: [] };
   const undo = () => {
-    if (!page || history.past.length === 0) return;
+    if (!areaKey || history.past.length === 0) return;
     const prev = history.past[history.past.length - 1];
-    setHist((h) => ({ ...h, [page.id]: { past: history.past.slice(0, -1), future: [page.sections, ...history.future] } }));
-    setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, sections: prev } : p)));
+    setHist((h) => ({ ...h, [areaKey]: { past: history.past.slice(0, -1), future: [sections, ...history.future] } }));
+    setAreaSections(areaKey, prev);
     if (!prev.some((s) => s.id === sectionId)) setSectionId(null);
     lastEdit.current = { key: null, at: 0 };
-    markDirty(page.id);
+    markDirty(areaKey);
   };
   const redo = () => {
-    if (!page || history.future.length === 0) return;
+    if (!areaKey || history.future.length === 0) return;
     const [next, ...rest] = history.future;
-    setHist((h) => ({ ...h, [page.id]: { past: [...history.past, page.sections], future: rest } }));
-    setPages((ps) => ps.map((p) => (p.id === page.id ? { ...p, sections: next } : p)));
+    setHist((h) => ({ ...h, [areaKey]: { past: [...history.past, sections], future: rest } }));
+    setAreaSections(areaKey, next);
     if (!next.some((s) => s.id === sectionId)) setSectionId(null);
     lastEdit.current = { key: null, at: 0 };
-    markDirty(page.id);
+    markDirty(areaKey);
   };
 
   const addSection = (block: AnyBlock) => {
@@ -264,6 +322,7 @@ export function SiteBuilder({
     const at = selected ? sections.findIndex((s) => s.id === selected.id) + 1 : sections.length;
     commit([...sections.slice(0, at), section, ...sections.slice(at)]);
     setSectionId(section.id);
+    setRightTab("section");
     setLibraryOpen(false);
   };
   const moveSection = (id: string, delta: number) => {
@@ -292,10 +351,27 @@ export function SiteBuilder({
 
   // ── Pagina's ───────────────────────────────────────────────────────────────
   const selectPage = (id: string) => {
+    setEditing(null);
     setPageId(id);
     setSectionId(pages.find((p) => p.id === id)?.sections[0]?.id ?? null);
+    setRightTab("section");
     setLevel("sections");
     lastEdit.current = { key: null, at: 0 };
+  };
+
+  const selectSlot = (slot: Slot) => {
+    setEditing(slot);
+    setSectionId(layout[slot][0]?.id ?? null);
+    setRightTab("section");
+    setLevel("sections");
+    lastEdit.current = { key: null, at: 0 };
+  };
+
+  /** Klik op een sectie in het canvas of de lijst; schakelt zo nodig tussen de pagina, de header en de footer. */
+  const pickSection = (area: Slot | null, id: string) => {
+    setEditing(area);
+    setSectionId(id);
+    setRightTab("section");
   };
 
   const submitNewPage = async () => {
@@ -331,8 +407,13 @@ export function SiteBuilder({
     if (p.id === pageId) {
       setPageId(rest[0]?.id ?? "");
       setSectionId(rest[0]?.sections[0]?.id ?? null);
+      setEditing(null);
       setLevel("pages");
     }
+  };
+
+  const pageSettingsSaved = (id: string, settings: PageSettings) => {
+    setPages((ps) => ps.map((p) => (p.id === id ? { ...p, ...settings } : p)));
   };
 
   // ── Voorbeeld en publiceren ────────────────────────────────────────────────
@@ -372,9 +453,20 @@ export function SiteBuilder({
 
   // Canvas: links volgen we niet, klikken selecteren alleen.
   const canvasRefs = useRef(new Map<string, HTMLDivElement>());
+  const registerRef = (id: string, el: HTMLDivElement | null) => {
+    if (el) canvasRefs.current.set(id, el);
+    else canvasRefs.current.delete(id);
+  };
   useEffect(() => {
     if (sectionId) canvasRefs.current.get(sectionId)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }, [sectionId]);
+
+  const available = editing
+    ? blocks.filter((b) => slots[editing].allowed.includes(b.slug))
+    : blocks.filter((b) => !slotBlockSlugs.has(b.slug));
+  const pagePaths = pages.map((p) => `/${p.slug}`);
+  // Zonder gekozen sectie (of in de header/footer) is er alleen het paginatabblad, respectievelijk het sectietabblad.
+  const tab = editing ? "section" : !selected ? "page" : rightTab;
 
   const themeVars = useMemo(() => themeToCssVars(site.theme), [site.theme]);
   const deviceWidth = devices.find((d) => d.id === device)!.width;
@@ -395,6 +487,34 @@ export function SiteBuilder({
     return <div className="p-8 text-[13px]">Deze website heeft nog geen pagina&apos;s.</div>;
   }
 
+  const siteActions = (
+    <div className="mt-3">
+      <Link href="/websites" className="text-accent-200 underline">
+        Terug naar alle websites
+      </Link>
+      {canDelete ? (
+        <div>
+          <button type="button" className="btn btn-secondary mt-8 !text-danger" onClick={() => void removeSite()}>
+            <i className="ph ph-trash" /> Website verwijderen
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const slotPlaceholder = (slot: Slot) => (
+    <button
+      type="button"
+      onClick={() => {
+        selectSlot(slot);
+        setLibraryOpen(true);
+      }}
+      className="flex w-full items-center justify-center gap-1.5 border-y border-dashed border-divider py-2 text-[11px] text-text/55 hover:text-accent"
+    >
+      <i className="ph ph-plus" /> {slots[slot].label} toevoegen
+    </button>
+  );
+
   return (
     <div className="flex h-full min-h-0 gap-px bg-divider">
       {/* Linker paneel: pagina's ↔ secties */}
@@ -411,7 +531,7 @@ export function SiteBuilder({
             </button>
           ) : null}
           <span className="min-w-0 flex-1 truncate font-heading text-[10.5px] uppercase tracking-[0.08em] text-text/60">
-            {level === "sections" ? page.title : "Pagina's"}
+            {level === "sections" ? (editing ? slots[editing].label : page.title) : "Pagina's"}
           </span>
           <button
             type="button"
@@ -452,7 +572,7 @@ export function SiteBuilder({
               {pages.map((p) => (
                 <div
                   key={p.id}
-                  className={`flex items-center gap-1.5 rounded-sm px-2 py-[7px] text-[11px] ${p.id === pageId ? on : off}`}
+                  className={`flex items-center gap-1.5 rounded-sm px-2 py-[7px] text-[11px] ${!editing && p.id === pageId ? on : off}`}
                 >
                   {renaming?.id === p.id ? (
                     <input
@@ -491,13 +611,24 @@ export function SiteBuilder({
                   )}
                 </div>
               ))}
+
+              <div className="mt-3 px-2 pb-1 text-[10px] uppercase tracking-[0.08em] text-text/50">Op alle pagina&apos;s</div>
+              {slotKeys.map((k) => (
+                <div key={k} className={`flex items-center gap-1.5 rounded-sm px-2 py-[7px] text-[11px] ${editing === k ? on : off}`}>
+                  <button type="button" className="flex min-w-0 flex-1 items-center gap-1.5 text-left" onClick={() => selectSlot(k)} title={slots[k].description}>
+                    <i className={`ph ph-${k === "header" ? "arrow-line-up" : "arrow-line-down"} flex-none text-[13px]`} />
+                    <span className="min-w-0 flex-1 truncate">{slots[k].label}</span>
+                    <span className="text-[10px] opacity-60">{layout[k].length}</span>
+                  </button>
+                </div>
+              ))}
             </div>
 
-            {/* secties van de gekozen pagina */}
+            {/* secties van de gekozen pagina, header of footer */}
             <div className="flex h-full w-1/2 flex-col gap-px overflow-auto px-2 pb-3">
               {sections.length === 0 ? (
                 <div className="flex flex-col items-start gap-2 px-2 py-3 text-[11.5px] text-text/65">
-                  Deze pagina heeft nog geen secties.
+                  {editing ? `De ${slots[editing].label.toLowerCase()} is nog leeg.` : "Deze pagina heeft nog geen secties."}
                   <button type="button" className="btn btn-secondary" style={{ fontSize: 11.5 }} onClick={() => setLibraryOpen(true)}>
                     <i className="ph ph-plus" /> Sectie toevoegen
                   </button>
@@ -508,7 +639,7 @@ export function SiteBuilder({
                 const heading = headingOf(s);
                 return (
                   <div key={s.id} className={`flex items-center gap-1.5 rounded-sm px-2 py-[7px] text-[11px] ${s.id === sectionId ? on : off}`}>
-                    <button type="button" className="flex min-w-0 flex-1 items-center gap-1.5 text-left" onClick={() => setSectionId(s.id)}>
+                    <button type="button" className="flex min-w-0 flex-1 items-center gap-1.5 text-left" onClick={() => pickSection(editing, s.id)}>
                       <i className={`ph ph-${b?.icon ?? "warning"} flex-none text-[13px]`} />
                       <span className="flex min-w-0 flex-1 flex-col">
                         <span className="truncate">{b?.label ?? s.type}</span>
@@ -596,59 +727,83 @@ export function SiteBuilder({
 
         <div className="flex min-h-0 flex-1 justify-center overflow-auto p-4">
           <div
-            className="self-start overflow-hidden rounded-md bg-white shadow-[var(--shadow-lg)]"
+            className="isolate self-start overflow-hidden rounded-md bg-white shadow-[var(--shadow-lg)]"
             style={{ ...themeVars, width: deviceWidth, maxWidth: "100%", background: "var(--var-color-white)" }}
             onClickCapture={(e) => {
               if ((e.target as HTMLElement).closest("a")) e.preventDefault();
             }}
           >
-            {sections.length === 0 ? (
-              <button
-                type="button"
-                onClick={() => setLibraryOpen(true)}
-                className="flex min-h-[240px] w-full flex-col items-center justify-center gap-2 text-[13px] text-text/60"
-              >
-                <i className="ph ph-plus-circle text-[28px]" />
-                Voeg je eerste sectie toe
-              </button>
-            ) : (
-              sections.map((s) => (
-                <div
-                  key={s.id}
-                  ref={(el) => {
-                    if (el) canvasRefs.current.set(s.id, el);
-                    else canvasRefs.current.delete(s.id);
+            <SiteFrame
+              embedded
+              header={layout.header.length > 0 ? <CanvasArea list={layout.header} area="header" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} /> : slotPlaceholder("header")}
+              footer={layout.footer.length > 0 ? <CanvasArea list={layout.footer} area="footer" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} /> : slotPlaceholder("footer")}
+            >
+              {page.sections.length === 0 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    selectPage(page.id);
+                    setLibraryOpen(true);
                   }}
-                  className="relative cursor-pointer"
-                  onClick={() => setSectionId(s.id)}
+                  className="flex min-h-[240px] w-full flex-col items-center justify-center gap-2 text-[13px] text-text/60"
                 >
-                  <CanvasSection section={s} />
-                  <div
-                    className="pointer-events-none absolute inset-0 hover:outline-2"
-                    style={{ outline: s.id === sectionId ? "2px solid var(--color-accent)" : "none", outlineOffset: -2 }}
-                  />
-                  {s.id === sectionId ? (
-                    <div className="pointer-events-none absolute left-0 top-0 bg-accent px-2 py-[3px] text-[10.5px] tracking-[0.04em] text-neutral-900">
-                      {getBlock(s.type)?.label ?? s.type}
-                    </div>
-                  ) : null}
-                </div>
-              ))
-            )}
+                  <i className="ph ph-plus-circle text-[28px]" />
+                  Voeg je eerste sectie toe
+                </button>
+              ) : (
+                <CanvasArea list={page.sections} area={null} selectedId={sectionId} onPick={pickSection} registerRef={registerRef} />
+              )}
+            </SiteFrame>
           </div>
         </div>
       </div>
 
-      {/* Rechter paneel: instellingen van de gekozen sectie, gegenereerd uit het block-schema */}
+      {/* Rechter paneel: sectie-instellingen (gegenereerd uit het block-schema) of pagina-instellingen (SEO) */}
       <div className="flex w-[300px] flex-none flex-col bg-bg">
-        <div className="flex flex-col gap-0.5 px-4 pb-2 pt-3">
+        <div className="flex flex-col gap-2 px-4 pb-2 pt-3">
           <span className="font-heading text-[10.5px] uppercase tracking-[0.08em] text-text/60">Instellingen</span>
-          <span className="truncate text-[11px] text-text/70">
-            {selectedBlock ? `${selectedBlock.label} · sectie-instellingen` : "Geen sectie gekozen"}
-          </span>
+          {editing ? (
+            <span className="truncate text-[11px] text-text/70">
+              {slots[editing].label} · {selectedBlock ? selectedBlock.label : "geen sectie gekozen"}
+            </span>
+          ) : (
+            <div className="seg flex text-[11px]">
+              <button
+                type="button"
+                className="seg-opt"
+                aria-pressed={tab === "section"}
+                disabled={!selected}
+                style={{ flex: "1 1 0", minWidth: 0, padding: "5px 2px" }}
+                onClick={() => setRightTab("section")}
+              >
+                Sectie
+              </button>
+              <button
+                type="button"
+                className="seg-opt"
+                aria-pressed={tab === "page"}
+                style={{ flex: "1 1 0", minWidth: 0, padding: "5px 2px" }}
+                onClick={() => setRightTab("page")}
+              >
+                Pagina
+              </button>
+            </div>
+          )}
         </div>
 
-        {selected && selectedBlock && schemas ? (
+        {/* Suggesties voor alle link-velden: de pagina's van deze site. */}
+        <datalist id="site-paths">
+          {pagePaths.map((path) => (
+            <option key={path} value={path} />
+          ))}
+        </datalist>
+
+        {tab === "page" && !editing ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 pb-6 pt-2">
+            <PageSettingsForm key={page.id} page={page} siteName={site.name} onSaved={(settings) => pageSettingsSaved(page.id, settings)} />
+            {siteActions}
+          </div>
+        ) : selected && selectedBlock && schemas ? (
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto px-4 pb-6 pt-2">
             <div className="flex items-center gap-1">
               <button type="button" className="btn btn-secondary flex-1" style={{ fontSize: 11.5, justifyContent: "center" }} onClick={() => duplicateSection(selected.id)}>
@@ -719,21 +874,12 @@ export function SiteBuilder({
         ) : (
           <div className="px-4 py-3 text-[12px] text-text/60">
             Klik op een sectie in het canvas of in de lijst links om de inhoud en het uiterlijk aan te passen.
-            <div className="mt-3">
-              <Link href="/websites" className="text-accent-200 underline">
-                Terug naar alle websites
-              </Link>
-            </div>
-            {canDelete ? (
-              <button type="button" className="btn btn-secondary mt-8 !text-danger" onClick={() => void removeSite()}>
-                <i className="ph ph-trash" /> Website verwijderen
-              </button>
-            ) : null}
+            {siteActions}
           </div>
         )}
       </div>
 
-      {libraryOpen ? <Library onPick={addSection} onClose={() => setLibraryOpen(false)} /> : null}
+      {libraryOpen ? <Library available={available} onPick={addSection} onClose={() => setLibraryOpen(false)} /> : null}
     </div>
   );
 }
