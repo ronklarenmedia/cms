@@ -1,4 +1,5 @@
 import { asc } from "drizzle-orm";
+import { connection } from "next/server";
 import { db } from "@/db";
 import { customers } from "@/db/schema";
 import { MockupScreen } from "@/mockup/MockupScreen";
@@ -18,6 +19,7 @@ const monogram = (name: string) =>
     .toUpperCase();
 
 export default async function KlantenPage() {
+  await connection(); // toont live database-data, dus niet voorrenderen bij de build
   const rows = await db.select().from(customers).orderBy(asc(customers.name));
 
   // Vorm van de roster uit de mockup; de kaarten tonen alleen wat het datamodel kent.
