@@ -8,7 +8,7 @@
 export type Vals = Record<string, any>;
 export type MockupState = typeof initialState;
 export type SetState = (patch: Partial<MockupState> | ((s: MockupState) => Partial<MockupState>)) => void;
-export type LogicProps = { active: string; roster?: any[] };
+export type LogicProps = { active: string; roster?: any[]; sites?: any[] };
 
 export const initialState = {
   kitAccent: 2, kitPaper: 0, kitFont: 0, kitRadius: 10,
@@ -440,8 +440,10 @@ export class MockupLogic {
       ["Voorraadscanner", "Rietveld Mobility", "Live"], ["Werkbon-app", "Kruithof Bouw", "Live"],
     ];
     const isApps = active === "apps";
-    const gallerySource = (isApps ? apps : sites).map(([name, client, state]) => ({
-      name, client, state,
+    // Websites komen uit de database (tuples [naam, klant, status, href]); apps zijn nog demo-data.
+    const siteList = this.props.sites ?? sites;
+    const gallerySource = (isApps ? apps : siteList).map(([name, client, state, href]) => ({
+      name, client, state, href,
       letter: name.replace(/^www\./, "")[0].toUpperCase(),
       stateColor: state === "Live" ? "#2e9c6a" : state === "Concept" ? "#c4881c" : "#d94662",
     }));
@@ -573,8 +575,9 @@ export class MockupLogic {
       letterGroups, alphabet, klantCount: roster.length + " klanten",
       galleryGroups, galleryAlphabet,
       galleryTitle: isApps ? "Apps" : "Websites",
-      galleryMeta: (isApps ? apps.length + " apps" : sites.length + " websites") + " · alfabetisch gesorteerd",
+      galleryMeta: (isApps ? apps.length + " apps" : siteList.length + " websites") + " · alfabetisch gesorteerd",
       galleryNewLabel: isApps ? "Nieuwe app" : "Nieuwe site",
+      galleryNewHref: isApps ? "/apps/nieuw" : "/websites/nieuw",
       showGallery: active === "websites" || active === "apps",
       showKlantForm: active === "klanten/nieuw",
       showPlatform: active === "platform",

@@ -1,11 +1,12 @@
 /* eslint-disable */
 // @ts-nocheck
 // Gegenereerd uit de Claude Design-mockup "Multi-tenant AI webbuilder mockups".
+import Link from "next/link";
 import { Fragment } from "react";
 import type { Vals } from "../logic";
 
 export function GalerijScreen({ v }: { v: Vals }) {
-  const { galleryAlphabet, galleryGroups, galleryMeta, galleryNewLabel, galleryTitle, pageMax } = v;
+  const { galleryAlphabet, galleryGroups, galleryMeta, galleryNewHref, galleryNewLabel, galleryTitle, pageMax } = v;
   return (
     <>
       <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-6)", maxWidth: pageMax }}>
@@ -26,10 +27,10 @@ export function GalerijScreen({ v }: { v: Vals }) {
               <i className="ph ph-funnel"></i>
               Filter
             </button>
-            <button className="btn btn-primary">
+            <Link className="btn btn-primary" href={galleryNewHref}>
               <i className="ph ph-plus"></i>
               {galleryNewLabel}
-            </button>
+            </Link>
           </div>
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "3px", paddingBottom: "var(--space-3)", borderBottom: "1px solid var(--color-divider)" }}>
@@ -56,7 +57,7 @@ export function GalerijScreen({ v }: { v: Vals }) {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(230px,1fr))", gap: "var(--space-4)" }}>
                 {g.items.map((s, __i4) => (
                   <Fragment key={__i4}>
-                    <div className="hv4" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", cursor: "pointer" }}>
+                    <Link href={s.href ?? "#"} className="hv4" style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)", cursor: "pointer", textDecoration: "none", color: "inherit" }}>
                       <div style={{ aspectRatio: "16/10", borderRadius: "var(--radius-md)", overflow: "hidden", background: "var(--color-surface)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "4px", padding: "6px 8px", borderBottom: "1px solid var(--color-divider)", flex: "none" }}>
                           <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "var(--color-neutral-700)" }}></span>
@@ -89,7 +90,7 @@ export function GalerijScreen({ v }: { v: Vals }) {
                           {s.state}
                         </span>
                       </div>
-                    </div>
+                    </Link>
                   </Fragment>
                 ))}
               </div>

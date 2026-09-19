@@ -36,12 +36,14 @@ export function MockupScreen({
   active,
   title,
   roster,
+  sites,
 }: {
   active: string;
   title?: string;
   roster?: unknown[];
+  sites?: unknown[];
 }) {
-  const v = useMockupVals({ active, roster });
+  const v = useMockupVals({ active, roster, sites });
   const Screen = screens[active] ?? PlaceholderScreen;
   return <Screen v={{ ...v, pageTitle: title ?? "" }} />;
 }

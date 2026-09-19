@@ -38,7 +38,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [userCollapsed, setCollapsed] = useState(false);
   // De website-builder heeft alle breedte nodig: menu ingeklapt en geen padding rond de inhoud.
-  const isBuilder = pathname === "/websites/nieuw";
+  const isBuilder = /^\/websites\/(?!nieuw$)[^/]+$/.test(pathname);
+  // Het voorbeeld van een site toont alleen de site zelf, zonder platform-menu.
+  const isPreview = /^\/websites\/[^/]+\/voorbeeld(\/|$)/.test(pathname);
   const collapsed = isBuilder || userCollapsed;
 
   const childOn = (c: NavChild) => c.href === pathname;
@@ -59,6 +61,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       pageTitle = item.label;
     }
   }
+
+  if (isPreview) return <>{children}</>;
 
   return (
     <div
