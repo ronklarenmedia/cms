@@ -21,8 +21,9 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
 | **Platformoverzicht** (`/`) | **Echt** (21 sept): live koppelingsstatus, aantallen klanten/websites/domeinen/beelden, publicaties per uur of dag, klanten met de meeste websites en recente publicaties. Geen bezoekers of pageviews: daar is nog geen bron voor (zie §3) |
-| Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
-| Zoekbalk en belletje bovenin | Nog niet functioneel |
+| **Design kits** (`/design-kits`) | **Echt** (21 sept): overzicht, aanmaken, editor met alle 87 tokens en live voorbeeld, kit kiezen in de builder en bij een nieuwe site (zie §3) |
+| Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
+| Zoekbalk bovenin | **Echt** (21 sept): klanten, websites, pagina's en design kits (zie §3). Het belletje (meldingen) is nog niet functioneel |
 
 ## 2. Thuis verder werken
 
@@ -125,6 +126,31 @@ klantpagina toont zijn websites.
   of Cloudflare) en er een plek is om de tellingen op te slaan (nieuwe tabel: eerst overleggen).
 - Het oude mockupscherm (`src/mockup/screens/Platform.tsx`) is verwijderd. `src/mockup/logic.ts` bevat nog de bijbehorende demo-data (`clients`, `deploys`, `kpis`, `pages`, `services`); opruimen kan bij de rest van `logic.ts`.
 
+**Design kits** — `/design-kits` (`src/app/(beheer)/design-kits/`, servermodules `src/lib/kits.ts` en `src/lib/theme-tokens.ts`). Een kit is een **opgeslagen thema**: alleen de tokens die afwijken van `defaultTheme`.
+- *Model*: tabel `design_kits` (`customer_id` leeg = **platformkit**, voor elke klant; anders alleen voor die klant, en dat is achteraf niet te wijzigen) en `sites.design_kit_id`. Een site verwijst naar één kit; de kit
+  van een klant is niet te gebruiken voor sites van een andere klant. Een kit in gebruik is niet te verwijderen (FK `restrict` plus een melding). Twee platformkits zijn aangemaakt: **Corporate** (leeg = het standaardthema) en **Warm**.
+- *Thema van een site* = `{...kit.theme, ...sites.theme}` (`effectiveSiteTheme`); `themeToCssVars` vult de rest met de standaard. `sites.theme` is de **eigen afwijking** van de site: het bleef bestaan omdat sites die vóór de kits
+  zijn gemaakt hun preset (Corporate/Warm) daarin hebben. Er is geen scherm om `sites.theme` te bewerken; in de kit-dialoog van de builder staat een waarschuwing en een knop "Eigen aanpassingen wissen" als een site er nog heeft
+  (die gaan boven de kit, dus een andere kit kiezen zou anders niets doen). Een nieuwe site krijgt `theme = {}` en kiest een kit.
+- *Publiceren*: de momentopname bewaart het **samengevoegde** thema. Een kit wijzigen bereikt een live site dus pas bij de volgende publicatie; de builder en het voorbeeld tonen het direct, en de site krijgt dan
+  "Niet-gepubliceerde wijzigingen" (het thema zit in de hash). Een site zonder kit geeft precies dezelfde momentopname en hash als voorheen (gecontroleerd op een kopie van productie: `changed: false`).
+- *Overzicht* (`/design-kits`): kaarten per groep (platformkits, dan per klant), met zoeken op kit of klant, kleurstalen, lettertype en het aantal websites. *Nieuw* (`/design-kits/nieuw`, ook `?kopie=<id>` voor "Dupliceren"):
+  naam, voor wie, en begin leeg of met een kopie van een bestaande kit.
+- *Editor* (`/design-kits/[id]`, `KitEditor.tsx`): alle 87 tokens in negen groepen (merkkleuren, achtergronden, neutraal, status, typografie, vormgeving, ruimte, media, interactie), doorzoekbaar, "alleen gewijzigd",
+  per token en per groep herstellen naar de standaard, kleurkiezer bij kleuren, en een live voorbeeld met echte blocks (header, hero, usp-grid, text-image, stats, testimonials, pricing, faq, cta-banner, footer) op desktop, tablet en mobiel.
+  Alleen afwijkingen van de standaard worden opgeslagen. Naam en tokens opslaan, dupliceren, en verwijderen (alleen platform-admin, niet als de kit in gebruik is).
+- *Validatie* (`parseTokenValue` in `theme-tokens.ts`, zowel in de editor als in de server-actie en bij het lezen): alleen bekende tokens; kleuren als hex/rgb/hsl/naam; getallen voor opacity en z-index; geen `;`, accolades,
+  `url(`, `@import`, commentaar of backslashes. Een tokenwaarde komt in een `style`-attribuut en mag daar geen extra declaraties kunnen inbrengen. Een ongeldige kit uit de database wordt bij het renderen overgeslagen.
+- *In de builder*: knop "Design kit" (toont de naam van de kit) naast Voorbeeld en Domeinen, met `KitDialog.tsx`; het canvas ververst mee. *Nieuwe website* laat de kits van de gekozen klant plus de platformkits zien.
+- **Lettertypes:** openbare sites laden geen webfonts; alleen systeemlettertypes (of wat de bezoeker heeft) werken zeker. De editor waarschuwt daarvoor en geeft veilige stacks als suggestie. Webfonts per kit zijn nog te bouwen.
+
+**Zoeken** — de zoekbalk bovenin (`GlobalSearch.tsx`, server-actie `searchPlatform` in `src/app/(beheer)/search.ts`, typen in `src/lib/search-types.ts`). Doorzoekt namen, contactpersonen en e-mail van klanten, namen en slugs van websites,
+titels, slugs en SEO-titels van pagina's en namen van design kits; per groep maximaal 5 resultaten (bij pagina's 8). Vanaf 2 tekens, met 200 ms vertraging na het typen; een oudere uitkomst wordt genegeerd.
+- Bediening: ↑ ↓ Enter Esc, `/` of ⌘K/Ctrl+K om te focussen (niet als je al in een invoerveld typt); klikken buiten het veld sluit de lijst. `role="combobox"`/`listbox` met `aria-activedescendant`.
+- Een pagina opent de builder van die site op die pagina via `/websites/<id>?pagina=<slug>` (lege slug = homepage).
+- Beveiliging: een server-actie is een openbaar eindpunt, dus `staffUser()` wordt zelf gecontroleerd; `%`, `_` en `\` in de zoekterm zoeken **letterlijk** (geëscaped), zodat `%%` niet alles oplevert.
+- Bewust simpel (`ILIKE`, geen index). Bij veel meer gegevens: `pg_trgm`-index op de doorzochte kolommen. Apps en componenten zitten er (nog) niet in.
+
 **Componenten** — `/componenten` (miniaturen, gebruik per site, aantal tokens), `/componenten/editor?block=…`
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
 `/componenten/showcase`.
@@ -153,6 +179,7 @@ docs/               gemini-blocks-brief.md, dit bestand
 `src/blocks/theme.ts`, `layout` jsonb = `{header, footer}`, `status` draft/live); `pages` (`content` jsonb = lijst
 secties, `slug` leeg = homepage, SEO-velden); `platform_settings` (één rij, `id = 1` afgedwongen met een CHECK);
 `media` (één rij per geüpload beeld van een site: `id` = mapnaam in R2, `url`, `srcset`, afmetingen, `filename`, `bytes`; verdwijnt mee met de site);
+`design_kits` (opgeslagen thema's; `customer_id` leeg = platformkit, `theme` jsonb = alleen afwijkingen van de standaard) met `sites.design_kit_id` (FK, restrict);
 `site_domains` (eigen domeinen per site: `hostname` uniek, `is_primary` hoogstens één per site, `status` pending/active);
 `user`, `session`, `account`, `verification` (Better Auth, met `role` en `customerId`).
 
@@ -265,7 +292,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel
      voorgelezen); `team` zet `position` op de `Person` in plaats van op een `ListItem` en gebruikt een relatieve
      `image`-URL in de JSON-LD.
-3. **Design kits**: eerst het model kiezen (zie §8). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
+3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: webfonts per kit voor openbare sites, een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
+   en het versiebeheer van kits (nu geldt de laatste opslag). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
@@ -274,11 +302,11 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
    **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
 6. Opruimwerk: migratiebestanden, tests (nu alleen `check:blocks`), echte README, gebruikersbeheer-scherm,
-   wachtwoord-reset per mail, tweestapsverificatie, opruimen van `logic.ts`, zoekbalk/meldingen.
+   wachtwoord-reset per mail, tweestapsverificatie, opruimen van `logic.ts`, meldingen (het belletje).
 
 ## 8. Open vragen aan Ron
 
-- **Design kit-model**: een kit = een opgeslagen thema (set tokens) dat bij een klant hoort en waar sites naar
+- ~~**Design kit-model**~~ (besloten 21 sept: opgeslagen thema waar sites naar verwijzen, klant of platform, alle 87 tokens bewerkbaar). Oorspronkelijke vraag: een kit = een opgeslagen thema (set tokens) dat bij een klant hoort en waar sites naar
   verwijzen? De mockup toont 4 knoppen (accent, papier, lettertype, hoekafronding); de blocks gebruiken 87 tokens.
 - **Plannen**: welke plannen bestaan er (BOJOB/PRO of Starter/Pro/Agency) en wat zijn de limieten?
 - **Hosting van klantsites**: uitgewerkt in `docs/hosting-opties.md` (opties A–E, kosten, advies en vier vragen). Advies: één multi-tenant
@@ -312,6 +340,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   `PLATFORM_VERCEL_API_URL` werkt alleen buiten productie (testadres) en hoort daar niet gezet te worden.
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
+- **Design kits:** `docs/sql/2026-09-21-design-kits.sql` (tabel `design_kits`, kolom `sites.design_kit_id`, twee platformkits) moet op de database staan vóór de code die hem leest. Lokaal (`main`) toegepast; op
+  `production` uitvoeren vóór het deployen (eerst geoefend op een tijdelijke branch als kopie van productie, die daarna is verwijderd). Zonder de tabel falen o.a. de builder, het voorbeeld, publiceren en het aanmaken van een site.
 - Een admin aanmaken met `npm run create-user` (tegen de productie-database) is gedaan: het bestaande account staat in de `production`-branch (gekopieerd bij het aanmaken van de branch).
 
 ## 10. Werkafspraken
