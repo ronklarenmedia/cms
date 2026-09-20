@@ -11,6 +11,8 @@ type Params = Promise<{ host: string; pagina?: string[] }>;
 // Elke pagina wordt bij het eerste bezoek opgebouwd en daarna gecachet (ISR); publiceren maakt de cache van de site ongeldig
 // (revalidatePath in src/app/(beheer)/websites/publish.ts). Er wordt hier bewust geen sessie of cookie gelezen: dat zou de pagina dynamisch maken.
 export const dynamicParams = true;
+// Vangnet: mocht het legen van de cache ooit niet aankomen, dan is een pagina hooguit 10 minuten oud.
+export const revalidate = 600;
 export async function generateStaticParams() {
   return [];
 }
