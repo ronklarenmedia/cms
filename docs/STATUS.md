@@ -79,7 +79,10 @@ klantpagina toont zijn websites.
   eigen rol niet wijzigen. Nieuwe gebruikers maak je aan met `npm run create-user`.
 - *Beveiliging*: eigen sessies bekijken en beëindigen (via Better Auth), uitloggen op alle andere apparaten, en het
   inlogbeleid (`authPolicy` in `src/lib/auth.ts`, dezelfde waarden als de configuratie).
-- *Koppelingen*: alleen status. Neon wordt live gemeten (één query, responstijd); de rest staat op "Niet gekoppeld".
+- *Koppelingen*: alleen status, nooit sleutels of adressen. Live gemeten: **Neon** (één query, responstijd) en **Cloudflare R2**
+  (`checkStorage()` in `src/lib/health.ts`: ondertekende HEAD op de bucket + of `R2_PUBLIC_URL` bereikbaar is; schrijft niets).
+  Een aanwezige `ANTHROPIC_API_KEY` of `RESEND_API_KEY` toont "Sleutel ingesteld" (nog niet gecontroleerd, want die
+  onderdelen bestaan nog niet); de rest staat op "Niet gekoppeld". R2-configuratie: `src/lib/r2.ts` (`getR2Config()`).
 - *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
   (`src/app/instellingen/tabs.ts`), geen schakelaars die niets doen.
 
@@ -132,6 +135,15 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   nieuwe *variant* van `site-footer`.
 - Mobiel menu zonder client-JS (`<details>`), uitklapmenu's met CSS (hover/focus).
 - Alle pagina's zijn dynamisch gerenderd (de layout leest de sessie).
+- **Opslag voor uploads: Cloudflare R2** (niet Vercel Blob): bandbreedte is gratis, S3-compatibel en niet aan de hosting
+  gebonden. Bucket `cms-media` (West-Europa) staat in Rons Cloudflare-account (`348598c3…`). Bestanden worden bewaard als
+  **pad**, niet als volledige URL, zodat een domeinwissel alleen `R2_PUBLIC_URL` raakt.
+- **Domein voor bestanden: `media.rkmassets.com`** (via R2 → Custom Domains). Bewust géén `.download`/`.stream`: die
+  extensies staan op lijsten van veel misbruikte TLD's en worden door sommige spamfilters en firewalls geblokkeerd
+  (bezoeker ziet dan een site zonder afbeeldingen). `cloud-cdn.download` en `media-cdn.stream` zijn wel gekocht: niet
+  gebruiken en automatisch verlengen uitzetten.
+- Op termijn het liefst afbeeldingen via het **eigen domein van de klant** serveren (`klant.nl/media/…`): geen extra
+  verbinding, niet te blokkeren als apart CDN-domein. Hangt samen met de hostingkeuze (§8).
 
 ## 6. Valkuilen
 
@@ -153,6 +165,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   aanmaken). Test die zelf, of log in de browserpane zelf in.
 - `src/lib/platform-settings-schema.ts` (types, standaardwaarden, validatie) mag ook in client-componenten; `platform-settings.ts`
   leest de database en mag dat **niet** (dan komt `pg` in de browserbundel en faalt `npm run build`).
+- **R2-sleutels staan in `.env.local`** (niet in git; wint van `.env`). De oude `R2_*`-regels uit `.env` hoorden bij een ander
+  Cloudflare-account (`3fd8c6…`) en zijn verwijderd. Bucket en domein moeten in hetzelfde account staan. Een token met rechten op één bucket geeft 403 (geen 404) bij een verkeerde bucketnaam.
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
@@ -160,7 +174,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 1. ✅ Login en rollen, verwijder-bug.
 2. ✅ Sitebrede header/footer, ✅ SEO per pagina.
-   - ⏳ **Afbeeldingen uploaden**: wacht op keuze opslag (zie §8). Tot dan alleen URL-velden.
+   - ⏳ **Afbeeldingen uploaden**: opslag is gekozen (R2, §5) en de verbinding is live te controleren (Koppelingen). Nog te
+     bouwen: upload-actie met controle (alleen staff, type en grootte), verkleinen naar meerdere formaten + WebP
+     (`sharp` staat al in `node_modules`), CORS op de bucket, opslag onder `<klant>/<site>/…`. Tot dan alleen URL-velden.
    - ⏳ **Resterende blocks** (tijdlijn, cases, galerij, breadcrumbs, video, lijst…): bij Gemini, zie de brief. Blocks die
      client-JS of een backend nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding) eerst overleggen.
    - Bekende puntjes in de blocks van Gemini (niet blokkerend): `testimonials` levert `Review`-JSON-LD zonder
@@ -180,8 +196,6 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 ## 8. Open vragen aan Ron
 
-- **Opslag voor uploads**: Cloudflare R2 (aanrader: gebruikte je eerder, je hebt Cloudflare; jij maakt bucket +
-  S3-sleutels aan) of Vercel Blob?
 - **Design kit-model**: een kit = een opgeslagen thema (set tokens) dat bij een klant hoort en waar sites naar
   verwijzen? De mockup toont 4 knoppen (accent, papier, lettertype, hoekafronding); de blocks gebruiken 87 tokens.
 - **Plannen**: welke plannen bestaan er (BOJOB/PRO of Starter/Pro/Agency) en wat zijn de limieten?
@@ -199,6 +213,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   aangemaakt (dezelfde Neon-database); staat productie op een andere database, maak hem dan daar aan met de DDL uit
   `drizzle-kit export --sql` (`CREATE TABLE "platform_settings"` + de foreign key naar `user`). Zonder de tabel werkt de app nog
   wel (standaardwaarden), maar opslaan onder Instellingen → Algemeen mislukt met een melding.
+- R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
+  (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. Voor uploads uit de browser: CORS op de bucket met het
+  platformdomein als toegestane herkomst.
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
 
 ## 10. Werkafspraken
@@ -228,3 +245,5 @@ node --env-file=.env.local node_modules/.bin/drizzle-kit export --sql   # verwac
   naar die plek; ongedaan maken per plek.
 - Tab "Pagina": SEO opslaan; een bestaande URL wordt geweigerd; het voorbeeld toont de juiste titel en header/footer.
 - Menulinks in de header: kiezen uit de pagina's van de site.
+- Instellingen → Koppelingen: Neon en Cloudflare R2 staan op "Verbonden" (R2 met "openbare URL bereikbaar"); zet tijdelijk een
+  verkeerde `R2_BUCKET` in `.env.local` en zie de melding "Storing".

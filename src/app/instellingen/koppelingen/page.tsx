@@ -1,22 +1,60 @@
-import { checkDatabase } from "@/lib/health";
+import { checkDatabase, checkStorage, type StorageHealth } from "@/lib/health";
 import { requireStaff } from "@/lib/session";
 import { Panel } from "../ui";
 
-type Connection = { name: string; icon: string; note: string; state: "ok" | "storing" | "leeg"; label: string };
+type State = "ok" | "storing" | "let-op" | "leeg";
+type Connection = { name: string; icon: string; note: string; state: State; label: string };
 
-// Alleen wat echt gemeten of ingebouwd is, staat op "Verbonden". De rest is bewust "Niet gekoppeld".
-const notConnected: Omit<Connection, "state" | "label">[] = [
+const dot = { ok: "bg-success", storing: "bg-danger", "let-op": "bg-warning", leeg: "bg-text/30" } as const;
+const tone = { ok: "text-success", storing: "text-danger", "let-op": "text-warning", leeg: "text-text/55" } as const;
+
+// Alleen wat echt gemeten of ingebouwd is, staat op "Verbonden". Een aanwezige sleutel zonder controle is "Sleutel ingesteld".
+// Alleen namen van variabelen worden getoond, nooit hun waarde.
+const keyOnly = [
+  { name: "Anthropic API", icon: "sparkle", env: "ANTHROPIC_API_KEY", note: "AI-aanpassing en generator in de builder." },
+  { name: "Resend", icon: "envelope-simple", env: "RESEND_API_KEY", note: "E-mail: meldingen en uitnodigingen." },
+] as const;
+
+const notBuilt: Omit<Connection, "state" | "label">[] = [
   { name: "Vercel", icon: "triangle", note: "Hosting van klantsites. Wacht op de keuze hoe klantsites worden gehost." },
-  { name: "Cloudflare", icon: "cloud", note: "DNS, CDN en mogelijk opslag voor uploads (R2). Keuze voor opslag staat open." },
-  { name: "Anthropic API", icon: "sparkle", note: "AI-aanpassing en generator in de builder. Staat nu uit." },
-  { name: "Resend", icon: "envelope-simple", note: "E-mail: meldingen en uitnodigingen." },
   { name: "Moneybird", icon: "receipt", note: "Boekhouding en facturen. Besloten, nog niet gekoppeld." },
   { name: "Mollie of Stripe", icon: "credit-card", note: "Incasso. De keuze voor de betaalprovider staat nog open." },
   { name: "GitHub", icon: "git-branch", note: "Eigen componentrepo's; optioneel, voor later." },
 ];
 
-const dot = { ok: "bg-success", storing: "bg-danger", leeg: "bg-text/30" } as const;
-const tone = { ok: "text-success", storing: "text-danger", leeg: "text-text/55" } as const;
+function storageConnection(h: StorageHealth): Connection {
+  const base = { name: "Cloudflare R2", icon: "cloud" };
+  switch (h.status) {
+    case "unconfigured":
+      return {
+        ...base,
+        state: "leeg",
+        label: "Niet gekoppeld",
+        note: `Opslag voor uploads. Zet ${h.missing.join(", ")} in .env.local (zie .env.example).`,
+      };
+    case "error": {
+      const why = {
+        auth: "De sleutels worden geweigerd, of de bucket bestaat niet in dit account. Controleer de token (Object Read & Write op deze bucket) en R2_BUCKET.",
+        "not-found": "De bucket bestaat niet. Controleer R2_BUCKET.",
+        unreachable: "Cloudflare R2 is niet bereikbaar. Controleer R2_ENDPOINT.",
+        unexpected: `Onverwacht antwoord van R2 (status ${h.httpStatus}).`,
+      }[h.reason];
+      return { ...base, state: "storing", label: "Storing", note: why };
+    }
+    case "ok": {
+      const bucket = `Bucket bereikbaar in ${h.ms} ms`;
+      if (h.publicUrl === "reachable") return { ...base, state: "ok", label: "Verbonden", note: `${bucket} · openbare URL bereikbaar` };
+      if (h.publicUrl === "unreachable")
+        return {
+          ...base,
+          state: "let-op",
+          label: "Openbare URL onbereikbaar",
+          note: `${bucket}, maar R2_PUBLIC_URL geeft geen antwoord. Is het eigen domein gekoppeld aan de bucket en actief?`,
+        };
+      return { ...base, state: "let-op", label: "Openbare URL ontbreekt", note: `${bucket}. Zet R2_PUBLIC_URL, anders zijn geüploade bestanden niet te tonen.` };
+    }
+  }
+}
 
 function Row({ c }: { c: Connection }) {
   return (
@@ -36,9 +74,9 @@ function Row({ c }: { c: Connection }) {
 
 export default async function KoppelingenPage() {
   await requireStaff();
-  const db = await checkDatabase();
+  const [db, storage] = await Promise.all([checkDatabase(), checkStorage()]);
 
-  const active: Connection[] = [
+  const connections: Connection[] = [
     db.ok
       ? {
           name: "Neon Postgres",
@@ -48,6 +86,7 @@ export default async function KoppelingenPage() {
           label: "Verbonden",
         }
       : { name: "Neon Postgres", icon: "database", note: "De database antwoordt niet.", state: "storing", label: "Storing" },
+    storageConnection(storage),
     {
       name: "Inloggen",
       icon: "lock-key",
@@ -55,11 +94,20 @@ export default async function KoppelingenPage() {
       state: "ok",
       label: "Ingebouwd",
     },
+    ...keyOnly.map((s): Connection =>
+      process.env[s.env]?.trim()
+        ? { name: s.name, icon: s.icon, state: "let-op", label: "Sleutel ingesteld", note: `${s.note} De sleutel is aanwezig; live controle volgt zodra dit onderdeel gebouwd is.` }
+        : { name: s.name, icon: s.icon, state: "leeg", label: "Niet gekoppeld", note: `${s.note} Zet ${s.env} in .env.local om te koppelen.` },
+    ),
+    ...notBuilt.map((c): Connection => ({ ...c, state: "leeg", label: "Niet gekoppeld" })),
   ];
+
+  const active = connections.filter((c) => c.state !== "leeg");
+  const inactive = connections.filter((c) => c.state === "leeg");
 
   return (
     <div className="flex max-w-[860px] flex-col gap-[var(--space-6)]">
-      <Panel title="Actief" description="Live gemeten bij het openen van deze pagina. Er worden geen sleutels of connectiestrings getoond.">
+      <Panel title="Actief" description="Live gemeten bij het openen van deze pagina. Er worden geen sleutels, adressen of connectiestrings getoond.">
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {active.map((c) => (
             <Row key={c.name} c={c} />
@@ -67,13 +115,15 @@ export default async function KoppelingenPage() {
         </ul>
       </Panel>
 
-      <Panel title="Nog niet gekoppeld" description="Koppelingen komen er per onderdeel bij zodra dat onderdeel gebouwd wordt.">
-        <ul className="m-0 flex list-none flex-col gap-2 p-0">
-          {notConnected.map((c) => (
-            <Row key={c.name} c={{ ...c, state: "leeg", label: "Niet gekoppeld" }} />
-          ))}
-        </ul>
-      </Panel>
+      {inactive.length > 0 && (
+        <Panel title="Nog niet gekoppeld" description="Sleutels zet je in .env.local (lokaal) of de omgevingsvariabelen van de hosting; koppelingen komen er per onderdeel bij.">
+          <ul className="m-0 flex list-none flex-col gap-2 p-0">
+            {inactive.map((c) => (
+              <Row key={c.name} c={c} />
+            ))}
+          </ul>
+        </Panel>
+      )}
     </div>
   );
 }
