@@ -222,8 +222,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **Design kit-model**: een kit = een opgeslagen thema (set tokens) dat bij een klant hoort en waar sites naar
   verwijzen? De mockup toont 4 knoppen (accent, papier, lettertype, hoekafronding); de blocks gebruiken 87 tokens.
 - **Plannen**: welke plannen bestaan er (BOJOB/PRO of Starter/Pro/Agency) en wat zijn de limieten?
-- **Hosting van klantsites**: één multi-tenant app die per domein de juiste site toont, of een aparte Vercel-deploy
-  per site? Dit bepaalt punt 4.
+- **Hosting van klantsites**: uitgewerkt in `docs/hosting-opties.md` (opties A–E, kosten, advies en vier vragen). Advies: één multi-tenant
+  Next.js-app op Vercel Pro; kosten beslissen dit niet (ca. $40 per maand bij 150 sites, ca. $120 bij 1000). Besloten: start met A (Vercel Pro-team volgt), klant bepaalt wie de DNS regelt. Open: apart domein voor voorbeeldadressen en publiceren als momentopname (`site_versions`), zie §6 van dat document.
 - **Klantportal**: moeten klanten later zelf inloggen (rol `klantgebruiker`), en wanneer?
 
 ## 9. Checklist voor deployen
