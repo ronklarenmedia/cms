@@ -20,7 +20,8 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Blocks | 20 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `site-header`, `site-footer` (14 door Gemini/eerder, de laatste zes door Claude; allemaal gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
-| Platform-dashboard (`/`), Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
+| **Platformoverzicht** (`/`) | **Echt** (21 sept): live koppelingsstatus, aantallen klanten/websites/domeinen/beelden, publicaties per uur of dag, klanten met de meeste websites en recente publicaties. Geen bezoekers of pageviews: daar is nog geen bron voor (zie §3) |
+| Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
 | Zoekbalk en belletje bovenin | Nog niet functioneel |
 
 ## 2. Thuis verder werken
@@ -112,6 +113,17 @@ klantpagina toont zijn websites.
   **Vercel** wordt live gemeten (`checkVercel()` in `src/lib/vercel-domains.ts`: het project opvragen bewijst dat `PLATFORM_VERCEL_TOKEN`, het project-id en eventueel `PLATFORM_VERCEL_TEAM_ID` kloppen).
 - *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
   (`src/app/(beheer)/instellingen/tabs.ts`), geen schakelaars die niets doen.
+
+**Platformoverzicht** — `/` (`src/app/(beheer)/page.tsx`, gegevens in `src/lib/dashboard.ts`). Alles komt uit de database of is live gemeten; niets is verzonnen.
+- *Systeemstatus* (`SystemStatus.tsx`): dezelfde live controles als Instellingen → Koppelingen (Neon, R2, Vercel, inloggen), gedeeld via `instellingen/koppelingen/connections.ts` (`getConnections()`). Ze laden los
+  (Suspense), zodat een trage controle de rest van de pagina niet ophoudt. Alleen gekoppelde diensten staan erop; de rest staat onder "Alle koppelingen".
+- *Kaarten*: klanten (actief/inactief), websites (live/concept), eigen domeinen (actief/in behandeling), beelden (aantal en opslag).
+- *Publicaties*: staafjes van het aantal **nieuwe versies** (`site_versions`) per uur (24 u) of dag (7 d, 30 d), gegroepeerd in de **tijdzone uit Instellingen → Algemeen**; de periodeknoppen zijn gewone
+  links (`/?periode=24u|7d`, standaard 30 d, een onbekende waarde valt terug op 30 d). Alleen SVG, geen JavaScript in de browser. Een terugdraaiing en een publicatie zonder wijzigingen maken geen nieuwe versie en tellen dus niet mee.
+- *Klanten met de meeste websites* en *Recente publicaties* (wie, wanneer, of die versie nu live is).
+- **Bewust niet:** bezoekers, pageviews, groei per klant en "best bekeken pagina's". Het platform meet die niet; er staat een korte melding. Ze komen terug zodra er een statistiekbron is (bijvoorbeeld Vercel Web Analytics
+  of Cloudflare) en er een plek is om de tellingen op te slaan (nieuwe tabel: eerst overleggen).
+- Het oude mockupscherm (`src/mockup/screens/Platform.tsx`) is verwijderd. `src/mockup/logic.ts` bevat nog de bijbehorende demo-data (`clients`, `deploys`, `kpis`, `pages`, `services`); opruimen kan bij de rest van `logic.ts`.
 
 **Componenten** — `/componenten` (miniaturen, gebruik per site, aantal tokens), `/componenten/editor?block=…`
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
@@ -259,8 +271,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
    domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
    vervallen van het Vercel-token, en een **opmaakfout in de builder**: onder ongeveer 1000 px breed wordt de knop "Domeinen" afgedekt door het instellingenpaneel (de werkbalk loopt onder het paneel door). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
-   **Platform-dashboard** (klanten/websites-aantallen kan nu al uit de database; deploys en bezoekers hebben
-   punt 4 en een analytics-bron nodig).
+   **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
 6. Opruimwerk: migratiebestanden, tests (nu alleen `check:blocks`), echte README, gebruikersbeheer-scherm,
    wachtwoord-reset per mail, tweestapsverificatie, opruimen van `logic.ts`, zoekbalk/meldingen.

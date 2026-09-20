@@ -9,13 +9,11 @@ import { DesignKitsScreen } from "./screens/DesignKits";
 import { GalerijScreen } from "./screens/Galerij";
 import { KlantenScreen } from "./screens/Klanten";
 import { PlaceholderScreen } from "./screens/Placeholder";
-import { PlatformScreen } from "./screens/Platform";
 import { RapportKlantenScreen } from "./screens/RapportKlanten";
 import { RapportOmzetScreen } from "./screens/RapportOmzet";
 
 // Sleutel = de scherm-id uit de mockup; alles wat hier niet staat toont de placeholder.
 const screens: Record<string, ComponentType<{ v: Vals }>> = {
-  platform: PlatformScreen,
   klanten: KlantenScreen,
   websites: GalerijScreen,
   "websites/nieuw": BuilderScreen,
