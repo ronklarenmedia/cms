@@ -11,6 +11,7 @@ import type { SiteLayout } from "@/db/schema";
 import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, setSiteStatus, type PageDTO, type PageSettings } from "./actions";
 import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
 import { PageSettingsForm } from "./PageSettingsForm";
+import { UploadSiteContext } from "./ImageUpload";
 import { blockJsonSchemas, SchemaFields } from "./SchemaForm";
 import { describeIssue, newSection, sectionIssues, sectionsProblems } from "./sections";
 import { SiteFrame } from "./SiteFrame";
@@ -837,13 +838,15 @@ export function SiteBuilder({
             </label>
 
             <SectionPart title="Inhoud">
-              <SchemaFields
-                schema={schemas.content}
-                value={selected.content}
-                root="content"
-                errors={errors}
-                onChange={(next) => patchSelected({ content: next }, `content:${selected.id}`)}
-              />
+              <UploadSiteContext value={site.id}>
+                <SchemaFields
+                  schema={schemas.content}
+                  value={selected.content}
+                  root="content"
+                  errors={errors}
+                  onChange={(next) => patchSelected({ content: next }, `content:${selected.id}`)}
+                />
+              </UploadSiteContext>
             </SectionPart>
             <SectionPart title="Uiterlijk">
               <SchemaFields

@@ -12,6 +12,8 @@ export const imageSchema = z
     alt: z.string(),
     width: z.number().int().positive().optional(),
     height: z.number().int().positive().optional(),
+    /** Door de upload ingevuld: varianten in meerdere breedtes, bijv. "…/480.webp 480w, …/960.webp 960w". */
+    srcset: z.string().max(2000).optional(),
     decorative: z.boolean().default(false),
   })
   .refine((img) => img.decorative || img.alt.trim().length > 0, {

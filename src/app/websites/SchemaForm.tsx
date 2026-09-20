@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import type { AnyBlock } from "@/blocks/contract";
+import { ImageUpload } from "./ImageUpload";
 import { fieldLabel, longTextKeys, placeholders, valueLabel } from "./labels";
 
 // Het instellingenpaneel wordt uit de Zod-schema's van het block gegenereerd (via JSON Schema),
@@ -56,6 +57,9 @@ function blankValue(schema: JS, key: string): unknown {
       return undefined;
   }
 }
+
+/** Velden die de upload zelf invult en die de redacteur niet hoeft te zien. */
+const hiddenKeys = new Set(["srcset"]);
 
 type Errors = Record<string, string>;
 type Change = (next: unknown) => void;
@@ -215,8 +219,11 @@ function Field({
         </button>
       );
     }
+    // Een afbeelding (url + alt) krijgt een voorbeeld en uploadknop boven de gewone velden.
+    const isImage = Boolean(schema.properties?.url && schema.properties?.alt);
     return (
       <Group title={label}>
+        {isImage ? <ImageUpload value={current} onChange={onChange} /> : null}
         <ObjectFields schema={schema} value={current} onChange={onChange} path={path} errors={errors} />
         {optional ? (
           <button
@@ -326,22 +333,26 @@ function ObjectFields({
     const copy = { ...obj };
     if (next === undefined) delete copy[key];
     else copy[key] = next;
+    // Een handmatig gewijzigd adres hoort niet meer bij de varianten van de vorige upload.
+    if (key === "url") delete copy.srcset;
     onChange(copy);
   };
   return (
     <>
-      {Object.entries(schema.properties ?? {}).map(([key, prop]) => (
-        <Field
-          key={key}
-          name={key}
-          schema={prop}
-          value={obj[key]}
-          required={required.has(key)}
-          onChange={(next) => set(key, next)}
-          path={path ? `${path}.${key}` : key}
-          errors={errors}
-        />
-      ))}
+      {Object.entries(schema.properties ?? {})
+        .filter(([key]) => !hiddenKeys.has(key))
+        .map(([key, prop]) => (
+          <Field
+            key={key}
+            name={key}
+            schema={prop}
+            value={obj[key]}
+            required={required.has(key)}
+            onChange={(next) => set(key, next)}
+            path={path ? `${path}.${key}` : key}
+            errors={errors}
+          />
+        ))}
     </>
   );
 }
