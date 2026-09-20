@@ -1,6 +1,7 @@
 import { asc, and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { pages, sites, siteVersions, type SiteSnapshot } from "@/db/schema";
+import { effectiveSiteTheme } from "@/lib/kits";
 import { hashSnapshot } from "@/lib/snapshot";
 import { parseSections } from "./sections";
 
@@ -42,7 +43,8 @@ export async function loadWorkingSnapshot(siteId: string): Promise<{ ok: true; s
 
   const snapshot: SiteSnapshot = {
     name: site.name,
-    theme: site.theme,
+    // Kit en eigen afwijkingen samengevoegd: de momentopname is zelfstandig, ook als de kit later verandert of verdwijnt.
+    theme: await effectiveSiteTheme(site),
     layout: { header: header.sections, footer: footer.sections },
     pages: outPages,
   };

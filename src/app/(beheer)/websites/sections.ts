@@ -4,8 +4,6 @@ import { getBlock } from "@/blocks/registry";
 import type { SiteLayout } from "@/db/schema";
 import { fieldLabel } from "./labels";
 import { emptyLayout, slotBlockSlugs, slots, type Slot } from "./layout-slots";
-import type { SiteTheme } from "@/blocks/theme";
-import { themes, type ThemeId } from "@/blocks/theme";
 import type { ZodType, z } from "zod";
 
 export const newSectionId = () => "sec_" + crypto.randomUUID().slice(0, 8);
@@ -59,12 +57,6 @@ export function starterLayout(siteName: string): SiteLayout {
   }
   return layout;
 }
-
-export const themeOptions = (Object.keys(themes) as ThemeId[]).map((id) => ({
-  id,
-  label: themes[id].label,
-  theme: themes[id].theme as SiteTheme,
-}));
 
 // ── Validatie ─────────────────────────────────────────────────────────────────
 

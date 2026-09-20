@@ -8,6 +8,7 @@ import { BlockRenderer } from "@/blocks/BlockRenderer";
 import { themeToCssVars } from "@/blocks/theme";
 import { db } from "@/db";
 import { pages, sites } from "@/db/schema";
+import { effectiveSiteTheme } from "@/lib/kits";
 import { requireStaff } from "@/lib/session";
 import { isUuid } from "../../../ids";
 import { pageMetadata } from "../../../seo";
@@ -25,7 +26,7 @@ const load = cache(async (id: string, slug: string) => {
   if (!site) return null;
   const all = await db.select().from(pages).where(eq(pages.siteId, id)).orderBy(asc(pages.position), asc(pages.createdAt));
   const page = all.find((p) => p.slug === slug);
-  return page ? { site, all, page } : null;
+  return page ? { site, all, page, theme: await effectiveSiteTheme(site) } : null;
 });
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -39,10 +40,10 @@ export default async function VoorbeeldPage({ params }: { params: Params }) {
   const { id, pagina } = await params;
   const data = await load(id, pagina?.[0] ?? "");
   if (!data) notFound();
-  const { site, all, page } = data;
+  const { site, all, page, theme } = data;
 
   return (
-    <div className="min-h-screen" style={{ ...themeToCssVars(site.theme), background: "var(--var-color-white)" }}>
+    <div className="min-h-screen" style={{ ...themeToCssVars(theme), background: "var(--var-color-white)" }}>
       <div className="sticky top-0 z-[200] flex flex-wrap items-center gap-3 bg-neutral-100 px-4 py-2 text-[12px] text-neutral-900">
         <span className="tag tag-accent">Voorbeeld</span>
         <span className="font-medium">{site.name}</span>

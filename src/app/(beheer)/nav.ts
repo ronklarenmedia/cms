@@ -37,7 +37,7 @@ export const nav: NavItem[] = [
     icon: "palette",
     href: "/design-kits",
     gapAfter: true,
-    children: [{ label: "Editor", icon: "pen-nib", href: "/design-kits/editor" }],
+    children: [{ label: "Nieuwe kit", icon: "plus", href: "/design-kits/nieuw" }],
   },
   {
     label: "Rapportages",

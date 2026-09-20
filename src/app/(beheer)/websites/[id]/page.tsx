@@ -1,13 +1,14 @@
 import { asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { customers, pages, sites } from "@/db/schema";
+import { customers, designKits, pages, sites } from "@/db/schema";
 import { isUuid } from "../ids";
 import { SiteBuilder } from "../SiteBuilder";
+import { effectiveSiteTheme } from "@/lib/kits";
 import { requireStaff } from "@/lib/session";
 import { getPublishInfo } from "../publishing";
 
-export default async function WebsiteBuilderPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function WebsiteBuilderPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ pagina?: string }> }) {
   const user = await requireStaff();
   const { id } = await params;
   if (!isUuid(id)) notFound();
@@ -19,6 +20,13 @@ export default async function WebsiteBuilderPage({ params }: { params: Promise<{
     .where(eq(sites.id, id));
   if (!row) notFound();
 
+  const [theme, kit] = await Promise.all([
+    effectiveSiteTheme(row.site),
+    row.site.designKitId
+      ? db.select({ id: designKits.id, name: designKits.name }).from(designKits).where(eq(designKits.id, row.site.designKitId)).then((r) => r[0] ?? null)
+      : Promise.resolve(null),
+  ]);
+  const startSlug = (await searchParams).pagina; // bijv. vanuit de zoekbalk; een lege waarde is de homepagina
   const initialPublish = await getPublishInfo(id);
   const pageRows = await db.select().from(pages).where(eq(pages.siteId, id)).orderBy(asc(pages.position), asc(pages.createdAt));
 
@@ -27,11 +35,14 @@ export default async function WebsiteBuilderPage({ params }: { params: Promise<{
       key={id}
       canDelete={user.role === "platform-admin"}
       initialPublish={initialPublish}
+      initialPageId={startSlug === undefined ? undefined : pageRows.find((p) => p.slug === startSlug)?.id}
       site={{
         id: row.site.id,
         name: row.site.name,
         slug: row.site.slug,
-        theme: row.site.theme,
+        theme,
+        kit,
+        customerId: row.site.customerId,
         layout: row.site.layout,
         customerName: row.customerName,
       }}

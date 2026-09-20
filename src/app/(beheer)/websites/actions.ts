@@ -7,11 +7,13 @@ import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
 import { customers, pages, siteDomains, sites } from "@/db/schema";
+import { kitAllowedFor } from "@/lib/kits";
 import { deleteMediaFiles } from "@/lib/media";
 import { removeDomain } from "@/lib/vercel-domains";
 import { NOT_LOGGED_IN, requireAdmin, staffUser } from "@/lib/session";
+import { isUuid } from "./ids";
 import { isSlot, type Slot } from "./layout-slots";
-import { parseSections, slugify, starterLayout, starterSections, themeOptions, type StarterId } from "./sections";
+import { parseSections, slugify, starterLayout, starterSections, type StarterId } from "./sections";
 
 export type ActionState = { error?: string } | undefined;
 export type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
@@ -23,7 +25,7 @@ export async function createSite(_prev: ActionState, formData: FormData): Promis
   if (!(await staffUser())) return { error: NOT_LOGGED_IN };
   const name = String(formData.get("name") ?? "").trim();
   const customerId = String(formData.get("customerId") ?? "");
-  const themeId = String(formData.get("theme") ?? "");
+  const designKitId = String(formData.get("designKitId") ?? "") || null;
   const starter: StarterId = formData.get("starter") === "leeg" ? "leeg" : "starter";
 
   if (!name) return { error: "Geef de website een naam." };
@@ -31,7 +33,8 @@ export async function createSite(_prev: ActionState, formData: FormData): Promis
   const [customer] = await db.select({ id: customers.id }).from(customers).where(eq(customers.id, customerId));
   if (!customer) return { error: "Deze klant bestaat niet (meer)." };
 
-  const theme = themeOptions.find((t) => t.id === themeId)?.theme ?? {};
+  // De stijl komt uit de gekozen design kit; de eigen aanpassingen van de site (`theme`) beginnen leeg.
+  if (designKitId && (!isUuid(designKitId) || !(await kitAllowedFor(designKitId, customerId)))) return { error: "Deze design kit is niet beschikbaar voor deze klant." };
   const base = slugify(name) || "website";
 
   // Slug moet uniek zijn: bij een botsing proberen we base-2, base-3, …
@@ -39,7 +42,7 @@ export async function createSite(_prev: ActionState, formData: FormData): Promis
     const slug = attempt === 1 ? base : `${base}-${attempt}`;
     try {
       const site = await db.transaction(async (tx) => {
-        const [created] = await tx.insert(sites).values({ customerId, name, slug, theme, layout: starterLayout(name) }).returning({ id: sites.id });
+        const [created] = await tx.insert(sites).values({ customerId, name, slug, designKitId, layout: starterLayout(name) }).returning({ id: sites.id });
         await tx.insert(pages).values({
           siteId: created.id,
           slug: "",

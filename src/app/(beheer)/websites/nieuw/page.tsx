@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { db } from "@/db";
-import { customers } from "@/db/schema";
+import { customers, designKits } from "@/db/schema";
 import { NewSiteForm } from "./NewSiteForm";
 import { requireStaff } from "@/lib/session";
 
@@ -12,6 +12,10 @@ export default async function NieuweWebsitePage() {
     .from(customers)
     .where(eq(customers.status, "active"))
     .orderBy(asc(customers.name));
+  const kits = await db
+    .select({ id: designKits.id, name: designKits.name, customerId: designKits.customerId, theme: designKits.theme })
+    .from(designKits)
+    .orderBy(asc(designKits.name));
 
   return (
     <div className="flex max-w-[720px] flex-col gap-[var(--space-6)]">
@@ -30,7 +34,7 @@ export default async function NieuweWebsitePage() {
           .
         </div>
       ) : (
-        <NewSiteForm customers={rows} />
+        <NewSiteForm customers={rows} kits={kits} />
       )}
     </div>
   );

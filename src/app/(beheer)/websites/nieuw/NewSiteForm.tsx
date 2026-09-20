@@ -1,16 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import { defaultTheme } from "@/blocks/theme";
+import { useActionState, useState } from "react";
+import type { SiteTheme } from "@/blocks/theme";
+import { fontName, KitSwatches } from "../../design-kits/KitPreview";
 import { createSite } from "../actions";
-import { starters, themeOptions } from "../sections";
+import { starters } from "../sections";
 
 const choice =
   "flex cursor-pointer gap-3 rounded-md border border-divider p-3 has-[:checked]:border-accent has-[:checked]:bg-accent/8";
 
-export function NewSiteForm({ customers }: { customers: { id: string; name: string }[] }) {
+type Kit = { id: string; name: string; customerId: string | null; theme: SiteTheme };
+
+export function NewSiteForm({ customers, kits }: { customers: { id: string; name: string }[]; kits: Kit[] }) {
   const [state, action, pending] = useActionState(createSite, undefined);
+  const [customerId, setCustomerId] = useState("");
+  const [kitId, setKitId] = useState<string | null>(null);
+
+  // Platformkits zijn voor elke klant; een klantkit alleen voor die klant. Zolang er geen klant is gekozen, alleen de platformkits.
+  const available = kits.filter((k) => k.customerId === null || k.customerId === customerId);
+  // De keuze blijft geldig als de klant wisselt: een kit die niet meer beschikbaar is, valt terug op de eerste kit.
+  const selected = available.find((k) => k.id === kitId)?.id ?? available[0]?.id ?? "";
 
   return (
     <form action={action} className="flex max-w-[720px] flex-col gap-[var(--space-6)]">
@@ -21,7 +31,7 @@ export function NewSiteForm({ customers }: { customers: { id: string; name: stri
 
       <div className="field">
         <label htmlFor="customerId">Klant</label>
-        <select id="customerId" name="customerId" required defaultValue="" className="input">
+        <select id="customerId" name="customerId" required value={customerId} onChange={(e) => setCustomerId(e.target.value)} className="input">
           <option value="" disabled>
             Kies een klant…
           </option>
@@ -34,27 +44,26 @@ export function NewSiteForm({ customers }: { customers: { id: string; name: stri
       </div>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-[13px]">Thema</legend>
-        <div className="grid grid-cols-2 gap-3">
-          {themeOptions.map((t, i) => {
-            const merged = { ...defaultTheme, ...t.theme };
-            return (
-              <label key={t.id} className={choice}>
-                <input type="radio" name="theme" value={t.id} defaultChecked={i === 0} className="mt-1" />
-                <span className="flex flex-col gap-1.5">
-                  <span className="text-[13px] font-medium">{t.label}</span>
-                  <span className="flex gap-1">
-                    {[merged.colorPrimary, merged.colorSecondary, merged.colorAccent, merged.colorText, merged.colorBgPrimaryLight].map(
-                      (c) => (
-                        <span key={c} className="size-5 rounded-sm shadow-[var(--shadow-sm)]" style={{ background: String(c) }} />
-                      ),
-                    )}
+        <legend className="mb-1 text-[13px]">Design kit</legend>
+        {available.length === 0 ? (
+          <p className="text-muted !mb-0 text-[12.5px]">Er zijn nog geen design kits. De website gebruikt het standaardthema.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {available.map((k) => (
+              <label key={k.id} className={choice}>
+                <input type="radio" name="designKitId" value={k.id} checked={selected === k.id} onChange={() => setKitId(k.id)} className="mt-1" />
+                <span className="flex min-w-0 flex-col gap-1.5">
+                  <span className="truncate text-[13px] font-medium">{k.name}</span>
+                  <KitSwatches theme={k.theme} />
+                  <span className="text-muted truncate text-[11.5px]">
+                    {k.customerId ? "Kit van de klant" : "Platformkit"} · {fontName(k.theme)}
                   </span>
                 </span>
               </label>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
+        <p className="text-muted !mb-0 text-[12px]">Je kunt de kit later in de builder wisselen. Kits maak en bewerk je onder Design kits.</p>
       </fieldset>
 
       <fieldset className="flex flex-col gap-2">

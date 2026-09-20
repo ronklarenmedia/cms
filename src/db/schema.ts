@@ -115,6 +115,24 @@ export type SnapshotPage = {
 /** Alles wat een bezoeker van een gepubliceerde site nodig heeft. Wat hierin staat, verandert nooit meer (zie `siteVersions`). */
 export type SiteSnapshot = { name: string; theme: SiteTheme; layout: SiteLayout; pages: SnapshotPage[] };
 
+// ── Design kits ───────────────────────────────────────────────────────────────
+// Een kit is een opgeslagen thema: alleen de tokens die afwijken van `defaultTheme` (zie src/blocks/theme.ts). Een site verwijst
+// naar één kit (`sites.design_kit_id`); de eigen `sites.theme` blijft er bovenop gelden. `customer_id` leeg = platformkit
+// (voor alle klanten beschikbaar). Wijzigingen aan een kit bereiken een live site pas bij de volgende publicatie.
+export const designKits = pgTable(
+  "design_kits",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    customerId: uuid("customer_id").references(() => customers.id, { onDelete: "restrict" }),
+    theme: jsonb("theme").$type<SiteTheme>().notNull().default({}),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [index("design_kits_customer_idx").on(t.customerId)],
+);
+
 export const sites = pgTable("sites", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id")
@@ -125,6 +143,8 @@ export const sites = pgTable("sites", {
   // Overrides op de `defaultTheme`-tokens (zie src/blocks/theme.ts).
   theme: jsonb("theme").$type<SiteTheme>().notNull().default({}),
   layout: jsonb("layout").$type<SiteLayout>().notNull().default({ header: [], footer: [] }),
+  // De design kit van deze site (leeg = geen kit; alleen `theme` hierboven telt). Een kit in gebruik kan niet worden verwijderd.
+  designKitId: uuid("design_kit_id").references(() => designKits.id, { onDelete: "restrict" }),
   status: siteStatusEnum("status").notNull().default("draft"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
   // Nummer van de versie in `site_versions` die live staat; leeg zolang er nooit is gepubliceerd.
