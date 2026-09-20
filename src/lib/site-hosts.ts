@@ -1,7 +1,9 @@
 // Welke hostnamen bij welke site horen, en welke hosts het platform zelf zijn. Alleen namen uit de omgeving, geen geheimen.
 //
-// PLATFORM_HOSTS  komma-gescheiden hosts van het beheer (bijv. "localhost:3000,beheer.jouwplatform.nl"). Alles wat hier niet in staat,
-//                 wordt als openbare site behandeld. Leeg = alles is beheer (er wordt dan nooit een openbare site getoond).
+// PLATFORM_HOSTS  komma-gescheiden hosts van het beheer (bijv. "localhost:3000,platform.voorbeeld.nl,*.vercel.app"). Alles wat hier niet in
+//                 staat, wordt als openbare site behandeld. Leeg = alles is beheer (er wordt dan nooit een openbare site getoond).
+//                 Een regel met "*." vooraan (bijv. "*.vercel.app") geldt voor elk subdomein daaronder, zoals de adressen die Vercel zelf
+//                 aan een deployment geeft; die verwijzen altijd naar deze app en horen dus bij het beheer.
 // PREVIEW_DOMAIN  het domein voor voorbeeldadressen: <sitenaam>.<PREVIEW_DOMAIN> toont de gepubliceerde site met die naam.
 
 const list = (value: string | undefined) =>
@@ -15,7 +17,10 @@ export const normalizeHost = (host: string) => host.trim().toLowerCase().replace
 export const platformHosts = () => list(process.env.PLATFORM_HOSTS);
 export const previewDomain = () => (process.env.PREVIEW_DOMAIN ?? "").trim().toLowerCase() || null;
 
-export const isPlatformHost = (host: string) => platformHosts().includes(normalizeHost(host));
+export function isPlatformHost(host: string): boolean {
+  const h = normalizeHost(host);
+  return platformHosts().some((entry) => (entry.startsWith("*.") ? h.endsWith(entry.slice(1)) && h.length > entry.length - 1 : entry === h));
+}
 
 /** Het voorbeeldadres van een site, of null als er geen PREVIEW_DOMAIN is ingesteld. */
 export function previewHost(slug: string): string | null {
@@ -65,7 +70,7 @@ export function validateCustomHostname(input: string): { ok: true; hostname: str
   }
   if (host === "localhost" || host.endsWith(".localhost")) return fail("Dit adres kan niet als eigen domein worden gebruikt.");
 
-  const reserved = [...platformHosts().map(withoutPort), previewDomain() ? withoutPort(previewDomain()!) : null].filter((h): h is string => Boolean(h));
+  const reserved = [...platformHosts().map((h) => withoutPort(h.replace(/^\*\./, ''))), previewDomain() ? withoutPort(previewDomain()!) : null].filter((h): h is string => Boolean(h));
   if (reserved.some((r) => host === r || host.endsWith(`.${r}`))) return fail("Dit domein hoort bij het platform zelf en kan niet aan een klantsite worden gekoppeld.");
   return { ok: true, hostname: host };
 }

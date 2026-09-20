@@ -166,7 +166,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - Het beheer is dynamisch gerenderd (de layout leest de sessie). **Openbare sites zijn statisch** (ISR): hun eigen root-layout leest geen sessie,
   en publiceren maakt de cache van die site ongeldig via `revalidatePath('/s/<host>', 'layout')`.
 - **Publiceren = momentopname** (`site_versions`), niet de werkkopie live zetten: een autosave gaat nooit direct naar bezoekers.
-- **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
+- **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` met `PREVIEW_DOMAIN=rkmsites.dev` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
   altijd `noindex`. Eigen domeinen van klanten: zie §3 (tabel `site_domains` + Vercel-API).
 - **Opslag voor uploads: Cloudflare R2** (niet Vercel Blob): bandbreedte is gratis, S3-compatibel en niet aan de hosting
   gebonden. Bucket `cms-media` (West-Europa) staat in Rons Cloudflare-account (`348598c3…`). Bestanden worden bewaard als
@@ -258,6 +258,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 ## 9. Checklist voor deployen
 
+- **Stap voor stap:** zie `docs/deploy-vercel.md` (project aanmaken, variabelen, regio `fra1` via `vercel.json`, domeinen). Onderstaande blijft de losse checklist.
+- **Twee databasebranches** (besloten): lokaal `main`, productie `production` (Neon). Databasewijzigingen eerst op `main`, dan op `production`, vóór het deployen.
+- **Beheeradres** productie: `platform.ronklarenmedia.nl` (CNAME bij Strato); voorbeeldadressen: `<sitenaam>.rkmsites.dev`.
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.
 - Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings`, `media`, `site_versions` en de
