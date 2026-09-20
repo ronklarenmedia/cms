@@ -1,10 +1,13 @@
 "use client";
 
 import { createContext, useContext, useState } from "react";
+import { MediaLibrary } from "./MediaLibrary";
+import type { MediaItem } from "./media";
 import { uploadImage } from "./upload";
 
-/** De website waarvoor uploads bedoeld zijn. Zonder waarde (bijv. in de componentwerkbank) is er geen uploadknop. */
-export const UploadSiteContext = createContext<string | null>(null);
+/** De website waarvoor uploads bedoeld zijn. Zonder waarde (bijv. in de componentwerkbank) zijn er geen upload- en bibliotheekknop. */
+export type UploadTarget = { siteId: string; /** Alleen een platform-admin mag beelden uit de bibliotheek verwijderen. */ canDelete: boolean };
+export const UploadSiteContext = createContext<UploadTarget | null>(null);
 
 // Grote foto's verkleinen we eerst in de browser: de server accepteert maximaal 5 MB, en hosting kent vaak een lagere
 // limiet op verzoeken. De server maakt daarna de definitieve formaten.
@@ -33,15 +36,30 @@ async function shrinkForUpload(file: File): Promise<File> {
 
 /** Voorbeeld en uploadknop boven de velden van een afbeelding (`url`, `alt`, …). */
 export function ImageUpload({ value, onChange }: { value: unknown; onChange: (next: Record<string, unknown>) => void }) {
-  const siteId = useContext(UploadSiteContext);
+  const target = useContext(UploadSiteContext);
   const [busy, setBusy] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  if (!siteId) return null;
+  if (!target) return null;
+  const { siteId, canDelete } = target;
 
   const image = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
   const url = typeof image.url === "string" ? image.url : "";
   const srcset = typeof image.srcset === "string" ? image.srcset : undefined;
+
+  /** Zet een beeld in het veld. De alt-tekst hoort bij het vorige beeld en blijft staan tot de redacteur hem aanpast. */
+  function apply({ url, width, height, srcset }: { url: string; width: number; height: number; srcset: string }) {
+    onChange({ ...image, url, width, height, srcset });
+    if (typeof image.alt === "string" && image.alt.trim() !== "") setNotice("Controleer de alt-tekst: beschrijf wat er op de nieuwe afbeelding te zien is.");
+  }
+
+  function chooseFromLibrary(item: MediaItem) {
+    setLibraryOpen(false);
+    setProblem(null);
+    setNotice(null);
+    if (item.url !== url) apply(item);
+  }
 
   async function pick(file: File) {
     setBusy(true);
@@ -51,15 +69,12 @@ export function ImageUpload({ value, onChange }: { value: unknown; onChange: (ne
       const body = new FormData();
       const prepared = await shrinkForUpload(file);
       body.set("file", prepared, prepared.name);
-      const res = await uploadImage(siteId!, body);
+      const res = await uploadImage(siteId, body);
       if (!res.ok) {
         setProblem(res.error);
         return;
       }
-      const { url, width, height, srcset } = res.image;
-      onChange({ ...image, url, width, height, srcset });
-      // De alt-tekst hoort bij het vorige beeld; die blijft staan tot de redacteur hem aanpast.
-      if (typeof image.alt === "string" && image.alt.trim() !== "") setNotice("Controleer de alt-tekst: beschrijf wat er op de nieuwe afbeelding te zien is.");
+      apply(res.image);
     } catch {
       setProblem("Uploaden is mislukt. Controleer je verbinding en probeer het opnieuw.");
     } finally {
@@ -88,6 +103,12 @@ export function ImageUpload({ value, onChange }: { value: unknown; onChange: (ne
           }}
         />
       </label>
+      <button type="button" className="btn btn-secondary" style={{ fontSize: 11.5 }} disabled={busy} onClick={() => setLibraryOpen(true)}>
+        <i className="ph ph-images" aria-hidden="true" /> Kies uit bibliotheek
+      </button>
+      {libraryOpen ? (
+        <MediaLibrary siteId={siteId} canDelete={canDelete} currentUrl={url} onPick={chooseFromLibrary} onClose={() => setLibraryOpen(false)} />
+      ) : null}
       <span role="status" className={`text-[10.5px] ${problem ? "text-danger" : "text-text/70"}`}>
         {problem ?? notice}
       </span>

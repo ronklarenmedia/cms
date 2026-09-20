@@ -69,6 +69,10 @@ klantpagina toont zijn websites.
   480/960/1600 px (nooit opschalen), zonder EXIF/GPS, en zet ze onder `sites/<siteId>/<uuid>/<breedte>.webp` in R2 met
   `immutable`-cache. Het veld krijgt `url` (grootste variant), `width`, `height` en `srcset` (verborgen); `<Img>` zet `srcset` en
   `sizes` (standaard `100vw`). Een handmatig gewijzigde URL wist de `srcset`. Alleen in de builder; de componentwerkbank heeft geen upload.
+  **Mediabibliotheek** ("Kies uit bibliotheek" bij elk beeldveld, `MediaLibrary.tsx`, acties in `media.ts`): alle beelden van de
+  site, nieuwste eerst, met bestandsnaam, afmetingen, grootte en "in gebruik (n×)" (zoekt het `id` in de opgeslagen pagina's en
+  header/footer). Een beeld kiezen vult het veld. Verwijderen (alleen platform-admin) wist de rij en alle bestanden in R2, en
+  weigert als het beeld nog in gebruik is of nu in het veld staat. Een site verwijderen ruimt ook alle bestanden in R2 op.
 - **Header en footer** staan onder "Op alle pagina's" in de linkerkolom en verschijnen op elke pagina. Welke blocks
   in welke plek mogen staat in `src/app/websites/layout-slots.ts`.
 - **Tab "Pagina"** (rechts): titel, URL, SEO-titel, omschrijving, afbeelding bij delen, noindex, met een
@@ -116,6 +120,7 @@ docs/               gemini-blocks-brief.md, dit bestand
 **Datamodel** (`src/db/schema.ts`): `customers`; `sites` (`theme` jsonb = overrides op de 87 tokens uit
 `src/blocks/theme.ts`, `layout` jsonb = `{header, footer}`, `status` draft/live); `pages` (`content` jsonb = lijst
 secties, `slug` leeg = homepage, SEO-velden); `platform_settings` (één rij, `id = 1` afgedwongen met een CHECK);
+`media` (één rij per geüpload beeld van een site: `id` = mapnaam in R2, `url`, `srcset`, afmetingen, `filename`, `bytes`; verdwijnt mee met de site);
 `user`, `session`, `account`, `verification` (Better Auth, met `role` en `customerId`).
 
 **Sectie-formaat**: `{ id, type, variant, content, settings }`. `BlockRenderer` valideert tegen het Zod-schema van
@@ -185,10 +190,11 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 1. ✅ Login en rollen, verwijder-bug.
 2. ✅ Sitebrede header/footer, ✅ SEO per pagina.
-   - ✅ **Afbeeldingen uploaden** in de builder (zie §3). Nog te doen: een **mediabibliotheek** (eerder geüploade beelden
-     opnieuw kiezen, verwijderen), **opruimen van verweesde bestanden** (vervangen beelden blijven in R2 staan), **SVG-logo's**
-     (eerst sanitizen), upload voor het delen-beeld (`og_image`, nu nog een URL-veld in tab Pagina) en het `sizes`-attribuut per
-     block (nu overal `100vw`, ook voor halve kolommen).
+   - ✅ **Afbeeldingen uploaden** en **mediabibliotheek** in de builder (zie §3). Nog te doen: **SVG-logo's** (eerst
+     sanitizen), upload/kiezen voor het delen-beeld (`og_image`, nu nog een URL-veld in tab Pagina), het `sizes`-attribuut per
+     block (nu overal `100vw`, ook voor halve kolommen), een **bulk-opruiming van ongebruikte beelden** en een aparte
+     mediapagina buiten de builder. Verweesde bestanden ontstaan nog wel als een gebruiker een beeld uit een veld haalt
+     zonder het uit de bibliotheek te verwijderen; dat is bewust (het beeld blijft kiesbaar).
    - ⏳ **Resterende blocks** (tijdlijn, cases, galerij, breadcrumbs, video, lijst…): bij Gemini, zie de brief. Blocks die
      client-JS of een backend nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding) eerst overleggen.
    - Bekende puntjes in de blocks van Gemini (niet blokkerend): `testimonials` levert `Review`-JSON-LD zonder
@@ -219,12 +225,15 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.
-- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings` en de
+- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings`, `media` en de
   kolommen `sites.layout`, `pages.seo_title`, `pages.seo_description`, `pages.og_image`, `pages.noindex` moeten
   bestaan (geen migratiebestanden; zie §6). Gebruik `drizzle-kit export --sql` als naslag. `platform_settings` is lokaal al
   aangemaakt (dezelfde Neon-database); staat productie op een andere database, maak hem dan daar aan met de DDL uit
   `drizzle-kit export --sql` (`CREATE TABLE "platform_settings"` + de foreign key naar `user`). Zonder de tabel werkt de app nog
-  wel (standaardwaarden), maar opslaan onder Instellingen → Algemeen mislukt met een melding.
+  wel (standaardwaarden), maar opslaan onder Instellingen → Algemeen mislukt met een melding. Ook `media` is lokaal met
+  handgeschreven SQL aangemaakt (DDL: `drizzle-kit export --sql`); zonder die tabel mislukken uploaden en de bibliotheek.
+  Beelden die vóór de bibliotheek in R2 zijn gezet hebben geen rij en zijn onvindbaar in de bibliotheek totdat je er een
+  aanmaakt (bestandsnaam leeg, afmetingen uit het beeld zelf).
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
@@ -259,5 +268,8 @@ node --env-file=.env.local node_modules/.bin/drizzle-kit export --sql   # verwac
 - Builder: bij een sectie met een afbeelding (bijv. hero) op "Afbeelding uploaden" klikken met een foto; het voorbeeld verschijnt,
   het canvas toont het beeld, en in de netwerktab komt het van `media.<domein>` als `.webp` met een `srcset`. Probeer ook een
   PDF/SVG (moet geweigerd worden met een melding) en een foto van > 3 MB (wordt eerst in de browser verkleind).
+- Bibliotheek: upload een beeld, open "Kies uit bibliotheek", kies een ander beeld (het veld verandert en de alt-melding
+  verschijnt); verwijderen is uitgeschakeld voor een beeld in gebruik en werkt voor een ongebruikt beeld (de bestanden zijn dan
+  ook uit R2 weg).
 - Instellingen → Koppelingen: Neon en Cloudflare R2 staan op "Verbonden" (R2 met "openbare URL bereikbaar"); zet tijdelijk een
   verkeerde `R2_BUCKET` in `.env.local` en zie de melding "Storing".

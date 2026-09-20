@@ -181,6 +181,8 @@ export function SiteBuilder({
   const [editing, setEditing] = useState<Slot | null>(null);
   const [rightTab, setRightTab] = useState<"section" | "page">("section");
 
+  const uploadTarget = useMemo(() => ({ siteId: site.id, canDelete }), [site.id, canDelete]);
+
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   // Alles wat bewerkt, opgeslagen en ongedaan gemaakt wordt hoort bij één "plek": een pagina-id, "header" of "footer".
   const areaKey: string = editing ?? page?.id ?? "";
@@ -838,7 +840,7 @@ export function SiteBuilder({
             </label>
 
             <SectionPart title="Inhoud">
-              <UploadSiteContext value={site.id}>
+              <UploadSiteContext value={uploadTarget}>
                 <SchemaFields
                   schema={schemas.content}
                   value={selected.content}

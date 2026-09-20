@@ -160,6 +160,31 @@ export const platformSettings = pgTable(
   (t) => [check("platform_settings_singleton", sql`${t.id} = 1`)],
 );
 
+// Mediabibliotheek: één rij per geüploade afbeelding van een website. `id` is ook de mapnaam in R2
+// (`sites/<siteId>/<id>/<breedte>.webp`), zodat de bestanden bij de rij te vinden zijn. Zie src/lib/media.ts.
+export const media = pgTable(
+  "media",
+  {
+    id: uuid("id").primaryKey(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    // Openbare URL van de grootste variant en de `srcset` met alle varianten.
+    url: text("url").notNull(),
+    srcset: text("srcset").notNull(),
+    width: integer("width").notNull(),
+    height: integer("height").notNull(),
+    // Naam van het geüploade bestand; leeg bij beelden die vóór de bibliotheek zijn geüpload.
+    filename: varchar("filename", { length: 255 }),
+    // Totale grootte van alle varianten in de opslag.
+    bytes: integer("bytes").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [index("media_site_created_idx").on(t.siteId, t.createdAt)],
+);
+
 export type Site = typeof sites.$inferSelect;
+export type MediaRow = typeof media.$inferSelect;
 export type PlatformSettingsRow = typeof platformSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;

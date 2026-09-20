@@ -14,7 +14,8 @@ const MAX_INPUT_PIXELS = 50_000_000;
 /** SVG staat er bewust niet bij: dat is uitvoerbare opmaak, geen rasterbeeld. */
 const ACCEPTED_FORMATS = new Set(["jpeg", "png", "webp", "gif", "avif"]);
 
-export type StoredImage = { url: string; width: number; height: number; srcset: string };
+/** `id` is de mapnaam in R2 en ook de sleutel van de rij in de tabel `media`; `bytes` is de totale grootte van alle varianten. */
+export type StoredImage = { id: string; url: string; width: number; height: number; srcset: string; bytes: number };
 
 /** Een fout met een tekst die aan de gebruiker getoond mag worden. */
 export class MediaError extends Error {}
@@ -28,6 +29,37 @@ function client(config: R2Config) {
 async function deleteObjects(config: R2Config, keys: string[]) {
   const r2 = client(config);
   await Promise.allSettled(keys.map((key) => r2.fetch(objectUrl(config, key), { method: "DELETE" })));
+}
+
+/** Alle sleutels onder een prefix (ListObjectsV2, met vervolgpagina's). */
+async function listKeys(config: R2Config, prefix: string): Promise<string[]> {
+  const r2 = client(config);
+  const keys: string[] = [];
+  let token: string | null = null;
+  do {
+    const query = new URLSearchParams({ "list-type": "2", prefix, ...(token ? { "continuation-token": token } : {}) });
+    const res = await r2.fetch(`${config.endpoint}/${config.bucket}?${query}`, { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) throw new Error(`R2 lijst antwoordde met status ${res.status}`);
+    const xml = await res.text();
+    for (const m of xml.matchAll(/<Key>([^<]+)<\/Key>/g)) keys.push(m[1]);
+    token = /<IsTruncated>true<\/IsTruncated>/.test(xml) ? (xml.match(/<NextContinuationToken>([^<]+)<\/NextContinuationToken>/)?.[1] ?? null) : null;
+  } while (token);
+  return keys;
+}
+
+/**
+ * Verwijdert alle bestanden onder `sites/<siteId>/` (of alleen `sites/<siteId>/<mediaId>/`) uit R2.
+ * De prefix eindigt altijd op een slash, zodat een andere map met dezelfde beginletters nooit meegaat.
+ */
+export async function deleteMediaFiles(siteId: string, mediaId?: string): Promise<void> {
+  const config = getR2Config();
+  if (!config) throw new MediaError("Opslag is niet ingesteld.");
+  // Alleen echte uuid's: een lege of vreemde waarde zou een te brede prefix opleveren.
+  if (![siteId, mediaId ?? siteId].every((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) {
+    throw new Error("Ongeldig id voor het verwijderen van bestanden.");
+  }
+  const keys = await listKeys(config, `sites/${siteId}/${mediaId ? `${mediaId}/` : ""}`);
+  await deleteObjects(config, keys);
 }
 
 /**
@@ -93,6 +125,8 @@ export async function storeImage(input: Buffer, folder: string): Promise<StoredI
   const urls = keys.map((key) => `${config.publicUrl}/${key}`);
   const top = variants.length - 1;
   return {
+    id,
+    bytes: variants.reduce((sum, v) => sum + v.data.length, 0),
     url: urls[top],
     width: variants[top].width,
     height: variants[top].height,
