@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import type { SessionUser } from "@/lib/session";
+import { GlobalSearch } from "./GlobalSearch";
 import { nav, type NavChild, type NavItem } from "./nav";
 
 const roleLabel: Record<SessionUser["role"], string> = {
@@ -216,14 +217,7 @@ export function AppShell({
             ) : null}
           </div>
           <div className="ml-auto flex max-w-[520px] flex-1 items-center justify-end gap-3">
-            <div className="relative min-w-0 max-w-[440px] flex-1">
-              <i className="ph ph-magnifying-glass pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[14px] text-text/70" />
-              <input
-                type="search"
-                placeholder="Zoek klanten, websites, apps of pagina's"
-                className="input !pl-8"
-              />
-            </div>
+            <GlobalSearch />
             <button type="button" title="Meldingen" className="btn btn-icon btn-secondary">
               <i className="ph ph-bell" />
             </button>
