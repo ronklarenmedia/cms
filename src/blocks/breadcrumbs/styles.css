@@ -1,0 +1,43 @@
+/* Breadcrumbs — kruimelpad naar de huidige pagina */
+
+.blk-breadcrumbs__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--var-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--var-font-size-small);
+}
+
+.blk-breadcrumbs__item {
+  display: flex;
+  align-items: center;
+  gap: var(--var-spacing-xs);
+}
+
+/* Het scheidingsteken is versiering en staat in CSS, zodat schermlezers alleen de namen horen. */
+.blk-breadcrumbs__item + .blk-breadcrumbs__item::before {
+  content: "›";
+  color: var(--blk-muted);
+}
+
+.blk-breadcrumbs--slash .blk-breadcrumbs__item + .blk-breadcrumbs__item::before {
+  content: "/";
+}
+
+.blk-breadcrumbs__link {
+  color: var(--blk-muted);
+  text-decoration: none;
+  transition: color var(--var-transition-fast);
+}
+
+.blk-breadcrumbs__link:hover {
+  color: var(--blk-accent);
+  text-decoration: underline;
+}
+
+.blk-breadcrumbs__current {
+  font-weight: var(--var-font-weight-medium);
+}

@@ -1,0 +1,176 @@
+/* Cases — projecten en klantverhalen als kaarten */
+
+.blk-cases {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-cases__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-cases__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-cases__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-cases__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-cases__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--var-spacing-medium);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blk-cases__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-medium);
+  background: var(--blk-tint);
+  transition: box-shadow var(--var-transition-standard);
+}
+
+.blk-cases__card:hover {
+  box-shadow: var(--var-box-shadow-standard);
+}
+
+.blk-cases__media img {
+  width: 100%;
+  object-fit: cover;
+  aspect-ratio: var(--var-aspect-ratio-photo);
+}
+
+.blk-cases--aspect-square .blk-cases__media img {
+  aspect-ratio: var(--var-aspect-ratio-square);
+}
+
+.blk-cases--aspect-video .blk-cases__media img {
+  aspect-ratio: var(--var-aspect-ratio-video);
+}
+
+.blk-cases__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  padding: var(--var-spacing-medium);
+}
+
+.blk-cases__client {
+  margin: 0;
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-cases__title {
+  margin: 0;
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+
+/* De titel is de link; ::after rekt hem uit over de hele kaart, dus één link per kaart voor toetsenbord en schermlezer. */
+.blk-cases__link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.blk-cases__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.blk-cases__summary {
+  margin: 0;
+  color: var(--blk-muted);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-cases__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--var-spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blk-cases__tag {
+  padding: 0 var(--var-spacing-small);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-full);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-xs);
+}
+
+.blk-cases__more {
+  margin-top: auto;
+  padding-top: var(--var-spacing-small);
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-cases__grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--var-spacing-large);
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-cases--cols-3 .blk-cases__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Uitgelicht: de eerste case beslaat de volle breedte, beeld en tekst naast elkaar. */
+  .blk-cases--featured .blk-cases__item:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .blk-cases--featured .blk-cases__item:first-child .blk-cases__card {
+    flex-direction: row;
+  }
+
+  .blk-cases--featured .blk-cases__item:first-child .blk-cases__media {
+    flex: 1 1 55%;
+  }
+
+  .blk-cases--featured .blk-cases__item:first-child .blk-cases__media img {
+    height: 100%;
+  }
+
+  .blk-cases--featured .blk-cases__item:first-child .blk-cases__body {
+    flex: 1 1 45%;
+    justify-content: center;
+    padding: var(--var-spacing-large);
+  }
+
+  .blk-cases--featured .blk-cases__item:first-child .blk-cases__title {
+    font-size: var(--var-font-size-large);
+  }
+}

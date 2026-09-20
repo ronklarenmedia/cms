@@ -28,6 +28,22 @@ const fields: Record<string, string> = {
   mobile: "Mobiel",
   anchor: "Anker (voor #-links)",
   columns: "Kolommen",
+  aspect: "Vorm van de beelden",
+  title: "Titel",
+  date: "Datum",
+  tag: "Label",
+  tags: "Tags",
+  images: "Afbeeldingen",
+  image: "Afbeelding",
+  caption: "Bijschrift",
+  client: "Klant",
+  summary: "Samenvatting",
+  cta: "Tekst onderaan de kaart",
+  poster: "Posterafbeelding",
+  videoUrl: "Video-adres (YouTube, Vimeo of .mp4)",
+  description: "Omschrijving",
+  uploadDate: "Uploaddatum (JJJJ-MM-DD)",
+  transcript: "Tekst van de video",
 };
 
 const values: Record<string, Record<string, string>> = {
@@ -45,6 +61,7 @@ const values: Record<string, Record<string, string>> = {
   align: { left: "Links", center: "Midden" },
   height: { compact: "Compact", normal: "Normaal", full: "Volledig scherm" },
   style: { primary: "Primair", secondary: "Secundair" },
+  aspect: { photo: "Foto", square: "Vierkant", video: "Video (breed)" },
 };
 
 const humanize = (s: string) => {

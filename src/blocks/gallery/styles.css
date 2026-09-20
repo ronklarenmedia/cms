@@ -1,0 +1,140 @@
+/* Gallery — beelden in een raster, bento-indeling of metselwerk */
+
+.blk-gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-gallery__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-gallery__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-gallery__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-gallery__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-gallery__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--var-spacing-small);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.blk-gallery__figure {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  height: 100%;
+  margin: 0;
+}
+
+.blk-gallery__figure img {
+  width: 100%;
+  border-radius: var(--var-border-radius-medium);
+}
+
+.blk-gallery__caption {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+}
+
+/* Raster: alle tegels dezelfde vorm. */
+.blk-gallery--grid .blk-gallery__figure img {
+  object-fit: cover;
+  aspect-ratio: var(--var-aspect-ratio-photo);
+}
+
+.blk-gallery--grid.blk-gallery--aspect-square .blk-gallery__figure img {
+  aspect-ratio: var(--var-aspect-ratio-square);
+}
+
+.blk-gallery--grid.blk-gallery--aspect-video .blk-gallery__figure img {
+  aspect-ratio: var(--var-aspect-ratio-video);
+}
+
+/* Bento: tegels vullen hun cel; alleen de eerste is groot (2×2), de rest zijn losse vakjes zodat er geen gaten vallen. */
+.blk-gallery--bento .blk-gallery__grid {
+  grid-auto-flow: dense;
+  grid-auto-rows: 9rem;
+}
+
+.blk-gallery--bento .blk-gallery__figure img {
+  flex: 1;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.blk-gallery--bento .blk-gallery__item:first-child {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+/* Metselwerk: kolommen, elk beeld op zijn eigen hoogte. */
+.blk-gallery--masonry .blk-gallery__grid {
+  display: block;
+  column-count: 2;
+  column-gap: var(--var-spacing-small);
+}
+
+.blk-gallery--masonry .blk-gallery__item {
+  margin-bottom: var(--var-spacing-small);
+  break-inside: avoid;
+}
+
+@container blk (min-width: 40rem) {
+  .blk-gallery__grid {
+    gap: var(--var-spacing-medium);
+  }
+
+  .blk-gallery--cols-3 .blk-gallery__grid,
+  .blk-gallery--cols-4 .blk-gallery__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .blk-gallery--bento .blk-gallery__grid {
+    grid-auto-rows: 11rem;
+  }
+
+  .blk-gallery--masonry.blk-gallery--cols-3 .blk-gallery__grid,
+  .blk-gallery--masonry.blk-gallery--cols-4 .blk-gallery__grid {
+    column-count: 3;
+    column-gap: var(--var-spacing-medium);
+  }
+
+  .blk-gallery--masonry .blk-gallery__item {
+    margin-bottom: var(--var-spacing-medium);
+  }
+}
+
+@container blk (min-width: 64rem) {
+  .blk-gallery--cols-4 .blk-gallery__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .blk-gallery--masonry.blk-gallery--cols-4 .blk-gallery__grid {
+    column-count: 4;
+  }
+
+  .blk-gallery--bento .blk-gallery__grid {
+    grid-auto-rows: 13rem;
+  }
+}

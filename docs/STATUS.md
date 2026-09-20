@@ -16,7 +16,7 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Klanten | Echt (overzicht, detail met websites, nieuw/wijzigen/verwijderen) |
 | Websites | Echt (galerij, aanmaken, builder, voorbeeld, status Live/Concept) — **publiceren doet nog niets buiten de status** |
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
-| Blocks | 14 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `site-header`, `site-footer` (de meeste door Gemini gebouwd, gecontroleerd met `check:blocks`) |
+| Blocks | 20 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `site-header`, `site-footer` (14 door Gemini/eerder, de laatste zes door Claude; allemaal gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
 | Platform-dashboard (`/`), Design kits (+ editor), Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
@@ -109,7 +109,7 @@ Phosphor-icons. **Dit is niet de Next.js uit je hoofd**: `AGENTS.md` verwijst na
 ```
 src/app/            routes (klanten, websites, componenten, login, api/auth, mockup-pagina's)
 src/app/websites/   builder (SiteBuilder, SchemaForm, PageSettingsForm), acties, SiteFrame, layout-slots, seo, sections
-src/blocks/         het block-systeem (contract, registry, Section, BlockRenderer, theme, 14 blocks, README)
+src/blocks/         het block-systeem (contract, registry, Section, BlockRenderer, theme, 20 blocks, README)
 src/db/             Drizzle-schema (schema.ts) en verbinding (index.ts)
 src/lib/            auth.ts (Better Auth), auth-client.ts, session.ts (sessiecontrole)
 src/mockup/         overgenomen Claude Design-mockup; nog in gebruik voor de mockup-schermen
@@ -195,8 +195,13 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      block (nu overal `100vw`, ook voor halve kolommen), een **bulk-opruiming van ongebruikte beelden** en een aparte
      mediapagina buiten de builder. Verweesde bestanden ontstaan nog wel als een gebruiker een beeld uit een veld haalt
      zonder het uit de bibliotheek te verwijderen; dat is bewust (het beeld blijft kiesbaar).
-   - ⏳ **Resterende blocks** (tijdlijn, cases, galerij, breadcrumbs, video, lijst…): bij Gemini, zie de brief. Blocks die
-     client-JS of een backend nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding) eerst overleggen.
+   - ✅ **Blocks uit de brief zijn af** (batch 1–3). De laatste zes (`timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`) zijn
+     door Claude gebouwd, status `beta`, gecontroleerd op desktop/tablet/mobiel in beide thema's. Nog niet gebouwd: blocks die
+     client-JS of een backend nodig hebben (formulieren, sliders, tabs, winkelwagen, cookiemelding, lightbox): eerst overleggen.
+     Aandachtspunten bij de nieuwe blocks: `breadcrumbs` zet relatieve adressen in de `BreadcrumbList`-JSON-LD (net als `team`; absoluut
+     maken zodra sites een domein hebben); `video` laadt YouTube/Vimeo pas na een klik (een ingeklapte `<details>` met de iframe erin,
+     zonder JavaScript), speelt dus na de eerste klik nog niet automatisch af, en de fixture met een eigen bestand wijst naar een
+     niet-bestaand `/blocks/rondleiding.mp4` (alleen om de weergave te tonen); `gallery` heeft geen lightbox (die vraagt client-JS).
    - Bekende puntjes in de blocks van Gemini (niet blokkerend): `testimonials` levert `Review`-JSON-LD zonder
      `itemReviewed` (Google gebruikt dat niet voor review-snippets) en de sterren hebben `aria-label` op een gewone `div`
      (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel

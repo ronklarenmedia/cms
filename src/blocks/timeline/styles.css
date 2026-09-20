@@ -1,0 +1,139 @@
+/* Timeline — momenten op een tijdlijn, horizontaal of langs een middellijn */
+
+.blk-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-timeline__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-timeline__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-timeline__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-timeline__intro {
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Mobiel: één kolom met een lijn links en een stip per moment. */
+.blk-timeline__list {
+  --blk-dot: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+  margin: 0;
+  padding: 0 0 0 var(--var-spacing-large);
+  list-style: none;
+  border-left: var(--var-border-width-standard) solid var(--blk-line);
+}
+
+.blk-timeline__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-timeline__item::before {
+  content: "";
+  position: absolute;
+  top: 0.35rem;
+  left: calc(-1 * var(--var-spacing-large) - var(--blk-dot) / 2 - var(--var-border-width-standard) / 2);
+  width: var(--blk-dot);
+  height: var(--blk-dot);
+  border-radius: var(--var-border-radius-full);
+  background: var(--blk-accent);
+}
+
+.blk-timeline__date {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-bold);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-timeline__title {
+  margin: 0;
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-timeline__text {
+  margin: 0;
+  color: var(--blk-muted);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Horizontaal: vanaf desktop naast elkaar, met een lijn boven elk moment. */
+@container blk (min-width: 64rem) {
+  .blk-timeline--horizontal .blk-timeline__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    padding: 0;
+    border-left: none;
+  }
+
+  .blk-timeline--horizontal .blk-timeline__item {
+    padding-top: var(--var-spacing-large);
+    border-top: var(--var-border-width-standard) solid var(--blk-line);
+  }
+
+  .blk-timeline--horizontal .blk-timeline__item::before {
+    top: calc(-1 * var(--blk-dot) / 2 - var(--var-border-width-standard) / 2);
+    left: 0;
+  }
+}
+
+/* Verticaal: vanaf tablet afwisselend links en rechts van een middellijn. */
+@container blk (min-width: 40rem) {
+  .blk-timeline--vertical .blk-timeline__list {
+    position: relative;
+    padding: 0;
+    border-left: none;
+  }
+
+  .blk-timeline--vertical .blk-timeline__list::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    border-left: var(--var-border-width-standard) solid var(--blk-line);
+  }
+
+  .blk-timeline--vertical .blk-timeline__item {
+    width: calc(50% - var(--var-spacing-large));
+    text-align: right;
+  }
+
+  .blk-timeline--vertical .blk-timeline__item:nth-child(even) {
+    margin-left: calc(50% + var(--var-spacing-large));
+    text-align: left;
+  }
+
+  .blk-timeline--vertical .blk-timeline__item::before {
+    left: auto;
+    right: calc(-1 * var(--var-spacing-large) - var(--blk-dot) / 2);
+  }
+
+  .blk-timeline--vertical .blk-timeline__item:nth-child(even)::before {
+    right: auto;
+    left: calc(-1 * var(--var-spacing-large) - var(--blk-dot) / 2);
+  }
+}
