@@ -6,8 +6,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
-import { customers, pages, sites } from "@/db/schema";
+import { customers, pages, siteDomains, sites } from "@/db/schema";
 import { deleteMediaFiles } from "@/lib/media";
+import { removeDomain } from "@/lib/vercel-domains";
 import { NOT_LOGGED_IN, requireAdmin, staffUser } from "@/lib/session";
 import { isSlot, type Slot } from "./layout-slots";
 import { parseSections, slugify, starterLayout, starterSections, themeOptions, type StarterId } from "./sections";
@@ -226,6 +227,12 @@ export async function deletePage(pageId: string): Promise<Result> {
 
 export async function deleteSite(siteId: string) {
   await requireAdmin();
+  // De domeinen ook bij Vercel losmaken (de rijen zelf verdwijnen met de site); lukt dat niet, dan blijft het domein daar hangen.
+  const domains = await db.select({ hostname: siteDomains.hostname }).from(siteDomains).where(eq(siteDomains.siteId, siteId));
+  for (const d of domains) {
+    const res = await removeDomain(d.hostname);
+    if (!res.ok) console.error(`Domein ${d.hostname} losmaken bij Vercel mislukt: ${res.error}`);
+  }
   await db.delete(sites).where(eq(sites.id, siteId));
   // De rijen in `media` verdwijnen vanzelf mee; de bestanden in R2 ruimen we hier op (mislukt dat, dan blijven ze verweesd staan).
   await deleteMediaFiles(siteId).catch((e) => console.error("Bestanden van verwijderde website opruimen mislukt:", e instanceof Error ? e.message : e));

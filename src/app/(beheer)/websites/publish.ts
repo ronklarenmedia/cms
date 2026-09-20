@@ -1,23 +1,16 @@
 "use server";
 
 import { and, desc, eq, lt, sql } from "drizzle-orm";
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db";
 import { sites, siteVersions, user } from "@/db/schema";
 import { NOT_LOGGED_IN, staffUser } from "@/lib/session";
-import { hostsOfSite } from "@/lib/site-hosts";
+import { revalidatePublicSite } from "@/lib/site-domains";
 import type { Result } from "./actions";
 import { getPublishInfo, KEEP_VERSIONS, loadWorkingSnapshot, type PublishInfo } from "./publishing";
 
 const uuid = z.uuid();
 const NO_SITE = "Deze website bestaat niet meer.";
-
-/** De openbare pagina's van een site opnieuw laten opbouwen bij het volgende bezoek. */
-function revalidatePublic(site: { slug: string }) {
-  for (const host of hostsOfSite(site)) revalidatePath(`/s/${encodeURIComponent(host)}`, "layout");
-  revalidatePath("/websites");
-}
 
 /** Publiceert de werkkopie als nieuwe versie. Is er niets gewijzigd sinds de live versie, dan verandert er niets. */
 export async function publishSite(siteId: string, note?: string): Promise<Result<{ version: number; unchanged: boolean }>> {
@@ -56,7 +49,7 @@ export async function publishSite(siteId: string, note?: string): Promise<Result
   });
 
   if (!result) return { ok: false, error: NO_SITE };
-  revalidatePublic(result.site);
+  await revalidatePublicSite(result.site);
   return { ok: true, version: result.version, unchanged: result.unchanged };
 }
 
@@ -64,9 +57,9 @@ export async function publishSite(siteId: string, note?: string): Promise<Result
 export async function unpublishSite(siteId: string): Promise<Result> {
   if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
   if (!uuid.safeParse(siteId).success) return { ok: false, error: NO_SITE };
-  const [site] = await db.update(sites).set({ status: "draft", publishedAt: null, updatedAt: new Date() }).where(eq(sites.id, siteId)).returning({ slug: sites.slug });
+  const [site] = await db.update(sites).set({ status: "draft", publishedAt: null, updatedAt: new Date() }).where(eq(sites.id, siteId)).returning({ id: sites.id, slug: sites.slug });
   if (!site) return { ok: false, error: NO_SITE };
-  revalidatePublic(site);
+  await revalidatePublicSite(site);
   return { ok: true };
 }
 
@@ -80,9 +73,9 @@ export async function rollbackSite(siteId: string, version: number): Promise<Res
     .update(sites)
     .set({ status: "live", publishedVersion: version, publishedAt: new Date(), updatedAt: new Date() })
     .where(eq(sites.id, siteId))
-    .returning({ slug: sites.slug });
+    .returning({ id: sites.id, slug: sites.slug });
   if (!site) return { ok: false, error: NO_SITE };
-  revalidatePublic(site);
+  await revalidatePublicSite(site);
   return { ok: true };
 }
 

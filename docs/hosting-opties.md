@@ -110,7 +110,7 @@ zonder tweede leverancier. Aanbeveling: eerst de eigen domeinen bouwen, daarna d
 ## 6. Besluiten en open punten
 
 1. **Start met A: ja.** Ron maakt een Vercel Pro-team aan.
-2. **DNS van klantdomeinen: de klant bepaalt.** Twee routes, beide moeten kunnen: Ron regelt het (met toegang bij de registrar van de klant) of de klant zet
+2. **DNS van klantdomeinen: de klant bepaalt.** (Gebouwd: de knop "Domeinen" in de builder, zie `docs/STATUS.md` §3.) Twee routes, beide moeten kunnen: Ron regelt het (met toegang bij de registrar van de klant) of de klant zet
    de records zelf. Instellingen → Domeinen toont daarom per domein de benodigde DNS-records en de status, zodat het ook als instructie aan een klant kan.
 3. **Voorbeeldadressen: ja, op een apart domein** (advies, wacht op akkoord). Niet `rkmassets.com`:
    - Wildcard-subdomeinen vragen dat het hele domein de Vercel-nameservers gebruikt. `rkmassets.com` staat bij Cloudflare, met `media.` aan de R2-bucket gekoppeld;

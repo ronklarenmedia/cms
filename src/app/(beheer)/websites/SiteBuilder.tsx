@@ -11,6 +11,7 @@ import type { SiteLayout } from "@/db/schema";
 import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, type PageDTO, type PageSettings } from "./actions";
 import { fetchPublishInfo, publishSite, unpublishSite } from "./publish";
 import type { PublishInfo } from "./publishing";
+import { DomainsDialog } from "./DomainsDialog";
 import { VersionsDialog } from "./VersionsDialog";
 import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
 import { PageSettingsForm } from "./PageSettingsForm";
@@ -175,6 +176,7 @@ export function SiteBuilder({
   const [status, setStatus] = useState<SaveStatus>({ kind: "saved" });
   const [publish, setPublish] = useState<PublishInfo>(initialPublish);
   const [versionsOpen, setVersionsOpen] = useState(false);
+  const [domainsOpen, setDomainsOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [addingPage, setAddingPage] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -732,6 +734,9 @@ export function SiteBuilder({
             <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => void openPreview()}>
               <i className="ph ph-eye" /> Voorbeeld
             </button>
+            <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setDomainsOpen(true)} title="Eigen domeinen van de klant">
+              <i className="ph ph-globe" /> Domeinen
+            </button>
             <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setVersionsOpen(true)} title="Versies en terugrollen">
               <i className="ph ph-clock-counter-clockwise" /> Versies
             </button>
@@ -753,6 +758,7 @@ export function SiteBuilder({
           </div>
         </div>
 
+        {domainsOpen ? <DomainsDialog siteId={site.id} canDelete={canDelete} onClose={() => setDomainsOpen(false)} /> : null}
         {versionsOpen ? <VersionsDialog siteId={site.id} onClose={() => setVersionsOpen(false)} onChanged={() => void refreshPublish()} /> : null}
 
         {notice ? (

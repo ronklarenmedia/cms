@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { BlockRenderer } from "@/blocks/BlockRenderer";
 import { themeToCssVars } from "@/blocks/theme";
-import { findLiveSite, originOf } from "@/lib/public-site";
+import { findLiveSite, originOf, pagePath } from "@/lib/public-site";
 import { pageMetadata } from "@/app/(beheer)/websites/seo";
 import { SiteFrame } from "@/app/(beheer)/websites/SiteFrame";
 
@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return {
     ...pageMetadata(site.snapshot.name, page, { preview: site.kind === "preview" }),
     metadataBase: new URL(originOf(site.host)),
-    alternates: { canonical: page.slug === "" ? "/" : `/${page.slug}` },
+    alternates: { canonical: pagePath(page.slug) },
   };
 }
 
@@ -38,6 +38,8 @@ export default async function PublicPage({ params }: { params: Params }) {
   const data = await load(await params);
   if (!data) notFound();
   const { site, page } = data;
+  // Eén adres per site: wie via een ander adres binnenkomt (www of kaal, het voorbeeldadres), gaat permanent naar het primaire domein.
+  if (site.primaryHost && site.host !== site.primaryHost) permanentRedirect(`${originOf(site.primaryHost)}${pagePath(page.slug)}`);
   const { theme, layout } = site.snapshot;
 
   return (

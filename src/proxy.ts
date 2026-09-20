@@ -16,6 +16,8 @@ export function proxy(request: NextRequest) {
 
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
   const publicSite = platformHosts().length > 0 && !isPlatformHost(host);
+  // robots.txt en sitemap.xml zijn alleen van de openbare sites; het beheer heeft ze niet (en hoeft er niet voor in te loggen).
+  if (!publicSite && (pathname === "/robots.txt" || pathname === "/sitemap.xml")) return NextResponse.next();
   if (publicSite) {
     // Op een openbare site bestaat alleen de site zelf: geen inlog-API en geen beheerpagina's.
     if (pathname === "/api" || pathname.startsWith("/api/")) return new NextResponse(null, { status: 404 });
@@ -30,6 +32,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Niet voor Next-interne bestanden en statische bestanden uit public/ (alles met een extensie).
-  matcher: ["/((?!_next/static|_next/image|.*\\..*).*)"],
+  // Niet voor Next-interne bestanden en statische bestanden uit public/ (alles met een extensie), behalve robots.txt en sitemap.xml van openbare sites.
+  matcher: ["/((?!_next/static|_next/image|.*\\..*).*)", "/robots.txt", "/sitemap.xml"],
 };

@@ -84,6 +84,13 @@ klantpagina toont zijn websites.
   lijst en zet een oudere versie weer live; de werkkopie blijft dan zoals hij is. Naast "Live · vN" staat "Niet-gepubliceerde wijzigingen" zodra de
   werkkopie afwijkt (vergelijking via `content_hash`, na elke opslag opnieuw bepaald op de server).
 - **Openbare weergave** (`src/app/(sites)/s/[host]/[[...pagina]]`): toont alleen de live versie, nooit de werkkopie. Zie §4.
+- **Eigen domeinen** (knop "Domeinen" in de builder, `DomainsDialog.tsx`, acties in `domains.ts`, tabel `site_domains`, Vercel-koppeling in `src/lib/vercel-domains.ts`):
+  een domein toevoegen valideert de naam (`validateCustomHostname`: geen poort/IP/wildcard/localhost, en niets van het platform zelf), meldt het aan bij Vercel en toont de
+  DNS-records (A voor een kaal domein, CNAME voor een subdomein, en een TXT-record als het domein al elders bij Vercel hangt), met "Controleer nu". Status: *Actief* = geverifieerd en
+  DNS wijst naar Vercel, anders *In behandeling*. Het eerste domein wordt **primair**; wie via een ander adres van de site binnenkomt (www ↔ kaal, het voorbeeldadres) krijgt een
+  308 naar het primaire domein zodra dat actief is. Maximaal 5 domeinen per site; verwijderen (ook bij Vercel) alleen door een platform-admin; een site verwijderen maakt zijn
+  domeinen bij Vercel los. Per eigen domein: `robots.txt` (toestaan, met sitemap) en `sitemap.xml` (pagina's zonder `noindex`); een voorbeeldadres krijgt `Disallow: /` en geen sitemap.
+  Zonder Vercel-instellingen worden domeinen alleen opgeslagen (met een melding).
   Een voorbeeld staat altijd op noindex.
 
 **Instellingen** — `/instellingen/[tab]`; alle tabs vragen `requireStaff()`.
@@ -99,6 +106,7 @@ klantpagina toont zijn websites.
   (`checkStorage()` in `src/lib/health.ts`: ondertekende HEAD op de bucket + of `R2_PUBLIC_URL` bereikbaar is; schrijft niets).
   Een aanwezige `ANTHROPIC_API_KEY` of `RESEND_API_KEY` toont "Sleutel ingesteld" (nog niet gecontroleerd, want die
   onderdelen bestaan nog niet); de rest staat op "Niet gekoppeld". R2-configuratie: `src/lib/r2.ts` (`getR2Config()`).
+  **Vercel** wordt live gemeten (`checkVercel()` in `src/lib/vercel-domains.ts`: het project opvragen bewijst dat `VERCEL_TOKEN`, `VERCEL_PROJECT_ID` en eventueel `VERCEL_TEAM_ID` kloppen).
 - *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
   (`src/app/(beheer)/instellingen/tabs.ts`), geen schakelaars die niets doen.
 
@@ -130,6 +138,7 @@ docs/               gemini-blocks-brief.md, dit bestand
 `src/blocks/theme.ts`, `layout` jsonb = `{header, footer}`, `status` draft/live); `pages` (`content` jsonb = lijst
 secties, `slug` leeg = homepage, SEO-velden); `platform_settings` (één rij, `id = 1` afgedwongen met een CHECK);
 `media` (één rij per geüpload beeld van een site: `id` = mapnaam in R2, `url`, `srcset`, afmetingen, `filename`, `bytes`; verdwijnt mee met de site);
+`site_domains` (eigen domeinen per site: `hostname` uniek, `is_primary` hoogstens één per site, `status` pending/active);
 `user`, `session`, `account`, `verification` (Better Auth, met `role` en `customerId`).
 
 **Sectie-formaat**: `{ id, type, variant, content, settings }`. `BlockRenderer` valideert tegen het Zod-schema van
@@ -158,7 +167,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   en publiceren maakt de cache van die site ongeldig via `revalidatePath('/s/<host>', 'layout')`.
 - **Publiceren = momentopname** (`site_versions`), niet de werkkopie live zetten: een autosave gaat nooit direct naar bezoekers.
 - **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
-  altijd `noindex`. Eigen domeinen van klanten volgen (tabel met domeinen per site + Vercel-API).
+  altijd `noindex`. Eigen domeinen van klanten: zie §3 (tabel `site_domains` + Vercel-API).
 - **Opslag voor uploads: Cloudflare R2** (niet Vercel Blob): bandbreedte is gratis, S3-compatibel en niet aan de hosting
   gebonden. Bucket `cms-media` (West-Europa) staat in Rons Cloudflare-account (`348598c3…`). Bestanden worden bewaard als
   **volledige URL** opgeslagen in de paginadata (`image.url`/`srcset`): `og:image` en JSON-LD hebben absolute adressen nodig en
@@ -228,9 +237,10 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      `image`-URL in de JSON-LD.
 3. **Design kits**: eerst het model kiezen (zie §8). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
-4. **Echt publiceren** — ✅ momentopnamen, terugrollen en openbare weergave op voorbeeldadressen. Nog te doen: **eigen domeinen** (tabel `site_domains`,
-   Instellingen → Domeinen met Vercel-API en DNS-records, www ↔ kaal, `sitemap.xml`/`robots.txt` per domein, absolute URL's in JSON-LD), een **Vercel Pro-team**,
-   het voorbeeldadres-domein, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log. Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
+4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
+   Nog te doen: de Vercel-koppeling **tegen echt Vercel proberen** (nu alleen getest tegen een nagebouwde server volgens de documentatie), een **Vercel Pro-team** en het
+   project, het voorbeeldadres-domein, absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
+   domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log. Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (klanten/websites-aantallen kan nu al uit de database; deploys en bezoekers hebben
    punt 4 en een analytics-bron nodig).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
@@ -260,7 +270,10 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   Beelden die vóór de bibliotheek in R2 zijn gezet hebben geen rij en zijn onvindbaar in de bibliotheek totdat je er een
   aanmaakt (bestandsnaam leeg, afmetingen uit het beeld zelf).
 - Openbare sites in productie: `PLATFORM_HOSTS` (de host(s) van het beheer) en `PREVIEW_DOMAIN` (voorbeeldadressen) instellen; zonder `PLATFORM_HOSTS` wordt nooit een
-  openbare site getoond. `site_versions` en `sites.published_version` moeten bestaan (DDL: `drizzle-kit export --sql`); zonder die tabel mislukt publiceren.
+  openbare site getoond. `site_versions`, `sites.published_version` en `site_domains` moeten bestaan (DDL: `drizzle-kit export --sql`); zonder die tabellen mislukt publiceren of het
+  beheren van domeinen.
+- Eigen domeinen: `VERCEL_TOKEN` (token met rechten op het project), `VERCEL_PROJECT_ID` en, bij een team, `VERCEL_TEAM_ID` instellen in Vercel; controleer daarna Instellingen → Koppelingen.
+  `VERCEL_API_URL` werkt alleen buiten productie (testadres) en hoort daar niet gezet te worden.
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
@@ -303,3 +316,6 @@ node --env-file=.env.local node_modules/.bin/drizzle-kit export --sql   # verwac
 - Publiceren: klik "Publiceren" (Live · v1), wijzig iets ("Niet-gepubliceerde wijzigingen" verschijnt en bezoekers zien nog de oude tekst), publiceer opnieuw
   (v2), open "Versies" en zet v1 weer live. Bekijk de site op `http://<sitenaam>.localhost:3000` (met `PLATFORM_HOSTS` en `PREVIEW_DOMAIN` op `localhost:3000`
   in `.env.local`); "Op concept zetten" geeft daar een 404.
+- Domeinen (na het instellen van de Vercel-variabelen): voeg in de builder onder "Domeinen" `klant.nl` toe; het scherm toont de DNS-records; na het instellen bij de registrar en "Controleer nu"
+  wordt het *Actief*. Voeg ook `www.klant.nl` toe en zet één van de twee primair: het andere adres stuurt (308) naar het primaire, `robots.txt` en `sitemap.xml` staan onder het eigen domein.
+  Lokaal zonder Vercel is te testen met `curl -H "Host: klant.nl" http://localhost:3000/` nadat het domein in de database staat.

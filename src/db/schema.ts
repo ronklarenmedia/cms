@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, check, index, integer, jsonb, pgEnum, pgTable, text, timestamp, unique, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import type { SectionData } from "@/blocks/contract";
 import type { SiteTheme } from "@/blocks/theme";
 
@@ -196,6 +196,30 @@ export const siteVersions = pgTable(
   (t) => [unique("site_versions_site_version_unique").on(t.siteId, t.version)],
 );
 
+// Eigen domeinen van klanten bij een site. Een hostnaam hoort bij hoogstens één site (uniek). `is_primary`: het domein waar bezoekers
+// naartoe worden gestuurd als ze via een ander adres van dezelfde site binnenkomen (www ↔ kaal, voorbeeldadres); hoogstens één per site.
+// `status`: 'active' als het DNS klopt en het certificaat kan worden uitgegeven, anders 'pending'.
+export const siteDomains = pgTable(
+  "site_domains",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    hostname: varchar("hostname", { length: 253 }).notNull().unique(),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    status: varchar("status", { length: 16 }).$type<"pending" | "active">().notNull().default("pending"),
+    verifiedAt: timestamp("verified_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [
+    index("site_domains_site_idx").on(t.siteId),
+    uniqueIndex("site_domains_one_primary_idx").on(t.siteId).where(sql`${t.isPrimary}`),
+    check("site_domains_status_check", sql`${t.status} in ('pending', 'active')`),
+  ],
+);
+
 // Mediabibliotheek: één rij per geüploade afbeelding van een website. `id` is ook de mapnaam in R2
 // (`sites/<siteId>/<id>/<breedte>.webp`), zodat de bestanden bij de rij te vinden zijn. Zie src/lib/media.ts.
 export const media = pgTable(
@@ -223,5 +247,6 @@ export const media = pgTable(
 export type Site = typeof sites.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
 export type SiteVersion = typeof siteVersions.$inferSelect;
+export type SiteDomain = typeof siteDomains.$inferSelect;
 export type PlatformSettingsRow = typeof platformSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;
