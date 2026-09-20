@@ -1,32 +1,37 @@
 // Koppeling met de Vercel-API voor de eigen domeinen van klanten. Alleen op de server. Het token komt uit de omgeving en wordt
 // nergens getoond of gelogd.
 //
-// VERCEL_TOKEN       token met rechten op het project
-// VERCEL_PROJECT_ID  id of naam van het Vercel-project waar de app draait
-// VERCEL_TEAM_ID     optioneel: het team dat het project bezit
+// PLATFORM_VERCEL_TOKEN       token met rechten op het project
+// PLATFORM_VERCEL_PROJECT_ID  id of naam van het Vercel-project waar de app draait. Op Vercel zelf is dit niet nodig: Vercel zet
+//                             `VERCEL_PROJECT_ID` automatisch (een systeemvariabele die wij als terugval lezen).
+// PLATFORM_VERCEL_TEAM_ID     optioneel: het team dat het project bezit (leeg bij een persoonlijk account)
 //
+// De namen beginnen niet met VERCEL_: Vercel weigert zulke namen voor eigen variabelen (die zijn voor systeemvariabelen).
 // Zonder deze variabelen doet de koppeling niets: domeinen worden dan wel opgeslagen, maar niet bij Vercel aangemeld.
 // Endpoints volgens https://vercel.com/docs/platforms/multi-tenant-platforms/reference (add/get/verify/remove project domain)
 // en https://vercel.com/docs/rest-api/domains/get-a-domain-s-configuration.
 
-// Alleen buiten productie mag het adres worden overschreven (VERCEL_API_URL), om de koppeling tegen een testserver te draaien.
+// Alleen buiten productie mag het adres worden overschreven (PLATFORM_VERCEL_API_URL), om de koppeling tegen een testserver te draaien.
 // In productie is het altijd de echte API, zodat het token nooit naar een ander adres kan.
-const API = (process.env.NODE_ENV !== "production" && process.env.VERCEL_API_URL?.trim()) || "https://api.vercel.com";
+const API = (process.env.NODE_ENV !== "production" && process.env.PLATFORM_VERCEL_API_URL?.trim()) || "https://api.vercel.com";
 const TIMEOUT_MS = 10_000;
 
 type Config = { token: string; projectId: string; teamId: string | null };
 
 export function getVercelConfig(): Config | null {
-  const token = process.env.VERCEL_TOKEN?.trim();
-  const projectId = process.env.VERCEL_PROJECT_ID?.trim();
+  const token = process.env.PLATFORM_VERCEL_TOKEN?.trim();
+  const projectId = process.env.PLATFORM_VERCEL_PROJECT_ID?.trim() || process.env.VERCEL_PROJECT_ID?.trim();
   if (!token || !projectId) return null;
-  return { token, projectId, teamId: process.env.VERCEL_TEAM_ID?.trim() || null };
+  return { token, projectId, teamId: process.env.PLATFORM_VERCEL_TEAM_ID?.trim() || null };
 }
 
 export const isVercelConfigured = () => getVercelConfig() !== null;
 
 /** Namen (nooit waarden) van de verplichte variabelen die nog leeg zijn. */
-export const missingVercelVars = (): string[] => ["VERCEL_TOKEN", "VERCEL_PROJECT_ID"].filter((n) => !process.env[n]?.trim());
+export const missingVercelVars = (): string[] => [
+  ...(process.env.PLATFORM_VERCEL_TOKEN?.trim() ? [] : ["PLATFORM_VERCEL_TOKEN"]),
+  ...(process.env.PLATFORM_VERCEL_PROJECT_ID?.trim() || process.env.VERCEL_PROJECT_ID?.trim() ? [] : ["PLATFORM_VERCEL_PROJECT_ID"]),
+];
 
 /** Wat een klant of medewerker moet weten om een domein werkend te krijgen. */
 export type DomainDetail = {
@@ -60,11 +65,11 @@ async function call(method: string, path: string, query: Record<string, string |
   return { status: res.status, data };
 }
 
-const NOT_CONFIGURED = "Vercel is nog niet gekoppeld (VERCEL_TOKEN en VERCEL_PROJECT_ID).";
+const NOT_CONFIGURED = "Vercel is nog niet gekoppeld (PLATFORM_VERCEL_TOKEN en het project-id).";
 
 /** Een begrijpelijke melding voor een mislukt verzoek, zonder technische details of het token. */
 function explain(status: number, action: string): string {
-  if (status === 401 || status === 403) return "Vercel weigert de toegang. Controleer VERCEL_TOKEN en de rechten van het token.";
+  if (status === 401 || status === 403) return "Vercel weigert de toegang. Controleer PLATFORM_VERCEL_TOKEN en de rechten van het token.";
   if (status === 402) return "Vercel vraagt om een betaalmethode voor dit account.";
   if (status === 409) return "Dit domein hangt al aan een ander Vercel-project of -account. Verwijder het daar eerst, of bewijs eigendom met het TXT-record.";
   if (status === 404) return "Dit domein staat niet (meer) in het Vercel-project.";

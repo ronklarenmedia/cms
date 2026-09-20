@@ -43,7 +43,7 @@ voor websitebouwers beschrijven.
   Grotere lagen: $20 per maand (10 miljoen requests), $100 (50 miljoen), $300 (150 miljoen). Extra plekken $20. Beelden lopen via R2 en tellen niet mee.
 - **Voordelen:** kleinste stap vanaf nu (zelfde code, zelfde database), automatische SSL, previews en terugrollen van deployments.
 - **Nadelen:** vaste leverancier; kosten schalen met requests; elke pagina levert nog de React-runtime mee, tenzij dat later wordt weggehaald.
-- **Werk:** de vier punten uit §2, plus Instellingen → Domeinen (toevoegen, DNS-records tonen, status), `VERCEL_TOKEN`/project-id in Koppelingen.
+- **Werk:** de vier punten uit §2, plus Instellingen → Domeinen (toevoegen, DNS-records tonen, status), `PLATFORM_VERCEL_TOKEN`/project-id in Koppelingen.
 
 ### B. Zelf hosten (VPS + Docker/Coolify + Caddy)
 

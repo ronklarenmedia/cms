@@ -8,7 +8,8 @@ if (!process.env.DATABASE_URL) {
 
 // sslmode uit de URL knippen en als los ssl-object doorgeven: voorkomt de
 // pg-connection-string deprecation-warning over 'sslmode=require' als alias.
-const connectionString = process.env.DATABASE_URL.replace(/[?&]sslmode=[^&]+/, "");
+// Het scheidingsteken ("?" of "&") blijft staan als er nog een parameter volgt, anders vervalt het.
+const connectionString = process.env.DATABASE_URL.replace(/([?&])sslmode=[^&]*(&?)/, (_, separator: string, more: string) => (more ? separator : ""));
 const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } });
 
 export const db = drizzle(pool, { schema });

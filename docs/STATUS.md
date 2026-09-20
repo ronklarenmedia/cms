@@ -106,7 +106,7 @@ klantpagina toont zijn websites.
   (`checkStorage()` in `src/lib/health.ts`: ondertekende HEAD op de bucket + of `R2_PUBLIC_URL` bereikbaar is; schrijft niets).
   Een aanwezige `ANTHROPIC_API_KEY` of `RESEND_API_KEY` toont "Sleutel ingesteld" (nog niet gecontroleerd, want die
   onderdelen bestaan nog niet); de rest staat op "Niet gekoppeld". R2-configuratie: `src/lib/r2.ts` (`getR2Config()`).
-  **Vercel** wordt live gemeten (`checkVercel()` in `src/lib/vercel-domains.ts`: het project opvragen bewijst dat `VERCEL_TOKEN`, `VERCEL_PROJECT_ID` en eventueel `VERCEL_TEAM_ID` kloppen).
+  **Vercel** wordt live gemeten (`checkVercel()` in `src/lib/vercel-domains.ts`: het project opvragen bewijst dat `PLATFORM_VERCEL_TOKEN`, het project-id en eventueel `PLATFORM_VERCEL_TEAM_ID` kloppen).
 - *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
   (`src/app/(beheer)/instellingen/tabs.ts`), geen schakelaars die niets doen.
 
@@ -275,8 +275,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - Openbare sites in productie: `PLATFORM_HOSTS` (de host(s) van het beheer) en `PREVIEW_DOMAIN` (voorbeeldadressen) instellen; zonder `PLATFORM_HOSTS` wordt nooit een
   openbare site getoond. `site_versions`, `sites.published_version` en `site_domains` moeten bestaan (DDL: `drizzle-kit export --sql`); zonder die tabellen mislukt publiceren of het
   beheren van domeinen.
-- Eigen domeinen: `VERCEL_TOKEN` (token met rechten op het project), `VERCEL_PROJECT_ID` en, bij een team, `VERCEL_TEAM_ID` instellen in Vercel; controleer daarna Instellingen → Koppelingen.
-  `VERCEL_API_URL` werkt alleen buiten productie (testadres) en hoort daar niet gezet te worden.
+- Eigen domeinen: `PLATFORM_VERCEL_TOKEN` (token met rechten op het project; de naam mag niet met `VERCEL_` beginnen, dat weigert Vercel) en, bij een team, `PLATFORM_VERCEL_TEAM_ID` instellen in Vercel; het project-id komt automatisch uit `VERCEL_PROJECT_ID`; controleer daarna Instellingen → Koppelingen.
+  `PLATFORM_VERCEL_API_URL` werkt alleen buiten productie (testadres) en hoort daar niet gezet te worden.
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).

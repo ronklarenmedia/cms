@@ -64,12 +64,12 @@ function vercelConnection(h: VercelHealth): Connection {
         ...base,
         state: "leeg",
         label: "Niet gekoppeld",
-        note: `Hosting en eigen domeinen van klanten. Zet ${h.missing.join(", ")} in .env.local (VERCEL_TEAM_ID is optioneel, zie .env.example).`,
+        note: `Hosting en eigen domeinen van klanten. Zet ${h.missing.join(", ")} in .env.local of bij de omgevingsvariabelen van de hosting (PLATFORM_VERCEL_TEAM_ID is optioneel, zie .env.example).`,
       };
     case "error": {
       const why = {
-        auth: "Vercel weigert de toegang. Controleer VERCEL_TOKEN en de rechten van het token.",
-        "not-found": "Het project bestaat niet of het token hoort er niet bij. Controleer VERCEL_PROJECT_ID en VERCEL_TEAM_ID.",
+        auth: "Vercel weigert de toegang. Controleer PLATFORM_VERCEL_TOKEN en de rechten van het token.",
+        "not-found": "Het project bestaat niet of het token hoort er niet bij. Controleer het project-id en PLATFORM_VERCEL_TEAM_ID.",
         unreachable: "Vercel is niet bereikbaar.",
         unexpected: `Onverwacht antwoord van Vercel (status ${h.httpStatus}).`,
       }[h.reason];

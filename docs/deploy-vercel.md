@@ -3,7 +3,7 @@
 Stap voor stap, in deze volgorde. Stand: 20 september 2026. Achtergrond en keuzes: `docs/hosting-opties.md`. De lijst met variabelen staat ook in `.env.example`.
 
 ## Vooraf (klaar)
-- Vercel **Pro** op het account (geen apart team nodig; laat `VERCEL_TEAM_ID` dan leeg).
+- Vercel **Pro** op het account (geen apart team nodig; laat `PLATFORM_VERCEL_TEAM_ID` dan leeg).
 - Domein voor voorbeeldadressen: **`rkmsites.dev`**, met de Vercel-nameservers (`ns1/ns2.vercel-dns.com`).
 - `vercel.json` in de repo zet de functieregio op **`fra1`** (Frankfurt, dicht bij Neon `eu-central-1`). Zonder dit draait Vercel in Washington en wordt elke databasequery traag.
 
@@ -30,11 +30,11 @@ Vercel → **Add New… → Project** → repo `ronklarenmedia/cms` importeren (
 | `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` | zoals in `.env.local` (`R2_PUBLIC_URL=https://media.rkmassets.com`) |
 | `PLATFORM_HOSTS` | `*.vercel.app` (later erbij: het eigen beheeradres). **Vergeet dit niet**: wat hier niet in staat, wordt als openbare site behandeld en het beheer zou dan een 404 geven |
 | `PREVIEW_DOMAIN` | `rkmsites.dev` |
-| `VERCEL_TOKEN` | Account Settings → Tokens → nieuw token voor dit doel |
-| `VERCEL_PROJECT_ID` | Project → Settings → General → Project ID |
-| `VERCEL_TEAM_ID` | leeg laten bij een persoonlijk account; anders `team_…` |
+| `PLATFORM_VERCEL_TOKEN` | Account Settings → Tokens → nieuw token voor dit doel. **Niet** `VERCEL_TOKEN`: Vercel weigert namen die met `VERCEL_` beginnen |
+| `PLATFORM_VERCEL_PROJECT_ID` | niet nodig: Vercel zet `VERCEL_PROJECT_ID` zelf en de app leest die als terugval (Project → Settings → Environment Variables: "Enable access to System Environment Variables" moet aan staan) |
+| `PLATFORM_VERCEL_TEAM_ID` | leeg laten bij een persoonlijk account; anders `team_…` |
 
-Zet `VERCEL_API_URL` **niet**: die werkt alleen buiten productie en is bedoeld voor tests.
+Zet `PLATFORM_VERCEL_API_URL` **niet**: die werkt alleen buiten productie en is bedoeld voor tests.
 
 ## 3. Deployen en controleren
 1. Deploy. Open het `*.vercel.app`-adres en log in met je bestaande account (de gebruikers staan in de database).
