@@ -14,7 +14,7 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 |---|---|
 | Inloggen en rollen | Echt (Better Auth, e-mail + wachtwoord) |
 | Klanten | Echt (overzicht, detail met websites, nieuw/wijzigen/verwijderen) |
-| Websites | Echt (galerij, aanmaken, builder, voorbeeld, status Live/Concept) — **publiceren doet nog niets buiten de status** |
+| Websites | Echt (galerij, aanmaken, builder, voorbeeld, **publiceren als versie met terugrollen**, openbare weergave op voorbeeldadres `<sitenaam>.<PREVIEW_DOMAIN>`). Nog niet: eigen domeinen van klanten |
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
 | Blocks | 20 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `site-header`, `site-footer` (14 door Gemini/eerder, de laatste zes door Claude; allemaal gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
@@ -61,7 +61,7 @@ klantpagina toont zijn websites.
   header + footer.
 - `/websites/[id]` (de builder): pagina's toevoegen/hernoemen/verwijderen; secties toevoegen, verplaatsen,
   dupliceren, verwijderen en bewerken via een formulier dat uit het Zod-schema van het block wordt gegenereerd;
-  ongedaan maken/opnieuw; automatisch opslaan; desktop/tablet/mobiel-canvas; voorbeeld; publiceren (alleen status);
+  ongedaan maken/opnieuw; automatisch opslaan; desktop/tablet/mobiel-canvas; voorbeeld; publiceren met versies (zie hieronder);
   website verwijderen (admin).
 - **Afbeeldingen uploaden**: elk beeldveld in de builder (`url` + `alt`) heeft een voorbeeld en een uploadknop
   (`ImageUpload.tsx`, server-actie `uploadImage` in `upload.ts`, verwerking in `src/lib/media.ts`). Alleen JPG/PNG/WebP/GIF/AVIF, max. 5 MB
@@ -74,10 +74,16 @@ klantpagina toont zijn websites.
   header/footer). Een beeld kiezen vult het veld. Verwijderen (alleen platform-admin) wist de rij en alle bestanden in R2, en
   weigert als het beeld nog in gebruik is of nu in het veld staat. Een site verwijderen ruimt ook alle bestanden in R2 op.
 - **Header en footer** staan onder "Op alle pagina's" in de linkerkolom en verschijnen op elke pagina. Welke blocks
-  in welke plek mogen staat in `src/app/websites/layout-slots.ts`.
+  in welke plek mogen staat in `src/app/(beheer)/websites/layout-slots.ts`.
 - **Tab "Pagina"** (rechts): titel, URL, SEO-titel, omschrijving, afbeelding bij delen, noindex, met een
   zoekresultaat-voorbeeld. De homepage-URL staat vast.
-- Voorbeeld: `/websites/[id]/voorbeeld/[pagina]` — zonder platformmenu, met thema, header/footer en SEO-metadata.
+- Voorbeeld: `/websites/[id]/voorbeeld/[pagina]` — de **werkkopie** zonder platformmenu, met thema, header/footer en SEO-metadata.
+- **Publiceren** (`publish.ts`, `publishing.ts`): "Publiceren" valideert alle pagina's en de header/footer, legt de site vast als nieuwe rij in
+  `site_versions` (thema, header/footer en pagina's als jsonb; de laatste 20 blijven bewaard) en zet `sites.published_version` daarop. Is er niets
+  gewijzigd sinds de live versie, dan komt er geen nieuwe versie. "Op concept zetten" haalt de site offline (versies blijven). "Versies" toont de
+  lijst en zet een oudere versie weer live; de werkkopie blijft dan zoals hij is. Naast "Live · vN" staat "Niet-gepubliceerde wijzigingen" zodra de
+  werkkopie afwijkt (vergelijking via `content_hash`, na elke opslag opnieuw bepaald op de server).
+- **Openbare weergave** (`src/app/(sites)/s/[host]/[[...pagina]]`): toont alleen de live versie, nooit de werkkopie. Zie §4.
   Een voorbeeld staat altijd op noindex.
 
 **Instellingen** — `/instellingen/[tab]`; alle tabs vragen `requireStaff()`.
@@ -94,7 +100,7 @@ klantpagina toont zijn websites.
   Een aanwezige `ANTHROPIC_API_KEY` of `RESEND_API_KEY` toont "Sleutel ingesteld" (nog niet gecontroleerd, want die
   onderdelen bestaan nog niet); de rest staat op "Niet gekoppeld". R2-configuratie: `src/lib/r2.ts` (`getR2Config()`).
 - *Thema, AI, Plannen & facturatie, Domeinen, Publicatie, Notificaties, Compliance*: tonen wat er komt en waar het op wacht
-  (`src/app/instellingen/tabs.ts`), geen schakelaars die niets doen.
+  (`src/app/(beheer)/instellingen/tabs.ts`), geen schakelaars die niets doen.
 
 **Componenten** — `/componenten` (miniaturen, gebruik per site, aantal tokens), `/componenten/editor?block=…`
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
@@ -107,8 +113,11 @@ Phosphor-icons. **Dit is niet de Next.js uit je hoofd**: `AGENTS.md` verwijst na
 (o.a. `proxy.ts` in plaats van `middleware.ts`, `params`/`searchParams` zijn promises).
 
 ```
-src/app/            routes (klanten, websites, componenten, login, api/auth, mockup-pagina's)
-src/app/websites/   builder (SiteBuilder, SchemaForm, PageSettingsForm), acties, SiteFrame, layout-slots, seo, sections
+src/app/(beheer)/   het beheer: routes (klanten, websites, instellingen, componenten, login, …) met eigen root-layout (sessie, AppShell, Tailwind/Nocturne)
+src/app/(sites)/    openbare sites: eigen root-layout zonder sessie of beheer-CSS; `s/[host]/[[...pagina]]` bouwt de live versie op (ISR)
+src/app/api/auth    Better Auth
+src/proxy.ts        stuurt een host die niet in PLATFORM_HOSTS staat intern door naar /s/<host>/…; blokkeert /s/ en /api op openbare hosts
+src/app/(beheer)/websites/   builder (SiteBuilder, SchemaForm, PageSettingsForm), acties, SiteFrame, layout-slots, seo, sections
 src/blocks/         het block-systeem (contract, registry, Section, BlockRenderer, theme, 20 blocks, README)
 src/db/             Drizzle-schema (schema.ts) en verbinding (index.ts)
 src/lib/            auth.ts (Better Auth), auth-client.ts, session.ts (sessiecontrole)
@@ -145,7 +154,11 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - Header/footer zijn gewone blocks in vaste plekken (slots), geen aparte editor. Een extra footer-lay-out is een
   nieuwe *variant* van `site-footer`.
 - Mobiel menu zonder client-JS (`<details>`), uitklapmenu's met CSS (hover/focus).
-- Alle pagina's zijn dynamisch gerenderd (de layout leest de sessie).
+- Het beheer is dynamisch gerenderd (de layout leest de sessie). **Openbare sites zijn statisch** (ISR): hun eigen root-layout leest geen sessie,
+  en publiceren maakt de cache van die site ongeldig via `revalidatePath('/s/<host>', 'layout')`.
+- **Publiceren = momentopname** (`site_versions`), niet de werkkopie live zetten: een autosave gaat nooit direct naar bezoekers.
+- **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
+  altijd `noindex`. Eigen domeinen van klanten volgen (tabel met domeinen per site + Vercel-API).
 - **Opslag voor uploads: Cloudflare R2** (niet Vercel Blob): bandbreedte is gratis, S3-compatibel en niet aan de hosting
   gebonden. Bucket `cms-media` (West-Europa) staat in Rons Cloudflare-account (`348598c3…`). Bestanden worden bewaard als
   **volledige URL** opgeslagen in de paginadata (`image.url`/`srcset`): `og:image` en JSON-LD hebben absolute adressen nodig en
@@ -183,6 +196,12 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   foto's boven 3 MB eerst verkleint. `sharp` is een directe afhankelijkheid (Next gebruikt hem ook).
 - **R2-sleutels staan in `.env.local`** (niet in git; wint van `.env`). De oude `R2_*`-regels uit `.env` hoorden bij een ander
   Cloudflare-account (`3fd8c6…`) en zijn verwijderd. Bucket en domein moeten in hetzelfde account staan. Een token met rechten op één bucket geeft 403 (geen 404) bij een verkeerde bucketnaam.
+- **Routegroepen:** het beheer staat in `src/app/(beheer)`, de openbare sites in `src/app/(sites)`; beide hebben een eigen root-layout, dus er is bewust geen
+  `src/app/layout.tsx`. `/s/…` is alleen intern (de proxy geeft er een 404 op); `revalidatePath` moet het **doelpad** krijgen (`/s/<host>`), niet het adres
+  in de adresbalk. Zonder `PLATFORM_HOSTS` is alles beheer en toont de app nooit een openbare site (veilige standaard).
+- **Gewicht van een openbare pagina:** de Next-runtime levert ~170 KB gzip JavaScript mee (567 KB onverpakt), hoewel geen enkel block interactief is; HTML ~7 KB en CSS
+  ~6 KB gzip. `react-dom/server` mag niet in een routehandler (bouwfout), maar `react-dom/static` (`prerender`) wel en levert HTML zonder scripts; zie
+  `docs/hosting-opties.md` §5 voor het vervolg.
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
@@ -209,8 +228,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      `image`-URL in de JSON-LD.
 3. **Design kits**: eerst het model kiezen (zie §8). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
-4. **Echt publiceren**: sites serveren (per domein), domeinen/DNS, versiegeschiedenis en terugrollen (snapshot bij
-   publiceren), deploy-log. Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
+4. **Echt publiceren** — ✅ momentopnamen, terugrollen en openbare weergave op voorbeeldadressen. Nog te doen: **eigen domeinen** (tabel `site_domains`,
+   Instellingen → Domeinen met Vercel-API en DNS-records, www ↔ kaal, `sitemap.xml`/`robots.txt` per domein, absolute URL's in JSON-LD), een **Vercel Pro-team**,
+   het voorbeeldadres-domein, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log. Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (klanten/websites-aantallen kan nu al uit de database; deploys en bezoekers hebben
    punt 4 en een analytics-bron nodig).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
@@ -223,15 +243,15 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   verwijzen? De mockup toont 4 knoppen (accent, papier, lettertype, hoekafronding); de blocks gebruiken 87 tokens.
 - **Plannen**: welke plannen bestaan er (BOJOB/PRO of Starter/Pro/Agency) en wat zijn de limieten?
 - **Hosting van klantsites**: uitgewerkt in `docs/hosting-opties.md` (opties A–E, kosten, advies en vier vragen). Advies: één multi-tenant
-  Next.js-app op Vercel Pro; kosten beslissen dit niet (ca. $40 per maand bij 150 sites, ca. $120 bij 1000). Besloten: start met A (Vercel Pro-team volgt), klant bepaalt wie de DNS regelt. Open: apart domein voor voorbeeldadressen en publiceren als momentopname (`site_versions`), zie §6 van dat document.
+  Next.js-app op Vercel Pro; kosten beslissen dit niet (ca. $40 per maand bij 150 sites, ca. $120 bij 1000). Besloten: start met A (Vercel Pro-team volgt), klant bepaalt wie de DNS regelt. Momentopnamen zijn gebouwd. Open: het aparte domein voor voorbeeldadressen, zie §6 van dat document.
 - **Klantportal**: moeten klanten later zelf inloggen (rol `klantgebruiker`), en wanneer?
 
 ## 9. Checklist voor deployen
 
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.
-- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings`, `media` en de
-  kolommen `sites.layout`, `pages.seo_title`, `pages.seo_description`, `pages.og_image`, `pages.noindex` moeten
+- Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings`, `media`, `site_versions` en de
+  kolommen `sites.published_version`, `sites.layout`, `pages.seo_title`, `pages.seo_description`, `pages.og_image`, `pages.noindex` moeten
   bestaan (geen migratiebestanden; zie §6). Gebruik `drizzle-kit export --sql` als naslag. `platform_settings` is lokaal al
   aangemaakt (dezelfde Neon-database); staat productie op een andere database, maak hem dan daar aan met de DDL uit
   `drizzle-kit export --sql` (`CREATE TABLE "platform_settings"` + de foreign key naar `user`). Zonder de tabel werkt de app nog
@@ -239,6 +259,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   handgeschreven SQL aangemaakt (DDL: `drizzle-kit export --sql`); zonder die tabel mislukken uploaden en de bibliotheek.
   Beelden die vóór de bibliotheek in R2 zijn gezet hebben geen rij en zijn onvindbaar in de bibliotheek totdat je er een
   aanmaakt (bestandsnaam leeg, afmetingen uit het beeld zelf).
+- Openbare sites in productie: `PLATFORM_HOSTS` (de host(s) van het beheer) en `PREVIEW_DOMAIN` (voorbeeldadressen) instellen; zonder `PLATFORM_HOSTS` wordt nooit een
+  openbare site getoond. `site_versions` en `sites.published_version` moeten bestaan (DDL: `drizzle-kit export --sql`); zonder die tabel mislukt publiceren.
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
 - Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
@@ -278,3 +300,6 @@ node --env-file=.env.local node_modules/.bin/drizzle-kit export --sql   # verwac
   ook uit R2 weg).
 - Instellingen → Koppelingen: Neon en Cloudflare R2 staan op "Verbonden" (R2 met "openbare URL bereikbaar"); zet tijdelijk een
   verkeerde `R2_BUCKET` in `.env.local` en zie de melding "Storing".
+- Publiceren: klik "Publiceren" (Live · v1), wijzig iets ("Niet-gepubliceerde wijzigingen" verschijnt en bezoekers zien nog de oude tekst), publiceer opnieuw
+  (v2), open "Versies" en zet v1 weer live. Bekijk de site op `http://<sitenaam>.localhost:3000` (met `PLATFORM_HOSTS` en `PREVIEW_DOMAIN` op `localhost:3000`
+  in `.env.local`); "Op concept zetten" geeft daar een 404.

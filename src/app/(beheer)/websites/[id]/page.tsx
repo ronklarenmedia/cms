@@ -5,6 +5,7 @@ import { customers, pages, sites } from "@/db/schema";
 import { isUuid } from "../ids";
 import { SiteBuilder } from "../SiteBuilder";
 import { requireStaff } from "@/lib/session";
+import { getPublishInfo } from "../publishing";
 
 export default async function WebsiteBuilderPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireStaff();
@@ -18,17 +19,18 @@ export default async function WebsiteBuilderPage({ params }: { params: Promise<{
     .where(eq(sites.id, id));
   if (!row) notFound();
 
+  const initialPublish = await getPublishInfo(id);
   const pageRows = await db.select().from(pages).where(eq(pages.siteId, id)).orderBy(asc(pages.position), asc(pages.createdAt));
 
   return (
     <SiteBuilder
       key={id}
       canDelete={user.role === "platform-admin"}
+      initialPublish={initialPublish}
       site={{
         id: row.site.id,
         name: row.site.name,
         slug: row.site.slug,
-        status: row.site.status,
         theme: row.site.theme,
         layout: row.site.layout,
         customerName: row.customerName,

@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { isUuid } from "@/app/websites/ids";
+import { isUuid } from "@/app/(beheer)/websites/ids";
 import { db } from "@/db";
 import { customers, sites } from "@/db/schema";
 import { requireStaff } from "@/lib/session";

@@ -8,7 +8,10 @@ import { CATEGORIES, type AnyBlock, type SectionData } from "@/blocks/contract";
 import { blocks, getBlock } from "@/blocks/registry";
 import { themeToCssVars, type SiteTheme } from "@/blocks/theme";
 import type { SiteLayout } from "@/db/schema";
-import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, setSiteStatus, type PageDTO, type PageSettings } from "./actions";
+import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, type PageDTO, type PageSettings } from "./actions";
+import { fetchPublishInfo, publishSite, unpublishSite } from "./publish";
+import type { PublishInfo } from "./publishing";
+import { VersionsDialog } from "./VersionsDialog";
 import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
 import { PageSettingsForm } from "./PageSettingsForm";
 import { UploadSiteContext } from "./ImageUpload";
@@ -20,7 +23,6 @@ export type BuilderSite = {
   id: string;
   name: string;
   slug: string;
-  status: "draft" | "live";
   theme: SiteTheme;
   layout: SiteLayout;
   customerName: string;
@@ -157,10 +159,12 @@ export function SiteBuilder({
   site,
   initialPages,
   canDelete,
+  initialPublish,
 }: {
   site: BuilderSite;
   initialPages: PageDTO[];
   canDelete: boolean;
+  initialPublish: PublishInfo;
 }) {
   const [pages, setPages] = useState<PageDTO[]>(initialPages);
   const [pageId, setPageId] = useState(initialPages[0]?.id ?? "");
@@ -169,7 +173,8 @@ export function SiteBuilder({
   const [device, setDevice] = useState<Device>("desktop");
   const [hist, setHist] = useState<Record<string, History>>({});
   const [status, setStatus] = useState<SaveStatus>({ kind: "saved" });
-  const [siteStatus, setSiteStatusState] = useState(site.status);
+  const [publish, setPublish] = useState<PublishInfo>(initialPublish);
+  const [versionsOpen, setVersionsOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [addingPage, setAddingPage] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -239,8 +244,10 @@ export function SiteBuilder({
       // Alleen "schoon" als er tijdens het opslaan niets meer is bewerkt.
       if (dirty.current.get(key) === v) dirty.current.delete(key);
     }
-    if (dirty.current.size === 0) setStatus({ kind: "saved" });
-    else {
+    if (dirty.current.size === 0) {
+      setStatus({ kind: "saved" });
+      void refreshPublish();
+    } else {
       setStatus({ kind: "dirty" });
       scheduleFlush();
     }
@@ -384,6 +391,7 @@ export function SiteBuilder({
     setBusy(false);
     if (!res.ok) return setNotice(res.error);
     setPages((ps) => [...ps, res.page]);
+    void refreshPublish();
     setNewTitle("");
     setAddingPage(false);
     selectPage(res.page.id);
@@ -398,6 +406,7 @@ export function SiteBuilder({
     const res = await renamePage(id, title);
     if (!res.ok) return setNotice(res.error);
     setPages((ps) => ps.map((p) => (p.id === id ? { ...p, title } : p)));
+    void refreshPublish();
   };
 
   const removePage = async (p: PageDTO) => {
@@ -405,6 +414,7 @@ export function SiteBuilder({
     const res = await deletePage(p.id);
     if (!res.ok) return setNotice(res.error);
     dirty.current.delete(p.id);
+    void refreshPublish();
     const rest = pages.filter((x) => x.id !== p.id);
     setPages(rest);
     if (p.id === pageId) {
@@ -430,20 +440,36 @@ export function SiteBuilder({
     else window.open(url, "_blank");
   };
 
-  const togglePublish = async () => {
+  /** De publicatiestatus opnieuw bepalen op de server (is de werkkopie nog gelijk aan de live versie?). */
+  async function refreshPublish() {
+    const res = await fetchPublishInfo(site.id);
+    if (res.ok) setPublish(res.info);
+  }
+
+  const doPublish = async () => {
     if (busy) return;
     setBusy(true);
-    const next = siteStatus === "live" ? "draft" : "live";
     const saved = await flush();
     if (!saved) {
       setBusy(false);
-      return setNotice("Los eerst de opslagfout op voordat je de status wijzigt.");
+      return setNotice("Los eerst de opslagfout op voordat je publiceert.");
     }
-    const res = await setSiteStatus(site.id, next);
+    const res = await publishSite(site.id);
     setBusy(false);
     if (!res.ok) return setNotice(res.error);
-    setSiteStatusState(next);
-    setNotice(next === "live" ? "Website staat op Live." : "Website staat weer op Concept.");
+    setNotice(res.unchanged ? `Er zijn geen wijzigingen sinds versie ${res.version}; de website staat op Live.` : `Versie ${res.version} staat live.`);
+    await refreshPublish();
+  };
+
+  const doUnpublish = async () => {
+    if (busy) return;
+    if (!window.confirm("De website offline zetten? Bezoekers zien hem dan niet meer. Je versies blijven bewaard.")) return;
+    setBusy(true);
+    const res = await unpublishSite(site.id);
+    setBusy(false);
+    if (!res.ok) return setNotice(res.error);
+    setNotice("Website staat weer op Concept.");
+    await refreshPublish();
   };
 
   const removeSite = async () => {
@@ -684,9 +710,10 @@ export function SiteBuilder({
             <span className="min-w-0 truncate">
               {site.name} <span className="text-text/45">·</span> /{page.slug}
             </span>
-            <span className={siteStatus === "live" ? "tag tag-accent" : "tag tag-neutral"}>
-              {siteStatus === "live" ? "Live" : "Concept"}
+            <span className={publish.live ? "tag tag-accent" : "tag tag-neutral"}>
+              {publish.live ? `Live · v${publish.version}` : "Concept"}
             </span>
+            {publish.live && publish.changed ? <span className="tag tag-outline">Niet-gepubliceerde wijzigingen</span> : null}
           </div>
           <div className="flex flex-none items-center gap-2">
             <span
@@ -705,18 +732,28 @@ export function SiteBuilder({
             <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => void openPreview()}>
               <i className="ph ph-eye" /> Voorbeeld
             </button>
+            <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setVersionsOpen(true)} title="Versies en terugrollen">
+              <i className="ph ph-clock-counter-clockwise" /> Versies
+            </button>
+            {publish.live ? (
+              <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} disabled={busy} onClick={() => void doUnpublish()}>
+                <i className="ph ph-arrow-u-up-left" /> Op concept zetten
+              </button>
+            ) : null}
             <button
               type="button"
-              className={`btn ${siteStatus === "live" ? "btn-secondary" : "btn-primary"}`}
+              className="btn btn-primary"
               style={{ fontSize: 12 }}
-              disabled={busy}
-              onClick={() => void togglePublish()}
+              disabled={busy || (publish.live && !publish.changed)}
+              title={publish.live && !publish.changed ? "Er zijn geen wijzigingen om te publiceren" : undefined}
+              onClick={() => void doPublish()}
             >
-              <i className={`ph ph-${siteStatus === "live" ? "arrow-u-up-left" : "rocket-launch"}`} />{" "}
-              {siteStatus === "live" ? "Op concept zetten" : "Publiceren"}
+              <i className="ph ph-rocket-launch" /> Publiceren
             </button>
           </div>
         </div>
+
+        {versionsOpen ? <VersionsDialog siteId={site.id} onClose={() => setVersionsOpen(false)} onChanged={() => void refreshPublish()} /> : null}
 
         {notice ? (
           <div className="flex items-center gap-2 border-b border-divider bg-accent/10 px-4 py-1.5 text-[12px]" role="status">

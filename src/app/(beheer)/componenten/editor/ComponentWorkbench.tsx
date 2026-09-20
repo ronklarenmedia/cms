@@ -7,8 +7,8 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import { CATEGORIES, type AnyBlock } from "@/blocks/contract";
 import { blocks, getBlock } from "@/blocks/registry";
 import { defaultTheme, themes, themeToCssVars, type ThemeId } from "@/blocks/theme";
-import { blockJsonSchemas, SchemaFields } from "@/app/websites/SchemaForm";
-import { describeIssue, sectionIssues } from "@/app/websites/sections";
+import { blockJsonSchemas, SchemaFields } from "@/app/(beheer)/websites/SchemaForm";
+import { describeIssue, sectionIssues } from "@/app/(beheer)/websites/sections";
 import { statusMeta } from "../meta";
 import { ScaledFrame } from "../ScaledFrame";
 

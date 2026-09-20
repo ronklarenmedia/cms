@@ -97,7 +97,15 @@ uitsluitend HTML uit server components levert, zodat je later kunt overstappen n
 **Wisselmomenten om naar C te kijken:** de Vercel-rekening komt structureel boven ca. $100 per maand, de gemeten laadtijd haalt het doel niet, of je wilt het terugrollen per site
 volledig onafhankelijk van deployments.
 
-**Nog uit te zoeken bij A:** hoe snel een gepubliceerde wijziging wereldwijd zichtbaar is (revalidatie), en of het weghalen van overbodige React-JS uit de HTML kan.
+**Gemeten bij A (lokaal, productiebouw):** een openbare pagina is 39 KB HTML (7 KB gzip), 6 KB gzip CSS en ~174 KB gzip JavaScript (567 KB onverpakt), terwijl geen enkel block
+interactief is. Uit cache komt hij in 2–3 ms (eerste bouw 250 ms). Het JavaScript is de Next-runtime en de grootste post op weg naar "supersnel".
+
+**JS-loze pagina's zijn haalbaar** (getest): `react-dom/server` mag niet in een routehandler (bouwfout), maar `react-dom/static` (`prerender`) wel, en levert HTML zonder één script
+(1 KB voor een hero). Een openbare pagina als routehandler die HTML teruggeeft haalt dus alle JavaScript weg. Wat dat kost: de `<head>` (titel, omschrijving, canonical, Open Graph,
+robots) zelf schrijven in plaats van Next-metadata, en de caching zelf regelen (`Cache-Control` voor de CDN plus het ongeldig maken bij publiceren). Dit is ook het eerste bruikbare deel van optie C,
+zonder tweede leverancier. Aanbeveling: eerst de eigen domeinen bouwen, daarna dit als aparte stap uitproberen en meten.
+
+**Nog uit te zoeken bij A:** hoe snel een gepubliceerde wijziging wereldwijd zichtbaar is (revalidatie op Vercel).
 
 ## 6. Besluiten en open punten
 
@@ -113,9 +121,9 @@ volledig onafhankelijk van deployments.
    - Zodra een klant een eigen domein koppelt, moet het voorbeeldadres doorverwijzen of `noindex` krijgen, anders staat dezelfde site twee keer in Google.
 4. **Publiceren als momentopname: ja** (advies, wacht op akkoord). Ontwerp:
    - Nieuwe tabel `site_versions`: `id`, `site_id`, `version` (oplopend per site), `snapshot` (jsonb met thema, header/footer en alle pagina's), `created_at`, `created_by`, optionele `note`.
-     `sites.published_version_id` wijst naar de live versie. Eén rij per publicatie, dus openbaar renderen leest één rij per site.
+     `sites.published_version` (het versienummer) wijst naar de live versie. Eén rij per publicatie, dus openbaar renderen leest één rij per site.
    - Publiceren valideert alle secties, kopieert de werkkopie naar een nieuwe versie en maakt de cache van die site ongeldig (`revalidateTag`).
-   - Terugrollen = het wijzen naar een oudere versie. De builder toont "Niet-gepubliceerde wijzigingen" naast de status.
+   - Terugrollen = het laten wijzen naar een oudere versie. **Gebouwd** (20 september 2026, zie `docs/STATUS.md` §3). De builder toont "Niet-gepubliceerde wijzigingen" naast de status.
    - Bewaar de laatste 20 versies per site; oudere worden opgeruimd (opslag in Neon).
    - Dit is een schemawijziging in de gedeelde database: eerst goedkeuring, dan additieve SQL in een transactie (geen `drizzle-kit push`).
 

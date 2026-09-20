@@ -224,18 +224,6 @@ export async function deletePage(pageId: string): Promise<Result> {
   return { ok: true };
 }
 
-export async function setSiteStatus(siteId: string, status: "draft" | "live"): Promise<Result> {
-  if (!(await staffUser())) return { ok: false, error: NOT_LOGGED_IN };
-  const updated = await db
-    .update(sites)
-    .set({ status, publishedAt: status === "live" ? new Date() : null, updatedAt: new Date() })
-    .where(eq(sites.id, siteId))
-    .returning({ id: sites.id });
-  if (updated.length === 0) return { ok: false, error: "Deze website bestaat niet meer." };
-  revalidatePath("/websites");
-  return { ok: true };
-}
-
 export async function deleteSite(siteId: string) {
   await requireAdmin();
   await db.delete(sites).where(eq(sites.id, siteId));

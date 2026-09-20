@@ -95,10 +95,25 @@ export const verification = pgTable(
 export type Customer = typeof customers.$inferSelect;
 export type NewCustomer = typeof customers.$inferInsert;
 
-/** Sitebrede secties die op elke pagina staan (zie src/app/websites/layout-slots.ts). */
+/** Sitebrede secties die op elke pagina staan (zie src/app/(beheer)/websites/layout-slots.ts). */
 export type SiteLayout = { header: SectionData[]; footer: SectionData[] };
 
 export const siteStatusEnum = pgEnum("site_status", ["draft", "live"]);
+
+/** Een pagina zoals hij op het moment van publiceren was; zonder id's, want een momentopname staat los van de werkkopie. */
+export type SnapshotPage = {
+  slug: string;
+  title: string;
+  position: number;
+  sections: SectionData[];
+  seoTitle: string | null;
+  seoDescription: string | null;
+  ogImage: string | null;
+  noindex: boolean;
+};
+
+/** Alles wat een bezoeker van een gepubliceerde site nodig heeft. Wat hierin staat, verandert nooit meer (zie `siteVersions`). */
+export type SiteSnapshot = { name: string; theme: SiteTheme; layout: SiteLayout; pages: SnapshotPage[] };
 
 export const sites = pgTable("sites", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -112,6 +127,8 @@ export const sites = pgTable("sites", {
   layout: jsonb("layout").$type<SiteLayout>().notNull().default({ header: [], footer: [] }),
   status: siteStatusEnum("status").notNull().default("draft"),
   publishedAt: timestamp("published_at", { withTimezone: true }),
+  // Nummer van de versie in `site_versions` die live staat; leeg zolang er nooit is gepubliceerd.
+  publishedVersion: integer("published_version"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -129,7 +146,7 @@ export const pages = pgTable(
     position: integer("position").notNull().default(0),
     // Lijst secties, zie src/blocks/README.md ("Hoe een sectie wordt opgeslagen").
     content: jsonb("content").$type<SectionData[]>().notNull().default([]),
-    // SEO: leeg = terugvallen op de paginatitel. Zie src/app/websites/seo.ts.
+    // SEO: leeg = terugvallen op de paginatitel. Zie src/app/(beheer)/websites/seo.ts.
     seoTitle: varchar("seo_title", { length: 255 }),
     seoDescription: varchar("seo_description", { length: 400 }),
     ogImage: text("og_image"),
@@ -160,6 +177,25 @@ export const platformSettings = pgTable(
   (t) => [check("platform_settings_singleton", sql`${t.id} = 1`)],
 );
 
+// Gepubliceerde versies van een site. Publiceren maakt een nieuwe rij (nooit een bestaande aanpassen); terugrollen is
+// `sites.published_version` naar een oudere versie laten wijzen. `content_hash` laat zien of de werkkopie nog gelijk is aan de live versie.
+export const siteVersions = pgTable(
+  "site_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    siteId: uuid("site_id")
+      .notNull()
+      .references(() => sites.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    snapshot: jsonb("snapshot").$type<SiteSnapshot>().notNull(),
+    contentHash: varchar("content_hash", { length: 64 }).notNull(),
+    note: varchar("note", { length: 255 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [unique("site_versions_site_version_unique").on(t.siteId, t.version)],
+);
+
 // Mediabibliotheek: één rij per geüploade afbeelding van een website. `id` is ook de mapnaam in R2
 // (`sites/<siteId>/<id>/<breedte>.webp`), zodat de bestanden bij de rij te vinden zijn. Zie src/lib/media.ts.
 export const media = pgTable(
@@ -186,5 +222,6 @@ export const media = pgTable(
 
 export type Site = typeof sites.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
+export type SiteVersion = typeof siteVersions.$inferSelect;
 export type PlatformSettingsRow = typeof platformSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;

@@ -1,0 +1,16 @@
+/* Minimale basis voor openbare sites. Bewust los van het beheer (globals.css): geen Tailwind, geen platformtokens.
+   Alles wat een site verder nodig heeft, komt uit blocks.css en de thema-variabelen van de site zelf. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}

@@ -43,7 +43,7 @@ toont in development een foutmelding en wordt in productie overgeslagen.
 ## Sitebrede blocks (header en footer)
 
 `site-header` en `site-footer` staan niet in een pagina maar op **elke** pagina van de site (`sites.layout`). Welk block in welke plek
-mag, staat in `src/app/websites/layout-slots.ts`; zulke blocks verschijnen niet in de bibliotheek voor gewone pagina's en andersom.
+mag, staat in `src/app/(beheer)/websites/layout-slots.ts`; zulke blocks verschijnen niet in de bibliotheek voor gewone pagina's en andersom.
 De omringende `<header>`, `<main>` en `<footer>` (landmarks) komen van `SiteFrame`, dus zo'n block rendert alleen zijn inhoud.
 Een nieuwe header- of footer-lay-out is bij voorkeur een nieuwe *variant* van het bestaande block.
 

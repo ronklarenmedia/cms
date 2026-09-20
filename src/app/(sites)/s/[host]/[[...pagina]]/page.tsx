@@ -1,0 +1,53 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { BlockRenderer } from "@/blocks/BlockRenderer";
+import { themeToCssVars } from "@/blocks/theme";
+import { findLiveSite, originOf } from "@/lib/public-site";
+import { pageMetadata } from "@/app/(beheer)/websites/seo";
+import { SiteFrame } from "@/app/(beheer)/websites/SiteFrame";
+
+type Params = Promise<{ host: string; pagina?: string[] }>;
+
+// Elke pagina wordt bij het eerste bezoek opgebouwd en daarna gecachet (ISR); publiceren maakt de cache van de site ongeldig
+// (revalidatePath in src/app/(beheer)/websites/publish.ts). Er wordt hier bewust geen sessie of cookie gelezen: dat zou de pagina dynamisch maken.
+export const dynamicParams = true;
+export async function generateStaticParams() {
+  return [];
+}
+
+async function load({ host: rawHost, pagina }: Awaited<Params>) {
+  if (pagina && pagina.length > 1) return null; // paginaslugs bevatten geen slashes
+  const host = decodeURIComponent(rawHost);
+  const site = await findLiveSite(host);
+  const page = site?.snapshot.pages.find((p) => p.slug === (pagina?.[0] ?? ""));
+  return site && page ? { site, page } : null;
+}
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const data = await load(await params);
+  if (!data) return {};
+  const { site, page } = data;
+  return {
+    ...pageMetadata(site.snapshot.name, page, { preview: site.kind === "preview" }),
+    metadataBase: new URL(originOf(site.host)),
+    alternates: { canonical: page.slug === "" ? "/" : `/${page.slug}` },
+  };
+}
+
+export default async function PublicPage({ params }: { params: Params }) {
+  const data = await load(await params);
+  if (!data) notFound();
+  const { site, page } = data;
+  const { theme, layout } = site.snapshot;
+
+  return (
+    <div style={{ ...themeToCssVars(theme), background: "var(--var-color-white)", minHeight: "100vh" }}>
+      <SiteFrame
+        header={layout.header.length > 0 ? <BlockRenderer sections={layout.header} /> : null}
+        footer={layout.footer.length > 0 ? <BlockRenderer sections={layout.footer} /> : null}
+      >
+        <BlockRenderer sections={page.sections} />
+      </SiteFrame>
+    </div>
+  );
+}
