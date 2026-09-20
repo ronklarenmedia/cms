@@ -1,6 +1,6 @@
 # Status en overdracht — Ron Klaren Media platform
 
-Stand: 19 september 2026 (commit `84c2c59` en later). Doel van dit bestand: thuis of op een andere computer
+Stand: 21 september 2026 (commit `2b5e58f` en later). **Het platform draait in productie op Vercel** (zie §9). Doel van dit bestand: thuis of op een andere computer
 verder kunnen werken zonder de eerdere gesprekken. Er staan bewust **geen geheimen** in (geen connectiestring,
 sleutels of wachtwoorden).
 
@@ -14,7 +14,8 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 |---|---|
 | Inloggen en rollen | Echt (Better Auth, e-mail + wachtwoord) |
 | Klanten | Echt (overzicht, detail met websites, nieuw/wijzigen/verwijderen) |
-| Websites | Echt (galerij, aanmaken, builder, voorbeeld, **publiceren als versie met terugrollen**, openbare weergave op voorbeeldadres `<sitenaam>.<PREVIEW_DOMAIN>`). Nog niet: eigen domeinen van klanten |
+| Productie | **Live** op Vercel: beheer op `https://platform.ronklarenmedia.nl` (noodadres `rkm-platform.vercel.app`), voorbeeldadressen op `<sitenaam>.rkmsites.dev`, Neon-branch `production`, R2 voor beelden. Details en instellingen in §9 |
+| Websites | Echt en **in productie bewezen** (galerij, aanmaken, builder, voorbeeld, **publiceren als versie met terugrollen**, openbare weergave op `<sitenaam>.rkmsites.dev`, **eigen domeinen van klanten**: toevoegen, activeren, primair, doorverwijzen, sitemap/robots, verwijderen) |
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
 | Blocks | 20 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `site-header`, `site-footer` (14 door Gemini/eerder, de laatste zes door Claude; allemaal gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
@@ -92,6 +93,8 @@ klantpagina toont zijn websites.
   domeinen bij Vercel los. Per eigen domein: `robots.txt` (toestaan, met sitemap) en `sitemap.xml` (pagina's zonder `noindex`); een voorbeeldadres krijgt `Disallow: /` en geen sitemap.
   Zonder Vercel-instellingen worden domeinen alleen opgeslagen (met een melding).
   Een voorbeeld staat altijd op noindex.
+  **Bewezen tegen echt Vercel** (21 sept 2026, met een subdomein van `ronklarenmedia.nl`): toevoegen (was meteen actief), certificaat, primair, 308 vanaf het voorbeeldadres met behoud van het pad, `robots.txt`/`sitemap.xml`,
+  publiceren dat direct doorkomt, en verwijderen (het domein is daarna ook uit het Vercel-project). De DNS-regel bij de registrar moet je zelf weghalen.
 
 **Instellingen** — `/instellingen/[tab]`; alle tabs vragen `requireStaff()`.
 - *Algemeen*: platformnaam (staat in het menu en de tabbladtitel), beheerdomein, taal, tijdzone, support-/afzenderadres,
@@ -164,7 +167,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   nieuwe *variant* van `site-footer`.
 - Mobiel menu zonder client-JS (`<details>`), uitklapmenu's met CSS (hover/focus).
 - Het beheer is dynamisch gerenderd (de layout leest de sessie). **Openbare sites zijn statisch** (ISR): hun eigen root-layout leest geen sessie,
-  en publiceren maakt de cache van die site ongeldig via `revalidatePath('/s/<host>', 'layout')`.
+  en publiceren maakt de cache van die site ongeldig met `revalidatePath('/s/<host>/<pagina>')` **per host en per pagina, zonder `type`** (zie §6: `type: "layout"` werkt hier niet), met als vangnet `revalidate = 600` op de sitepagina.
 - **Publiceren = momentopname** (`site_versions`), niet de werkkopie live zetten: een autosave gaat nooit direct naar bezoekers.
 - **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` met `PREVIEW_DOMAIN=rkmsites.dev` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
   altijd `noindex`. Eigen domeinen van klanten: zie §3 (tabel `site_domains` + Vercel-API).
@@ -207,10 +210,25 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   Cloudflare-account (`3fd8c6…`) en zijn verwijderd. Bucket en domein moeten in hetzelfde account staan. Een token met rechten op één bucket geeft 403 (geen 404) bij een verkeerde bucketnaam.
 - **Routegroepen:** het beheer staat in `src/app/(beheer)`, de openbare sites in `src/app/(sites)`; beide hebben een eigen root-layout, dus er is bewust geen
   `src/app/layout.tsx`. `/s/…` is alleen intern (de proxy geeft er een 404 op); `revalidatePath` moet het **doelpad** krijgen (`/s/<host>`), niet het adres
-  in de adresbalk. Zonder `PLATFORM_HOSTS` is alles beheer en toont de app nooit een openbare site (veilige standaard).
+  in de adresbalk (details in de valkuil hieronder). Zonder `PLATFORM_HOSTS` is alles beheer en toont de app nooit een openbare site (veilige standaard).
 - **Gewicht van een openbare pagina:** de Next-runtime levert ~170 KB gzip JavaScript mee (567 KB onverpakt), hoewel geen enkel block interactief is; HTML ~7 KB en CSS
   ~6 KB gzip. `react-dom/server` mag niet in een routehandler (bouwfout), maar `react-dom/static` (`prerender`) wel en levert HTML zonder scripts; zie
   `docs/hosting-opties.md` §5 voor het vervolg.
+- **Cache van openbare sites leegmaken (ISR):** een gecachete pagina heeft twee soorten tags: die van het routepatroon (`/s/[host]/layout`, gelden voor álle sites) en de exacte pad-tag
+  `/s/<host>/<pagina>` (zonder `/layout`). `revalidatePath('/s/<host>', 'layout')` past bij geen enkele pagina en doet stil niets; zo bleef een gepubliceerde wijziging in productie
+  onzichtbaar. Juist is een letterlijk pad per host en pagina zonder `type` (`revalidatePublicSite` in `src/lib/site-domains.ts`, met de slugs uit alle bewaarde versies). **De dev-server cachet niets, dus dit
+  is lokaal niet te testen**: bouw met `npm run build`, start `next start` en lees de tags uit `.next/server/app/s/<host>.meta` (`x-next-cache-tags`), of test op Vercel (publiceer, kijk of `x-vercel-cache`/`age` verspringt).
+  Wijzigt iets aan het cachen, test dan altijd in een productiebuild.
+- **`sitemap.xml` en `robots.txt` onder `[host]` staan op `force-dynamic`.** Next bouwt een route met de naam `sitemap.xml` anders bij het bouwen één keer vooraf met de nepnaam `-` als host: de
+  build raakte dan de database (faalde als die niet bereikbaar was) en elke echte host viel bij de paginaroute terecht (404 in plaats van XML). Verwijder die regel niet.
+- **`DATABASE_URL` mag alles bevatten wat Neon levert** (`?sslmode=require&channel_binding=require`). `src/db/index.ts` knipt alleen `sslmode` eruit en laat het scheidingsteken staan; een eerdere regex nam het `?` mee
+  en gaf de databasenaam `neondb&channel_binding=require` (alleen zichtbaar in productie, want lokaal stond er geen `channel_binding`).
+- **Vercel-variabelen:** eigen namen mogen **niet** met `VERCEL_` beginnen (daarom `PLATFORM_VERCEL_*`; `VERCEL_PROJECT_ID` is een systeemvariabele en komt vanzelf). Een gevoelige variabele is in Vercel niet meer
+  te bekijken, alleen te vervangen (Edit → veld wissen → nieuwe waarde). Een gewijzigde variabele werkt pas na een **Redeploy als Production**. Controle achteraf: Instellingen → Koppelingen (die noemt bij "Niet
+  gekoppeld" precies welke variabelen ontbreken, maar niet `R2_PUBLIC_URL`: die is optioneel en geeft "Openbare URL ontbreekt").
+- **Eén Vercel-project per repo:** bij de eerste import zijn per ongeluk meerdere projecten uit `ronklarenmedia/cms` ontstaan (`rkm-platform`, `cms-…`); alleen `rkm-platform` hoort er te zijn. Controleer dat de
+  andere projecten niet meer aan de repo gekoppeld zijn (anders bouwt elke push meerdere keren). Een project hernoemen verandert het `.vercel.app`-adres niet: `rkm-platform.vercel.app` is er handmatig aan toegevoegd
+  (Settings → Domains). Raak `site-builder`, `rkm-portaal`, `welzijns-connect` en `focus-flow` niet aan (andere projecten). Het project `cms` is ouder (13 september 2026): controleer of het aan deze repo hangt en of je het nog nodig hebt.
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
@@ -238,9 +256,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 3. **Design kits**: eerst het model kiezen (zie §8). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
-   Nog te doen: de Vercel-koppeling **tegen echt Vercel proberen** (nu alleen getest tegen een nagebouwde server volgens de documentatie), een **Vercel Pro-team** en het
-   project, het voorbeeldadres-domein, absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
-   domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log. Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
+   ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
+   domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
+   vervallen van het Vercel-token, en een **opmaakfout in de builder**: onder ongeveer 1000 px breed wordt de knop "Domeinen" afgedekt door het instellingenpaneel (de werkbalk loopt onder het paneel door). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (klanten/websites-aantallen kan nu al uit de database; deploys en bezoekers hebben
    punt 4 en een analytics-bron nodig).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
@@ -253,14 +271,18 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   verwijzen? De mockup toont 4 knoppen (accent, papier, lettertype, hoekafronding); de blocks gebruiken 87 tokens.
 - **Plannen**: welke plannen bestaan er (BOJOB/PRO of Starter/Pro/Agency) en wat zijn de limieten?
 - **Hosting van klantsites**: uitgewerkt in `docs/hosting-opties.md` (opties A–E, kosten, advies en vier vragen). Advies: één multi-tenant
-  Next.js-app op Vercel Pro; kosten beslissen dit niet (ca. $40 per maand bij 150 sites, ca. $120 bij 1000). Besloten: start met A (Vercel Pro-team volgt), klant bepaalt wie de DNS regelt. Momentopnamen zijn gebouwd. Open: het aparte domein voor voorbeeldadressen, zie §6 van dat document.
+  Next.js-app op Vercel Pro; kosten beslissen dit niet (ca. $40 per maand bij 150 sites, ca. $120 bij 1000). Besloten en uitgevoerd: A (Vercel Pro), klant bepaalt wie de DNS regelt, voorbeeldadressen op `rkmsites.dev`. Momentopnamen en eigen domeinen zijn gebouwd en in productie bewezen.
 - **Klantportal**: moeten klanten later zelf inloggen (rol `klantgebruiker`), en wanneer?
 
 ## 9. Checklist voor deployen
 
-- **Stap voor stap:** zie `docs/deploy-vercel.md` (project aanmaken, variabelen, regio `fra1` via `vercel.json`, domeinen). Onderstaande blijft de losse checklist.
+- **Productie staat** (21 september 2026): Vercel Pro-team `ron-klaren-medias-projects`, project `rkm-platform` (repo `ronklarenmedia/cms`, branch `main` = Production, regio `fra1` via `vercel.json`).
+  Adressen: beheer `platform.ronklarenmedia.nl` (CNAME bij Strato naar `cname.vercel-dns.com`; de rest van dat domein en de mail zijn ongemoeid), noodadres `rkm-platform.vercel.app`, voorbeeldadressen `<sitenaam>.rkmsites.dev`
+  (`rkmsites.dev` en `*.rkmsites.dev` in het project; de nameservers staan bij Vercel). Variabelen (alleen namen; alle op Production): `DATABASE_URL` (Neon `production`, gepoold), `BETTER_AUTH_SECRET`,
+  `BETTER_AUTH_URL=https://platform.ronklarenmedia.nl`, `PLATFORM_HOSTS=*.vercel.app,platform.ronklarenmedia.nl` (houd `*.vercel.app` erin als noodadres), `PREVIEW_DOMAIN=rkmsites.dev`, de vijf `R2_*`,
+  `PLATFORM_VERCEL_TOKEN` en `PLATFORM_VERCEL_TEAM_ID`. Het token vervalt op de datum die bij het aanmaken is gekozen (Vercel → Account Settings → Tokens): vernieuw het dan en vervang de variabele.
+- **Stap voor stap** (het oorspronkelijke stappenplan): zie `docs/deploy-vercel.md`. Onderstaande blijft de losse checklist.
 - **Twee databasebranches** (besloten en aangemaakt): lokaal `main`, productie `production` (Neon-project `rkm-platform`). Databasewijzigingen eerst op `main`, dan op `production`, vóór het deployen.
-- **Beheeradres** productie: `platform.ronklarenmedia.nl` (CNAME bij Strato); voorbeeldadressen: `<sitenaam>.rkmsites.dev`.
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.
 - Productie-database: tabellen `user`, `session`, `account`, `verification`, `sites`, `pages`, `customers`, `platform_settings`, `media`, `site_versions` en de
@@ -279,7 +301,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   `PLATFORM_VERCEL_API_URL` werkt alleen buiten productie (testadres) en hoort daar niet gezet te worden.
 - R2 in productie: `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_ENDPOINT`, `R2_BUCKET`, `R2_PUBLIC_URL` als omgevingsvariabelen
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
-- Daarna een admin aanmaken met `npm run create-user` (tegen de productie-database).
+- Een admin aanmaken met `npm run create-user` (tegen de productie-database) is gedaan: het bestaande account staat in de `production`-branch (gekopieerd bij het aanmaken van de branch).
 
 ## 10. Werkafspraken
 
@@ -301,6 +323,10 @@ node --env-file=.env.local node_modules/.bin/drizzle-kit export --sql   # verwac
 ```
 
 ## 12. Handmatig te testen (nog niet visueel geverifieerd met een ingelogde sessie)
+
+**Al bewezen in productie (21 september 2026):** inloggen op `platform.ronklarenmedia.nl`; Koppelingen (Neon, R2 met openbare URL, Vercel) op "Verbonden"; publiceren en de site op `<sitenaam>.rkmsites.dev` (noindex, beelden van
+`media.rkmassets.com`, ~7 KB HTML gzip); de beheerroutes (`/login`, `/api/auth/*`) geven op openbare hosts een 404; een eigen domein toevoegen, activeren, primair maken, doorverwijzen, sitemap/robots, en weer
+verwijderen; een gepubliceerde wijziging verschijnt direct. Wat hieronder staat is de lijst voor lokaal testen en herhalen.
 
 - Inloggen, uitloggen, en dat je zonder login naar `/login` wordt gestuurd.
 - Klantpagina: websites zichtbaar; een klant met websites laat zich niet verwijderen.
