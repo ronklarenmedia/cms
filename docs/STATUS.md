@@ -259,7 +259,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 ## 9. Checklist voor deployen
 
 - **Stap voor stap:** zie `docs/deploy-vercel.md` (project aanmaken, variabelen, regio `fra1` via `vercel.json`, domeinen). Onderstaande blijft de losse checklist.
-- **Twee databasebranches** (besloten): lokaal `main`, productie `production` (Neon). Databasewijzigingen eerst op `main`, dan op `production`, vóór het deployen.
+- **Twee databasebranches** (besloten en aangemaakt): lokaal `main`, productie `production` (Neon-project `rkm-platform`). Databasewijzigingen eerst op `main`, dan op `production`, vóór het deployen.
 - **Beheeradres** productie: `platform.ronklarenmedia.nl` (CNAME bij Strato); voorbeeldadressen: `<sitenaam>.rkmsites.dev`.
 - In Vercel: `DATABASE_URL`, `BETTER_AUTH_SECRET` (vaste waarde) en `BETTER_AUTH_URL` zetten. Zonder secret start de
   app niet in productie.

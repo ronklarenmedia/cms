@@ -9,7 +9,8 @@ Stap voor stap, in deze volgorde. Stand: 20 september 2026. Achtergrond en keuze
 
 ## Besloten
 1. **Productiedatabase: een aparte Neon-branch `production`**, een kopie van `main` (schema en testgegevens inbegrepen). Lokaal blijft op `main` draaien, productie op `production`.
-   - Aanmaken (Neon-console → project → Branches → **Create branch**, naam `production`, parent `main`): daarna bij die branch **Connection Details** openen en de **gepoolde** verbindingsstring kopiëren. Die komt als `DATABASE_URL` in Vercel; de string uit `.env` blijft lokaal.
+   - **Aangemaakt** op 20 september 2026 met de Neon-CLI: project `rkm-platform` (`flat-unit-34665691`, Frankfurt), branch `production` (`br-cold-silence-b16vg4l5`), kopie van `main` met alle tabellen en je gebruiker. De lokale sessies zijn op `production` weggehaald, dus in productie moet je opnieuw inloggen.
+   - De **gepoolde** verbindingsstring komt als `DATABASE_URL` in Vercel; de string uit `.env` blijft lokaal. Kopieer hem zonder hem te tonen (macOS): `npx neon@latest connection-string production --project-id flat-unit-34665691 --pooled | pbcopy`.
    - **Schemawijzigingen** (handgeschreven SQL, zie `docs/STATUS.md` §6) draai je vanaf nu op **beide** branches: eerst op `main`, dan op `production`, en pas daarna deployen. Anders loopt productie uit de pas met de code.
    - Staat de branch op scale-to-zero, dan is de eerste beheerpagina na stilte iets trager. Openbare sites merken dat niet: ze komen uit de cache.
 2. **Beheeradres: eerst het `*.vercel.app`-adres, daarna `platform.ronklarenmedia.nl`** (dus niet onder `rkmsites.dev`).
