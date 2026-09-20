@@ -2,6 +2,9 @@ import { findLiveSite, originOf } from "@/lib/public-site";
 
 type Params = Promise<{ host: string }>;
 
+// Zie sitemap.xml/route.ts: bestandsnamen met een speciale betekenis voor Next mogen niet vooraf worden gebouwd.
+export const dynamic = "force-dynamic";
+
 const text = (body: string) =>
   new Response(body, { headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "public, s-maxage=300, stale-while-revalidate=3600" } });
 

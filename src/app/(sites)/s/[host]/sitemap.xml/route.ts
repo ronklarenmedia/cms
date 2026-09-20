@@ -2,6 +2,10 @@ import { findLiveSite, originOf, pagePath } from "@/lib/public-site";
 
 type Params = Promise<{ host: string }>;
 
+// "sitemap.xml" is voor Next een speciale bestandsnaam die het bij het bouwen één keer vooraf maakt (met de nepnaam "-" als host).
+// Dat raakte de database tijdens de build en liet elke echte host bij de paginaroute terechtkomen. Dynamisch = per aanvraag.
+export const dynamic = "force-dynamic";
+
 const escapeXml = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
 
 export async function GET(_request: Request, { params }: { params: Params }) {
