@@ -12,6 +12,7 @@ import { ThemeFonts } from "@/lib/theme-fonts";
 import { parseTokenValue, TOKEN_GROUPS, TOKENS, tokenKind, tokenLabel } from "@/lib/theme-tokens";
 import { FontPicker } from "./FontPicker";
 import { ScaledFrame } from "../../componenten/ScaledFrame";
+import { useConfirm } from "../../ConfirmDialog";
 import { deleteKit, saveKit } from "../actions";
 
 // De kit-editor: alle tokens, gegroepeerd, met een live voorbeeld van echte blocks. Alleen wat afwijkt van de standaard wordt bewaard.
@@ -57,6 +58,7 @@ export function KitEditor({
   const [device, setDevice] = useState<(typeof devices)[number]["id"]>("desktop");
   const [message, setMessage] = useState<{ tone: "ok" | "fout"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
+  const [confirm, confirmDialog] = useConfirm();
 
   // Per token de gecontroleerde waarde of een foutmelding; alleen geldige waarden komen in het voorbeeld en in de opslag.
   const parsed = useMemo(() => TOKENS.map((t) => [t, parseTokenValue(t, values[t])] as const), [values]);
@@ -98,8 +100,8 @@ export function KitEditor({
       } else setMessage({ tone: "fout", text: res.error });
     });
 
-  const remove = () => {
-    if (!window.confirm(`De kit "${kit.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+  const remove = async () => {
+    if (!(await confirm(`De kit "${kit.name}" verwijderen? Dit kan niet ongedaan worden gemaakt.`, { title: "Kit verwijderen", confirmLabel: "Verwijderen", danger: true }))) return;
     startTransition(async () => {
       const res = await deleteKit(kit.id);
       if (res.ok) router.push("/design-kits");
@@ -295,6 +297,7 @@ export function KitEditor({
           </div>
         </div>
       </div>
+      {confirmDialog}
     </div>
   );
 }

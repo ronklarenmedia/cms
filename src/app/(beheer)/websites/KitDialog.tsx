@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useConfirm } from "../ConfirmDialog";
 import { clearSiteOverrides, getSiteKits, setSiteKit, type SiteKitInfo } from "../design-kits/actions";
 import { fontName, KitSwatches } from "../design-kits/KitPreview";
 
@@ -13,6 +14,7 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [problem, setProblem] = useState<string | null>(null);
   const [working, setWorking] = useState<string | null>(null);
+  const [confirm, confirmDialog] = useConfirm();
 
   useEffect(() => {
     let stale = false;
@@ -53,7 +55,7 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
   }
 
   async function clearOverrides() {
-    if (!window.confirm("De eigen thema-aanpassingen van deze website wissen? Alleen de design kit (en de standaardwaarden) bepalen dan nog de stijl.")) return;
+    if (!(await confirm("De eigen thema-aanpassingen van deze website wissen? Alleen de design kit (en de standaardwaarden) bepalen dan nog de stijl.", { title: "Eigen aanpassingen wissen", confirmLabel: "Wissen" }))) return;
     setWorking("wissen");
     setProblem(null);
     try {
@@ -71,7 +73,9 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
     }
   }
 
-  return createPortal(
+  return (
+    <>
+      {createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-text/40 p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="Design kit">
       <div className="flex max-h-[80vh] w-full max-w-[560px] flex-col gap-4 overflow-auto rounded-lg bg-surface p-6 shadow-[var(--shadow-lg)]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center">
@@ -158,5 +162,8 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
       </div>
     </div>,
     document.body,
+  )}
+      {confirmDialog}
+    </>
   );
 }

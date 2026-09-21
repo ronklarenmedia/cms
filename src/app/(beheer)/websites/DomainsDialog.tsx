@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "../ConfirmDialog";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { addSiteDomain, getSiteDomains, makeDomainPrimary, removeSiteDomain, type DomainItem, type DomainsInfo } from "./domains";
@@ -95,6 +96,7 @@ function Instructions({ item, providerConfigured }: { item: DomainItem; provider
 export function DomainsDialog({ siteId, canDelete, onClose }: { siteId: string; canDelete: boolean; onClose: () => void }) {
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [problem, setProblem] = useState<string | null>(null);
+  const [confirm, confirmDialog] = useConfirm();
   const [busy, setBusy] = useState<string | null>(null);
   const [input, setInput] = useState("");
 
@@ -142,7 +144,9 @@ export function DomainsDialog({ siteId, canDelete, onClose }: { siteId: string; 
 
   const info = load.status === "ready" ? load.info : null;
 
-  return createPortal(
+  return (
+    <>
+      {createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-text/40 p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="Domeinen">
       <div
         className="flex max-h-[85vh] w-full max-w-[680px] flex-col gap-4 overflow-auto rounded-lg bg-surface p-6 shadow-[var(--shadow-lg)]"
@@ -210,8 +214,8 @@ export function DomainsDialog({ siteId, canDelete, onClose }: { siteId: string; 
                         style={{ fontSize: 11.5 }}
                         disabled={busy !== null}
                         title="Domein verwijderen"
-                        onClick={() => {
-                          if (window.confirm(`${d.hostname} loskoppelen van deze website? Bezoekers kunnen de site dan niet meer via dit adres bereiken.`)) void run(`remove-${d.id}`, () => removeSiteDomain(siteId, d.id));
+                        onClick={async () => {
+                          if (await confirm(`${d.hostname} loskoppelen van deze website? Bezoekers kunnen de site dan niet meer via dit adres bereiken.`, { title: "Domein loskoppelen", confirmLabel: "Loskoppelen", danger: true })) void run(`remove-${d.id}`, () => removeSiteDomain(siteId, d.id));
                         }}
                       >
                         <i className={`ph ${busy === `remove-${d.id}` ? "ph-spinner" : "ph-trash"}`} aria-hidden="true" /> Verwijderen
@@ -262,5 +266,8 @@ export function DomainsDialog({ siteId, canDelete, onClose }: { siteId: string; 
       </div>
     </div>,
     document.body,
+  )}
+      {confirmDialog}
+    </>
   );
 }

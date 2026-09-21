@@ -14,6 +14,7 @@ import { fetchPublishInfo, publishSite, unpublishSite } from "./publish";
 import type { PublishInfo } from "./publishing";
 import { DomainsDialog } from "./DomainsDialog";
 import { ThemeFonts } from "@/lib/theme-fonts";
+import { useConfirm } from "../ConfirmDialog";
 import { KitDialog } from "./KitDialog";
 import { VersionsDialog } from "./VersionsDialog";
 import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
@@ -187,6 +188,7 @@ export function SiteBuilder({
   const [status, setStatus] = useState<SaveStatus>({ kind: "saved" });
   const [publish, setPublish] = useState<PublishInfo>(initialPublish);
   const router = useRouter();
+  const [confirm, confirmDialog] = useConfirm();
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [domainsOpen, setDomainsOpen] = useState(false);
   const [kitOpen, setKitOpen] = useState(false);
@@ -425,7 +427,7 @@ export function SiteBuilder({
   };
 
   const removePage = async (p: PageDTO) => {
-    if (!window.confirm(`Pagina "${p.title}" en al zijn secties verwijderen?`)) return;
+    if (!(await confirm(`Pagina "${p.title}" en al zijn secties verwijderen?`, { title: "Pagina verwijderen", confirmLabel: "Verwijderen", danger: true }))) return;
     const res = await deletePage(p.id);
     if (!res.ok) return setNotice(res.error);
     dirty.current.delete(p.id);
@@ -478,7 +480,7 @@ export function SiteBuilder({
 
   const doUnpublish = async () => {
     if (busy) return;
-    if (!window.confirm("De website offline zetten? Bezoekers zien hem dan niet meer. Je versies blijven bewaard.")) return;
+    if (!(await confirm("De website offline zetten? Bezoekers zien hem dan niet meer. Je versies blijven bewaard.", { title: "Website offline zetten", confirmLabel: "Offline zetten" }))) return;
     setBusy(true);
     const res = await unpublishSite(site.id);
     setBusy(false);
@@ -488,7 +490,7 @@ export function SiteBuilder({
   };
 
   const removeSite = async () => {
-    if (!window.confirm(`Website "${site.name}" met alle pagina's definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`)) return;
+    if (!(await confirm(`Website "${site.name}" met alle pagina's definitief verwijderen? Dit kan niet ongedaan worden gemaakt.`, { title: "Website verwijderen", confirmLabel: "Verwijderen", danger: true }))) return;
     // Er wordt straks toch weg genavigeerd: geen "niet opgeslagen"-waarschuwing meer.
     clearTimeout(timer.current);
     dirty.current.clear();
@@ -786,6 +788,7 @@ export function SiteBuilder({
             }}
           />
         ) : null}
+        {confirmDialog}
         {versionsOpen ? <VersionsDialog siteId={site.id} onClose={() => setVersionsOpen(false)} onChanged={() => void refreshPublish()} /> : null}
 
         {notice ? (

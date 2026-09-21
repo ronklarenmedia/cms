@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useConfirm } from "../ConfirmDialog";
 import { listVersions, rollbackSite, type VersionItem } from "./publish";
 
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; versions: VersionItem[] };
@@ -14,6 +15,7 @@ export function VersionsDialog({ siteId, onClose, onChanged }: { siteId: string;
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [problem, setProblem] = useState<string | null>(null);
   const [working, setWorking] = useState<number | null>(null);
+  const [confirm, confirmDialog] = useConfirm();
 
   async function reload() {
     try {
@@ -45,7 +47,7 @@ export function VersionsDialog({ siteId, onClose, onChanged }: { siteId: string;
   }, [onClose]);
 
   async function rollback(v: VersionItem) {
-    if (!window.confirm(`Versie ${v.version} live zetten? Bezoekers zien dan direct die versie. Je werkkopie blijft zoals hij is.`)) return;
+    if (!(await confirm(`Versie ${v.version} live zetten? Bezoekers zien dan direct die versie. Je werkkopie blijft zoals hij is.`, { title: "Versie live zetten", confirmLabel: "Live zetten" }))) return;
     setWorking(v.version);
     setProblem(null);
     try {
@@ -63,7 +65,9 @@ export function VersionsDialog({ siteId, onClose, onChanged }: { siteId: string;
     }
   }
 
-  return createPortal(
+  return (
+    <>
+      {createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-text/40 p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="Versies">
       <div
         className="flex max-h-[80vh] w-full max-w-[560px] flex-col gap-4 overflow-auto rounded-lg bg-surface p-6 shadow-[var(--shadow-lg)]"
@@ -114,5 +118,8 @@ export function VersionsDialog({ siteId, onClose, onChanged }: { siteId: string;
       </div>
     </div>,
     document.body,
+  )}
+      {confirmDialog}
+    </>
   );
 }

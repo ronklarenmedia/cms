@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useConfirm } from "../ConfirmDialog";
 import { deleteMedia, listMedia, type MediaItem } from "./media";
 
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; items: MediaItem[] };
@@ -27,6 +28,7 @@ export function MediaLibrary({
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [problem, setProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirm, confirmDialog] = useConfirm();
 
   useEffect(() => {
     let stale = false;
@@ -50,7 +52,7 @@ export function MediaLibrary({
 
   async function remove(item: MediaItem) {
     const name = item.filename ?? "dit beeld";
-    if (!window.confirm(`"${name}" definitief verwijderen uit de bibliotheek? Dit kan niet ongedaan worden gemaakt.`)) return;
+    if (!(await confirm(`"${name}" definitief verwijderen uit de bibliotheek? Dit kan niet ongedaan worden gemaakt.`, { title: "Beeld verwijderen", confirmLabel: "Verwijderen", danger: true }))) return;
     setDeleting(item.id);
     setProblem(null);
     try {
@@ -67,7 +69,9 @@ export function MediaLibrary({
     }
   }
 
-  return createPortal(
+  return (
+    <>
+      {createPortal(
     <div className="fixed inset-0 z-50 grid place-items-center bg-text/40 p-6" onClick={onClose} role="dialog" aria-modal="true" aria-label="Mediabibliotheek">
       <div
         className="flex max-h-[85vh] w-full max-w-[860px] flex-col gap-4 overflow-auto rounded-lg bg-surface p-6 shadow-[var(--shadow-lg)]"
@@ -140,5 +144,8 @@ export function MediaLibrary({
       </div>
     </div>,
     document.body,
+  )}
+      {confirmDialog}
+    </>
   );
 }

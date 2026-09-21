@@ -276,6 +276,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **Eén Vercel-project per repo:** bij de eerste import zijn per ongeluk meerdere projecten uit `ronklarenmedia/cms` ontstaan (`rkm-platform`, `cms-…`); alleen `rkm-platform` hoort er te zijn. Controleer dat de
   andere projecten niet meer aan de repo gekoppeld zijn (anders bouwt elke push meerdere keren). Een project hernoemen verandert het `.vercel.app`-adres niet: `rkm-platform.vercel.app` is er handmatig aan toegevoegd
   (Settings → Domains). Raak `site-builder`, `rkm-portaal`, `welzijns-connect` en `focus-flow` niet aan (andere projecten). Het project `cms` is ouder (13 september 2026): controleer of het aan deze repo hangt en of je het nog nodig hebt.
+- **Geen `window.confirm` gebruiken.** Ingebedde browsers en vensters die dialogen onderdrukken tonen hem niet en geven stilzwijgend "nee": de knop lijkt dan kapot (zo bleek "Eigen aanpassingen wissen" niets te doen). Gebruik
+  `useConfirm()` uit `src/app/(beheer)/ConfirmDialog.tsx`: `const [confirm, confirmDialog] = useConfirm();`, dan `if (!(await confirm("Vraag?", { confirmLabel, danger }))) return;` en `{confirmDialog}` in de JSX. Het venster sluit op Escape
+  zonder een dialoog eronder mee te sluiten, en de veilige keuze (Annuleren) krijgt de focus. Ook in tests werkt een override van `window.confirm` niet als bewijs dat een knop werkt.
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
