@@ -43,6 +43,7 @@ export default async function WebsiteBuilderPage({ params, searchParams }: { par
         theme,
         kit,
         customerId: row.site.customerId,
+        favicon: row.site.faviconUrl,
         layout: row.site.layout,
         customerName: row.customerName,
       }}

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
 import { customers, pages, siteDomains, sites } from "@/db/schema";
+import { RESERVED_PAGE_SLUGS } from "@/lib/favicon";
 import { kitAllowedFor } from "@/lib/kits";
 import { deleteMediaFiles } from "@/lib/media";
 import { liveTag } from "@/lib/public-site";
@@ -102,6 +103,7 @@ export async function addPage(siteId: string, title: string): Promise<Result<{ p
   const [{ last }] = await db.select({ last: max(pages.position) }).from(pages).where(eq(pages.siteId, siteId));
   for (let attempt = 1; attempt <= 20; attempt++) {
     const slug = attempt === 1 ? base : `${base}-${attempt}`;
+    if (RESERVED_PAGE_SLUGS.includes(slug)) continue; // een adres dat het platform zelf gebruikt
     try {
       const [row] = await db
         .insert(pages)
@@ -161,7 +163,8 @@ const pageSettingsSchema = z.object({
     .trim()
     .toLowerCase()
     .max(100)
-    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "De URL mag alleen kleine letters, cijfers en streepjes bevatten."),
+    .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "De URL mag alleen kleine letters, cijfers en streepjes bevatten.")
+    .refine((v) => !RESERVED_PAGE_SLUGS.includes(v), { message: "Deze URL is gereserveerd voor het platform. Kies een andere." }),
   seoTitle: optionalText(255),
   seoDescription: optionalText(400),
   ogImage: optionalText(500).refine((v) => v === null || v.startsWith("/") || /^https?:\/\//.test(v), {

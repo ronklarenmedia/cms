@@ -6,6 +6,7 @@ import { themeToCssVars } from "@/blocks/theme";
 import { documentTitle } from "@/app/(beheer)/websites/seo";
 import { SiteFrame } from "@/app/(beheer)/websites/SiteFrame";
 import { enhancementsFor, enhancementUrl } from "./enhancements";
+import { fallbackFaviconDataUri, faviconUrl } from "./favicon";
 import { originOf, pagePath, type PublicSite } from "./public-site";
 import { siteCss } from "./site-css";
 import { ThemeFonts } from "./theme-fonts";
@@ -20,7 +21,7 @@ type Page = PublicSite["snapshot"]["pages"][number];
 const first = (value: string | null | undefined) => value?.trim() || undefined;
 
 function SiteDocument({ site, page }: { site: PublicSite; page: Page }): ReactElement {
-  const { theme, layout, name } = site.snapshot;
+  const { theme, layout, name, favicon } = site.snapshot;
   const title = documentTitle(name, page);
   const description = first(page.seoDescription);
   const hidden = site.kind === "preview" || page.noindex; // een voorbeeldadres staat nooit in zoekmachines
@@ -38,6 +39,15 @@ function SiteDocument({ site, page }: { site: PublicSite; page: Page }): ReactEl
         {description ? <meta name="description" content={description} /> : null}
         {hidden ? <meta name="robots" content="noindex, nofollow" /> : null}
         <link rel="canonical" href={canonical} />
+        {favicon ? (
+          <>
+            <link rel="icon" type="image/png" sizes="32x32" href={faviconUrl(favicon, 32)} />
+            <link rel="apple-touch-icon" href={faviconUrl(favicon, 180)} />
+          </>
+        ) : (
+          // Geen upload: een automatisch icoon in de merkkleur, als data-URI (geen extra aanvraag). Nooit het icoon van het platform.
+          <link rel="icon" type="image/svg+xml" href={fallbackFaviconDataUri(name, theme)} />
+        )}
         <meta property="og:title" content={title} />
         {description ? <meta property="og:description" content={description} /> : null}
         <meta property="og:site_name" content={name} />

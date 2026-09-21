@@ -23,6 +23,7 @@ Gemeten op de live testsite, dezelfde pagina, dezelfde inhoud (de HTML-opbouw is
 - **De `<head>`** (titel, omschrijving, robots, canonical, Open Graph, Twitter) staat in `site-html.tsx`; er is geen `generateMetadata`.
 - **Cache (ISR):** elke pagina wordt bij het eerste bezoek opgebouwd en daarna gecachet. Publiceren laat de pagina's van die site direct
   verlopen met een **tag per host** (`live:<host>`, zie STATUS.md §6). Vangnet: `revalidate = 600`.
+- **Favicon:** per site (upload of automatisch icoon), ook op `/favicon.ico`; zie STATUS.md §3.
 - **Lettertypes** komen zelf gehost van het eigen domein van de klantsite (`public/fonts/`), en zijn onderdeel van dezelfde HTML.
 
 ## Wat als je JavaScript nodig hebt?
@@ -97,7 +98,6 @@ desnoods naar een enhancement.
 
 ## Bekende beperkingen
 
-- **Geen favicon per site:** klantsites tonen het icoon van het platform (`/favicon.ico` is één bestand voor alle hosts).
 - **Cursief en Latin-ext** bij de lettertypes: zie `public/fonts/README.md`.
 - `unstable_cache` (voor de cache-tag) is in Next 16 verouderd en wordt door `use cache` vervangen; het werkt nog, en de vervanging
   vraagt Cache Components.

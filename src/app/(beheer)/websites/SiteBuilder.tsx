@@ -15,6 +15,7 @@ import type { PublishInfo } from "./publishing";
 import { DomainsDialog } from "./DomainsDialog";
 import { ThemeFonts } from "@/lib/theme-fonts";
 import { useConfirm } from "../ConfirmDialog";
+import { FaviconDialog } from "./FaviconDialog";
 import { KitDialog } from "./KitDialog";
 import { usePanelOpen } from "./usePanelOpen";
 import { VersionsDialog } from "./VersionsDialog";
@@ -34,6 +35,8 @@ export type BuilderSite = {
   /** De design kit van de site, of null als er geen is. */
   kit: { id: string; name: string } | null;
   customerId: string;
+  /** Basis-URL van het geüploade favicon, of null (dan een automatisch icoon). */
+  favicon: string | null;
   layout: SiteLayout;
   customerName: string;
 };
@@ -196,6 +199,7 @@ export function SiteBuilder({
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [domainsOpen, setDomainsOpen] = useState(false);
   const [kitOpen, setKitOpen] = useState(false);
+  const [faviconOpen, setFaviconOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [addingPage, setAddingPage] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -612,6 +616,9 @@ export function SiteBuilder({
           <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setKitOpen(true)} title={site.kit ? `Design kit: ${site.kit.name}` : "Design kit kiezen"}>
             <i className="ph ph-palette" /> {site.kit?.name ?? "Design kit"}
           </button>
+          <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setFaviconOpen(true)} title="Favicon van de website">
+            <i className="ph ph-image-square" /> Favicon
+          </button>
           <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setDomainsOpen(true)} title="Eigen domeinen van de klant">
             <i className="ph ph-globe" /> Domeinen
           </button>
@@ -637,6 +644,20 @@ export function SiteBuilder({
       </div>
 
       {domainsOpen ? <DomainsDialog siteId={site.id} canDelete={canDelete} onClose={() => setDomainsOpen(false)} /> : null}
+      {faviconOpen ? (
+        <FaviconDialog
+          siteId={site.id}
+          siteName={site.name}
+          theme={site.theme}
+          current={site.favicon}
+          onClose={() => setFaviconOpen(false)}
+          onChanged={() => {
+            // Het favicon zit in de momentopname: de vergelijking met de live versie verandert mee.
+            router.refresh();
+            void refreshPublish();
+          }}
+        />
+      ) : null}
       {kitOpen ? (
         <KitDialog
           siteId={site.id}

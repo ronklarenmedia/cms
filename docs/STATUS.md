@@ -79,6 +79,12 @@ klantpagina toont zijn websites.
 - **Zijkolommen inklapbaar** (`usePanelOpen.ts`, `PanelRail` in `SiteBuilder.tsx`): de paginakolom links en het instellingenpaneel rechts hebben een inklapknop in hun kop; ingeklapt blijft een smal randje (44 px) met een
   verticaal label ("Pagina's", "Instellingen") waarop je klikt om hem weer te openen. Zo krijgt het canvas op een smal scherm de ruimte (820 px: van ~200 naar ~640 px). De keuze staat in `localStorage` (`rkm.builder.left` en
   `rkm.builder.right`, waarde `open`/`closed`; standaard open) en werkt ook als opslaan niet mag (dan onthoudt de pagina hem zolang hij openstaat). `useSyncExternalStore`: server en eerste weergave zijn altijd "open", dus geen hydratatiefout.
+- **Favicon per site** (knop "Favicon" in de builder, `FaviconDialog.tsx`, acties in `favicon.ts`, opslag `storeFavicon` in `src/lib/media.ts`, logica in `src/lib/favicon.ts`, kolom `sites.favicon_url`): een eigen icoon uploaden (JPG/PNG/WebP/GIF/AVIF,
+  max. 5 MB, minimaal 32 × 32; niet-vierkant wordt niet bijgesneden maar met een doorzichtige rand aangevuld) wordt verkleind tot vierkante PNG's van **32 px** (tabblad) en **180 px** (apple-touch-icon) onder
+  `sites/<siteId>/<uuid>/` in R2, met een jaar `immutable` cache. De kolom bewaart de **basis-URL** (zonder bestandsnaam). Zonder upload krijgt de site een **automatisch icoon**: een tegel in de primaire kleur van de site
+  (na de design kit) met de beginletter van de naam, in de best leesbare tint, als SVG-data-URI in de `<head>` (geen extra aanvraag). Een klantsite toont dus nooit meer het platformicoon. Het favicon zit in de
+  **momentopname** (alleen als er een is, zodat de hash van bestaande versies gelijk blijft) en gaat dus pas online bij het volgende publiceren. Verwijderen wist de bestanden uit R2; het publieke domein kan ze nog even uit de cache
+  van Cloudflare serveren (`immutable`), zoals bij elke verwijderde afbeelding.
 - **Header en footer** staan onder "Op alle pagina's" in de linkerkolom en verschijnen op elke pagina. Welke blocks
   in welke plek mogen staat in `src/app/(beheer)/websites/layout-slots.ts`.
 - **Tab "Pagina"** (rechts): titel, URL, SEO-titel, omschrijving, afbeelding bij delen, noindex, met een
@@ -162,7 +168,7 @@ titels, slugs en SEO-titels van pagina's en namen van design kits; per groep max
 - Beveiliging: een server-actie is een openbaar eindpunt, dus `staffUser()` wordt zelf gecontroleerd; `%`, `_` en `\` in de zoekterm zoeken **letterlijk** (geëscaped), zodat `%%` niet alles oplevert.
 - Bewust simpel (`ILIKE`, geen index). Bij veel meer gegevens: `pg_trgm`-index op de doorzochte kolommen. Apps en componenten zitten er (nog) niet in.
 
-**Componenten** — `/componenten` (miniaturen, gebruik per site, aantal tokens), `/componenten/editor?block=…`
+**Componenten** — `/componenten` (miniaturen op hun **echte verhouding**, verkleind tot ze in een cel van vaste maat passen en daarin gecentreerd: `FitFrame.tsx`; de cel is `relative` + `overflow-hidden` en het frame staat er absoluut in, anders rekt de ongeschaalde inhoud de cel eerst uit, gebruik per site, aantal tokens), `/componenten/editor?block=…`
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
 `/componenten/showcase`.
 
@@ -284,6 +290,9 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **Geen `window.confirm` gebruiken.** Ingebedde browsers en vensters die dialogen onderdrukken tonen hem niet en geven stilzwijgend "nee": de knop lijkt dan kapot (zo bleek "Eigen aanpassingen wissen" niets te doen). Gebruik
   `useConfirm()` uit `src/app/(beheer)/ConfirmDialog.tsx`: `const [confirm, confirmDialog] = useConfirm();`, dan `if (!(await confirm("Vraag?", { confirmLabel, danger }))) return;` en `{confirmDialog}` in de JSX. Het venster sluit op Escape
   zonder een dialoog eronder mee te sluiten, en de veilige keuze (Annuleren) krijgt de focus. Ook in tests werkt een override van `window.confirm` niet als bewijs dat een knop werkt.
+- **`/favicon.ico` op een openbare host** wordt in `src/proxy.ts` herschreven naar `/s/<host>/site-favicon` (route-handler `src/app/(sites)/s/[host]/site-favicon/route.ts`): geüpload = 307 naar de PNG van 32 px, anders het
+  automatische SVG-icoon; gecachet en verlopen met dezelfde tag per host als de pagina's. Op een beheerhost blijft het gewoon het platformicoon. De mapnaam heeft bewust geen `.ico`: dat is een gereserveerde bestandsnaam in Next
+  (zoals `sitemap.xml` en `robots.txt`). `site-favicon` staat in `RESERVED_PAGE_SLUGS` (`src/lib/favicon.ts`): een pagina met die naam zou het adres overschaduwen en wordt geweigerd.
 - `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
   later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
 
@@ -313,7 +322,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
    Starter/Pro/Agency).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
-   domeinen in behandeling, (✅ JS-loze openbare pagina's, zie §6), een **favicon per site** (nu tonen klantsites het icoon van het platform: `/favicon.ico` bestaat maar één keer, omdat een pad met een punt de proxy omzeilt), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
+   domeinen in behandeling, (✅ JS-loze openbare pagina's, zie §6), (✅ favicon per site), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
    vervallen van het Vercel-token, (✅ opgelost: de builder-werkbalk staat nu over de volle breedte bovenaan en wikkelt over meerdere rijen op smalle schermen; daaronder staan de paginakolom, het canvas en het rechterpaneel. Eerder viel hij onder het rechterpaneel weg). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
@@ -358,6 +367,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   (zie `.env.example`). Controleer daarna Instellingen → Koppelingen. CORS is niet nodig (uploads lopen via de server).
 - **Design kits:** `docs/sql/2026-09-21-design-kits.sql` (tabel `design_kits`, kolom `sites.design_kit_id`, twee platformkits) moet op de database staan vóór de code die hem leest. Lokaal (`main`) toegepast; op
   `production` uitvoeren vóór het deployen (eerst geoefend op een tijdelijke branch als kopie van productie, die daarna is verwijderd). Zonder de tabel falen o.a. de builder, het voorbeeld, publiceren en het aanmaken van een site.
+- **Favicon:** `docs/sql/2026-09-21-favicon.sql` (kolom `sites.favicon_url`, leeg voor bestaande sites) moet op de database staan vóór de code die hem leest. Lokaal (`main`) toegepast; op `production` uitvoeren vóór het deployen.
+  Zonder de kolom falen o.a. de builder, het voorbeeld, publiceren en de openbare pagina's (elke `select` op `sites` noemt de kolom).
 - Een admin aanmaken met `npm run create-user` (tegen de productie-database) is gedaan: het bestaande account staat in de `production`-branch (gekopieerd bij het aanmaken van de branch).
 
 ## 10. Werkafspraken

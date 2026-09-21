@@ -1,5 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
+import { FAVICON_PATH } from "@/lib/favicon";
 import { isPlatformHost, platformHosts } from "@/lib/site-hosts";
 
 // Twee dingen, in deze volgorde:
@@ -17,8 +18,11 @@ export function proxy(request: NextRequest) {
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? "";
   const publicSite = platformHosts().length > 0 && !isPlatformHost(host);
   // robots.txt en sitemap.xml zijn alleen van de openbare sites; het beheer heeft ze niet (en hoeft er niet voor in te loggen).
-  if (!publicSite && (pathname === "/robots.txt" || pathname === "/sitemap.xml")) return NextResponse.next();
+  // /favicon.ico is van het platform zelf op een beheerhost, en van de site op een openbare host (zie hieronder).
+  if (!publicSite && (pathname === "/robots.txt" || pathname === "/sitemap.xml" || pathname === "/favicon.ico")) return NextResponse.next();
   if (publicSite) {
+    // Browsers en crawlers vragen /favicon.ico ongevraagd; een klantsite serveert zijn eigen icoon (src/app/(sites)/s/[host]/site-favicon).
+    if (pathname === "/favicon.ico") return NextResponse.rewrite(new URL(`/s/${encodeURIComponent(host.toLowerCase())}/${FAVICON_PATH}`, request.url));
     // Op een openbare site bestaat alleen de site zelf: geen inlog-API en geen beheerpagina's.
     if (pathname === "/api" || pathname.startsWith("/api/")) return new NextResponse(null, { status: 404 });
     return NextResponse.rewrite(new URL(`/s/${encodeURIComponent(host.toLowerCase())}${pathname === "/" ? "" : pathname}${search}`, request.url));
@@ -32,6 +36,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Niet voor Next-interne bestanden en statische bestanden uit public/ (alles met een extensie), behalve robots.txt en sitemap.xml van openbare sites.
-  matcher: ["/((?!_next/static|_next/image|.*\\..*).*)", "/robots.txt", "/sitemap.xml"],
+  // Niet voor Next-interne bestanden en statische bestanden uit public/ (alles met een extensie), behalve robots.txt, sitemap.xml en favicon.ico van openbare sites.
+  matcher: ["/((?!_next/static|_next/image|.*\\..*).*)", "/robots.txt", "/sitemap.xml", "/favicon.ico"],
 };

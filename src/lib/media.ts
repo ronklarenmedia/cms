@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AwsClient } from "aws4fetch";
 import sharp from "sharp";
+import { FAVICON_SIZES } from "./favicon";
 import { getR2Config, type R2Config } from "./r2";
 
 // Uploads verwerken en in Cloudflare R2 zetten. Alleen op de server. Van elk beeld maken we WebP-varianten in
@@ -132,4 +133,70 @@ export async function storeImage(input: Buffer, folder: string): Promise<StoredI
     height: variants[top].height,
     srcset: variants.map((v, i) => `${urls[i]} ${v.width}w`).join(", "),
   };
+}
+
+/** Onder deze afmeting is een icoon te klein om er iets van te maken. */
+const MIN_FAVICON_SIDE = 32;
+
+/** De uuid (mapnaam) van een opgeslagen favicon, uit zijn basis-URL; null als de URL er niet uitziet als een van ons. */
+export const faviconId = (baseUrl: string): string | null => baseUrl.match(/\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?$/i)?.[1] ?? null;
+
+/**
+ * Bewaart een favicon van een site als vierkante PNG's onder `sites/<siteId>/<uuid>/<formaat>.png` en geeft de basis-URL terug
+ * (`<publicUrl>/sites/<siteId>/<uuid>`, met daaronder `32.png` en `180.png`). Een niet-vierkant beeld wordt niet bijgesneden maar met een
+ * doorzichtige rand aangevuld, zodat een logo compleet blijft. De metadata (o.a. GPS in EXIF) wordt weggelaten. De sleutel bevat een uuid en
+ * verandert nooit, dus de bestanden mogen onbeperkt gecachet worden.
+ */
+export async function storeFavicon(input: Buffer, siteId: string): Promise<{ id: string; url: string }> {
+  const config = getR2Config();
+  if (!config?.publicUrl) throw new MediaError("Uploaden is nog niet ingesteld. Controleer Instellingen → Koppelingen.");
+
+  const open = () => sharp(input, { limitInputPixels: MAX_INPUT_PIXELS, failOn: "error" });
+  let format: string | undefined;
+  let width = 0;
+  let height = 0;
+  try {
+    const meta = await open().metadata();
+    format = meta.format;
+    const turned = (meta.orientation ?? 1) >= 5; // een gedraaide EXIF-oriëntatie wisselt breedte en hoogte
+    width = (turned ? meta.height : meta.width) ?? 0;
+    height = (turned ? meta.width : meta.height) ?? 0;
+  } catch {
+    throw new MediaError("Dit bestand is geen geldige afbeelding, of het is te groot.");
+  }
+  if (!format || !ACCEPTED_FORMATS.has(format)) throw new MediaError("Dit bestandstype wordt niet ondersteund. Gebruik JPG, PNG, WebP, GIF of AVIF.");
+  if (Math.min(width, height) < MIN_FAVICON_SIDE) throw new MediaError(`Deze afbeelding is te klein (${width} × ${height}). Gebruik minimaal ${MIN_FAVICON_SIDE} × ${MIN_FAVICON_SIDE} pixels, bij voorkeur 180 of groter.`);
+
+  let variants;
+  try {
+    variants = await Promise.all(
+      FAVICON_SIZES.map(async (size) => ({
+        size,
+        data: await open().rotate().resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } }).png({ compressionLevel: 9 }).toBuffer(),
+      })),
+    );
+  } catch {
+    throw new MediaError("Deze afbeelding kon niet worden verwerkt.");
+  }
+
+  const id = randomUUID();
+  const keys = variants.map((v) => `sites/${siteId}/${id}/${v.size}.png`);
+  const r2 = client(config);
+  try {
+    await Promise.all(
+      variants.map(async (v, i) => {
+        const res = await r2.fetch(objectUrl(config, keys[i]), {
+          method: "PUT",
+          body: new Uint8Array(v.data),
+          headers: { "content-type": "image/png", "cache-control": "public, max-age=31536000, immutable" },
+        });
+        if (!res.ok) throw new Error(`R2 antwoordde met status ${res.status}`);
+      }),
+    );
+  } catch (e) {
+    await deleteObjects(config, keys); // geen halve uploads laten liggen
+    console.error("Favicon uploaden naar R2 mislukt:", e instanceof Error ? e.message : e);
+    throw new MediaError("Opslaan is mislukt. Probeer het opnieuw.");
+  }
+  return { id, url: `${config.publicUrl}/sites/${siteId}/${id}` };
 }

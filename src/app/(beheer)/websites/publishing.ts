@@ -47,6 +47,8 @@ export async function loadWorkingSnapshot(siteId: string): Promise<{ ok: true; s
     theme: await effectiveSiteTheme(site),
     layout: { header: header.sections, footer: footer.sections },
     pages: outPages,
+    // Alleen als er een is geüpload: zo blijft de hash van sites zonder favicon gelijk aan die van hun bestaande momentopname.
+    ...(site.faviconUrl ? { favicon: site.faviconUrl } : {}),
   };
   return { ok: true, snapshot, hash: hashSnapshot(snapshot) };
 }

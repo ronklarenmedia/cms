@@ -113,7 +113,8 @@ export type SnapshotPage = {
 };
 
 /** Alles wat een bezoeker van een gepubliceerde site nodig heeft. Wat hierin staat, verandert nooit meer (zie `siteVersions`). */
-export type SiteSnapshot = { name: string; theme: SiteTheme; layout: SiteLayout; pages: SnapshotPage[] };
+// `favicon` alleen aanwezig als er een is geüpload: zo verandert de hash van bestaande momentopnamen niet.
+export type SiteSnapshot = { name: string; theme: SiteTheme; layout: SiteLayout; pages: SnapshotPage[]; favicon?: string };
 
 // ── Design kits ───────────────────────────────────────────────────────────────
 // Een kit is een opgeslagen thema: alleen de tokens die afwijken van `defaultTheme` (zie src/blocks/theme.ts). Een site verwijst
@@ -143,6 +144,9 @@ export const sites = pgTable("sites", {
   // Overrides op de `defaultTheme`-tokens (zie src/blocks/theme.ts).
   theme: jsonb("theme").$type<SiteTheme>().notNull().default({}),
   layout: jsonb("layout").$type<SiteLayout>().notNull().default({ header: [], footer: [] }),
+  // Het favicon van de site: de basis-URL van de geüploade set (zonder bestandsnaam; daaronder staan `32.png` en `180.png`, zie
+  // storeFavicon in src/lib/media.ts). Leeg = een automatisch icoon in de merkkleur (src/lib/favicon.ts).
+  faviconUrl: text("favicon_url"),
   // De design kit van deze site (leeg = geen kit; alleen `theme` hierboven telt). Een kit in gebruik kan niet worden verwijderd.
   designKitId: uuid("design_kit_id").references(() => designKits.id, { onDelete: "restrict" }),
   status: siteStatusEnum("status").notNull().default("draft"),
