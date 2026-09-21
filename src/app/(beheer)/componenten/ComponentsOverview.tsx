@@ -8,22 +8,29 @@ import { CATEGORIES, type AnyBlock, type Status } from "@/blocks/contract";
 import { blocks } from "@/blocks/registry";
 import { themeToCssVars } from "@/blocks/theme";
 import { categoryIcons, categoryId, statusMeta } from "./meta";
-import { ScaledFrame } from "./ScaledFrame";
+import { FitFrame } from "./FitFrame";
 
 export type BlockFacts = { sites: number; tokens: number };
 
 const themeVars = themeToCssVars();
 
+/**
+ * De miniatuur van een block: een cel van vaste verhouding, overal even groot, met daarin het block op zijn echte verhouding,
+ * verkleind tot het past en gecentreerd (zie FitFrame). Zo lijnen alle kaarten netjes uit, ook als de blocks verschillend hoog zijn.
+ */
 function Preview({ block }: { block: AnyBlock }) {
   const fixture = block.fixtures[0];
   return (
     <div
-      className="aspect-[16/10] overflow-hidden rounded-md bg-white shadow-[var(--shadow-sm)]"
+      // De cel heeft een vaste verhouding en houdt die: `overflow-hidden` voorkomt dat de ongeschaalde inhoud hem eerst uitrekt, en
+      // FitFrame staat er absoluut in, zodat hij niet meetelt voor de afmetingen van de cel.
+      className="relative aspect-[16/10] overflow-hidden rounded-md bg-neutral-900"
       // Alleen een plaatje: geen focus of klikken in de miniatuur zelf.
       inert
       aria-hidden
     >
-      <ScaledFrame width={1200} clip>
+      <div className="absolute inset-3">
+      <FitFrame width={1200}>
         <div style={{ ...themeVars, background: "var(--var-color-white)" }}>
           <BlockSection
             section={{
@@ -35,7 +42,8 @@ function Preview({ block }: { block: AnyBlock }) {
             }}
           />
         </div>
-      </ScaledFrame>
+      </FitFrame>
+      </div>
     </div>
   );
 }
