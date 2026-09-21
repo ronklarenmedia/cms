@@ -2,13 +2,15 @@
 
 import { eq, max, sql } from "drizzle-orm";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
 import { customers, pages, siteDomains, sites } from "@/db/schema";
 import { kitAllowedFor } from "@/lib/kits";
 import { deleteMediaFiles } from "@/lib/media";
+import { liveTag } from "@/lib/public-site";
+import { siteHostnames } from "@/lib/site-domains";
 import { removeDomain } from "@/lib/vercel-domains";
 import { NOT_LOGGED_IN, requireAdmin, staffUser } from "@/lib/session";
 import { isUuid } from "./ids";
@@ -230,6 +232,9 @@ export async function deletePage(pageId: string): Promise<Result> {
 
 export async function deleteSite(siteId: string) {
   await requireAdmin();
+  // De hosts van de site vóór het verwijderen ophalen: daarna zijn de rijen weg. Hun gecachete pagina's laten we na afloop verlopen.
+  const [gone] = await db.select({ id: sites.id, slug: sites.slug }).from(sites).where(eq(sites.id, siteId));
+  const hosts = gone ? await siteHostnames(gone) : [];
   // De domeinen ook bij Vercel losmaken (de rijen zelf verdwijnen met de site); lukt dat niet, dan blijft het domein daar hangen.
   const domains = await db.select({ hostname: siteDomains.hostname }).from(siteDomains).where(eq(siteDomains.siteId, siteId));
   for (const d of domains) {
@@ -237,6 +242,7 @@ export async function deleteSite(siteId: string) {
     if (!res.ok) console.error(`Domein ${d.hostname} losmaken bij Vercel mislukt: ${res.error}`);
   }
   await db.delete(sites).where(eq(sites.id, siteId));
+  for (const host of hosts) updateTag(liveTag(host));
   // De rijen in `media` verdwijnen vanzelf mee; de bestanden in R2 ruimen we hier op (mislukt dat, dan blijven ze verweesd staan).
   await deleteMediaFiles(siteId).catch((e) => console.error("Bestanden van verwijderde website opruimen mislukt:", e instanceof Error ? e.message : e));
   revalidatePath("/websites");

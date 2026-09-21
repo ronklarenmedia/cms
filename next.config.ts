@@ -7,9 +7,16 @@ const nextConfig: NextConfig = {
   // die bestanden worden nergens geïmporteerd, dus moeten expliciet in de server-trace.
   // Lettertypes voor klantsites (public/fonts/v1): de map heeft een versienummer, dus de bestanden veranderen nooit en mogen een jaar gecachet.
   async headers() {
-    return [{ source: "/fonts/:path*", headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }] }];
+    const immutable = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
+    return [
+      { source: "/fonts/:path*", headers: immutable },
+      // Optionele scripts voor openbare pagina's (src/lib/enhancements.ts); ook versiemap, dus onveranderlijk.
+      { source: "/enhance/:path*", headers: immutable },
+    ];
   },
   outputFileTracingIncludes: {
+    // De openbare pagina's lezen de CSS van alle blocks bij het opbouwen (src/lib/site-css.ts); die bestanden worden nergens geïmporteerd.
+    "/s/**": ["./src/blocks/blocks.css", "./src/blocks/*/styles.css", "./src/app/(sites)/sites.css", "./src/app/(beheer)/websites/site-frame.css"],
     "/componenten": ["./src/blocks/*/styles.css"],
     "/componenten/editor": ["./src/blocks/*/styles.css"],
   },

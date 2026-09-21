@@ -1,4 +1,6 @@
+import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
+import { unstable_cache } from "next/cache";
 import { cache } from "react";
 import { db } from "@/db";
 import { siteDomains, sites, siteVersions, type SiteSnapshot } from "@/db/schema";
@@ -18,6 +20,22 @@ export type PublicSite = {
   /** Het primaire domein van de site, alleen als dat klaar voor gebruik is; bezoekers via een ander adres worden daarheen gestuurd. */
   primaryHost: string | null;
 };
+
+// Cache-tag van alle pagina's van één host. Een route-handler achter een rewrite (de proxy stuurt elke host naar /s/<host>/…) krijgt van Next
+// als pad-tag het OORSPRONKELIJKE pad ("/", "/over-ons"), en dat is voor elke site gelijk: revalidatePath kan er dus geen enkele site mee
+// apart leegmaken. Daarom hangt de handler zelf een tag per host aan de pagina, en maakt publiceren precies die tag leeg.
+// Tags mogen maximaal 256 tekens zijn; een host is er hooguit 253, dus een heel lange host wordt gehasht.
+export const liveTag = (rawHost: string): string => {
+  const host = normalizeHost(rawHost);
+  return host.length > 200 ? `live:#${createHash("sha1").update(host).digest("hex")}` : `live:${host}`;
+};
+
+/**
+ * Hangt de tag van deze host aan de pagina die nu wordt opgebouwd. Een kleine, tijdloze cache-uitkomst met die tag: verloopt de tag,
+ * dan verloopt daarmee ook de gecachete pagina (en bouwt het volgende bezoek hem opnieuw op uit de database). De gegevens zelf komen
+ * niet uit deze cache, dus er blijft niets verouderds hangen.
+ */
+export const tagLivePage = (rawHost: string): Promise<true> => unstable_cache(async () => true as const, ["live-page", normalizeHost(rawHost)], { tags: [liveTag(rawHost)] })();
 
 /** De live site bij een hostnaam, of null als die host bij geen enkele gepubliceerde site hoort. Eén opzoeking per verzoek. */
 export const findLiveSite = cache(async (rawHost: string): Promise<PublicSite | null> => {

@@ -89,7 +89,7 @@ klantpagina toont zijn websites.
   gewijzigd sinds de live versie, dan komt er geen nieuwe versie. "Op concept zetten" haalt de site offline (versies blijven). "Versies" toont de
   lijst en zet een oudere versie weer live; de werkkopie blijft dan zoals hij is. Naast "Live · vN" staat "Niet-gepubliceerde wijzigingen" zodra de
   werkkopie afwijkt (vergelijking via `content_hash`, na elke opslag opnieuw bepaald op de server).
-- **Openbare weergave** (`src/app/(sites)/s/[host]/[[...pagina]]`): toont alleen de live versie, nooit de werkkopie. Zie §4.
+- **Openbare weergave** (`src/app/(sites)/s/[host]/[[...pagina]]/route.ts`, document in `src/lib/site-html.tsx`): toont alleen de live versie, nooit de werkkopie, als **pure HTML zonder JavaScript** (zie `docs/publieke-paginas-zonder-js.md`). Zie §4.
 - **Eigen domeinen** (knop "Domeinen" in de builder, `DomainsDialog.tsx`, acties in `domains.ts`, tabel `site_domains`, Vercel-koppeling in `src/lib/vercel-domains.ts`):
   een domein toevoegen valideert de naam (`validateCustomHostname`: geen poort/IP/wildcard/localhost, en niets van het platform zelf), meldt het aan bij Vercel en toont de
   DNS-records (A voor een kaal domein, CNAME voor een subdomein, en een TXT-record als het domein al elders bij Vercel hangt), met "Controleer nu". Status: *Actief* = geverifieerd en
@@ -174,7 +174,7 @@ Phosphor-icons. **Dit is niet de Next.js uit je hoofd**: `AGENTS.md` verwijst na
 
 ```
 src/app/(beheer)/   het beheer: routes (klanten, websites, instellingen, componenten, login, …) met eigen root-layout (sessie, AppShell, Tailwind/Nocturne)
-src/app/(sites)/    openbare sites: eigen root-layout zonder sessie of beheer-CSS; `s/[host]/[[...pagina]]` bouwt de live versie op (ISR)
+src/app/(sites)/    openbare sites: alleen route-handlers (geen pagina's, geen layout, dus geen React in de browser); `s/[host]/[[...pagina]]/route.ts` bouwt de live versie op als HTML (ISR)
 src/app/api/auth    Better Auth
 src/proxy.ts        stuurt een host die niet in PLATFORM_HOSTS staat intern door naar /s/<host>/…; blokkeert /s/ en /api op openbare hosts
 src/app/(beheer)/websites/   builder (SiteBuilder, SchemaForm, PageSettingsForm), acties, SiteFrame, layout-slots, seo, sections
@@ -216,8 +216,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - Header/footer zijn gewone blocks in vaste plekken (slots), geen aparte editor. Een extra footer-lay-out is een
   nieuwe *variant* van `site-footer`.
 - Mobiel menu zonder client-JS (`<details>`), uitklapmenu's met CSS (hover/focus).
-- Het beheer is dynamisch gerenderd (de layout leest de sessie). **Openbare sites zijn statisch** (ISR): hun eigen root-layout leest geen sessie,
-  en publiceren maakt de cache van die site ongeldig met `revalidatePath('/s/<host>/<pagina>')` **per host en per pagina, zonder `type`** (zie §6: `type: "layout"` werkt hier niet), met als vangnet `revalidate = 600` op de sitepagina.
+- Het beheer is dynamisch gerenderd (de layout leest de sessie). **Openbare sites zijn gecachet** (ISR) en **leveren geen JavaScript**: een route-handler bouwt de HTML met `react-dom/static`, de CSS staat ingebouwd in de pagina.
+  Publiceren laat de pagina's van een site verlopen via een **cache-tag per host** (`live:<host>`, `updateTag`; zie §6), met als vangnet `revalidate = 600`. Heeft een block toch JavaScript nodig: kleine losse scripts per block (`src/lib/enhancements.ts`), zie het document.
 - **Publiceren = momentopname** (`site_versions`), niet de werkkopie live zetten: een autosave gaat nooit direct naar bezoekers.
 - **Voorbeeldadres per site:** `<sitenaam>.<PREVIEW_DOMAIN>` met `PREVIEW_DOMAIN=rkmsites.dev` (apart domein, niet `rkmassets.com`, zie `docs/hosting-opties.md` §6). Voorbeeldadressen krijgen
   altijd `noindex`. Eigen domeinen van klanten: zie §3 (tabel `site_domains` + Vercel-API).
@@ -261,14 +261,16 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **Routegroepen:** het beheer staat in `src/app/(beheer)`, de openbare sites in `src/app/(sites)`; beide hebben een eigen root-layout, dus er is bewust geen
   `src/app/layout.tsx`. `/s/…` is alleen intern (de proxy geeft er een 404 op); `revalidatePath` moet het **doelpad** krijgen (`/s/<host>`), niet het adres
   in de adresbalk (details in de valkuil hieronder). Zonder `PLATFORM_HOSTS` is alles beheer en toont de app nooit een openbare site (veilige standaard).
-- **Gewicht van een openbare pagina:** de Next-runtime levert ~170 KB gzip JavaScript mee (567 KB onverpakt), hoewel geen enkel block interactief is; HTML ~7 KB en CSS
-  ~6 KB gzip. `react-dom/server` mag niet in een routehandler (bouwfout), maar `react-dom/static` (`prerender`) wel en levert HTML zonder scripts; zie
-  `docs/hosting-opties.md` §5 voor het vervolg.
-- **Cache van openbare sites leegmaken (ISR):** een gecachete pagina heeft twee soorten tags: die van het routepatroon (`/s/[host]/layout`, gelden voor álle sites) en de exacte pad-tag
-  `/s/<host>/<pagina>` (zonder `/layout`). `revalidatePath('/s/<host>', 'layout')` past bij geen enkele pagina en doet stil niets; zo bleef een gepubliceerde wijziging in productie
-  onzichtbaar. Juist is een letterlijk pad per host en pagina zonder `type` (`revalidatePublicSite` in `src/lib/site-domains.ts`, met de slugs uit alle bewaarde versies). **De dev-server cachet niets, dus dit
-  is lokaal niet te testen**: bouw met `npm run build`, start `next start` en lees de tags uit `.next/server/app/s/<host>.meta` (`x-next-cache-tags`), of test op Vercel (publiceer, kijk of `x-vercel-cache`/`age` verspringt).
-  Wijzigt iets aan het cachen, test dan altijd in een productiebuild.
+- **Openbare pagina's zijn een route-handler, geen Next-pagina.** Een Next-pagina levert altijd de React-runtime mee (~170 KB gzip in 8 bestanden, ook als geen block interactief is); een handler die `react-dom/static` (`prerender`, niet `react-dom/server`,
+  dat geeft een bouwfout) gebruikt levert alleen HTML: nu ~10 KB gzip met de CSS ingebouwd en nul scriptbestanden. Consequenties: `<title>`, `<meta>`, canonical en OG-tags staan in `site-html.tsx` (geen `generateMetadata`); de CSS wordt bij het
+  opstarten samengevoegd uit `blocks.css` + de `styles.css` van elk block + `sites.css` + `site-frame.css` (`src/lib/site-css.ts`; die bestanden moeten in `outputFileTracingIncludes` in `next.config.ts` staan, anders ontbreken ze op Vercel); een nieuw
+  bestand met CSS voor openbare pagina's moet in die lijst en in `FILES` van `site-css.ts`. Er is geen `not-found.tsx` of `layout.tsx` meer onder `(sites)`; de 404 is een eigen document in `site-html.tsx`.
+- **Cache van openbare sites leegmaken: een tag per host, niet `revalidatePath`.** Een route-handler achter de rewrite van de proxy krijgt van Next als pad-tag het **oorspronkelijke** pad (`/`, `/over-ons`), en dat is voor elke site gelijk:
+  `revalidatePath` kan er dus geen site apart mee leegmaken. (Bij een echte pagina was het pad-tag wel `/s/<host>`, en `revalidatePath('/s/<host>', 'layout')` deed daar stil niets; zo bleef een wijziging eerder onzichtbaar.) Daarom hangt
+  de handler een kleine, tijdloze `unstable_cache` met tag `live:<host>` aan de pagina (`tagLivePage`, `liveTag` in `src/lib/public-site.ts`) en laat `revalidatePublicSite` (`src/lib/site-domains.ts`) die tag per host direct verlopen met
+  `updateTag`: alleen in server-acties, en alle aanroepers zijn dat. Verwijderen van een site doet hetzelfde. **De dev-server cachet niets, dus dit is lokaal niet te testen**: bouw, start `next start` en lees de tags uit
+  `.next/server/app/s/<host>.meta` (`x-next-cache-tags` moet `live:<host>` bevatten), of test op Vercel (publiceer, kijk of `x-vercel-cache`/`age` verspringt). Bewezen in een productiebuild: een andere tag laten verlopen laat de pagina op `HIT`,
+  de juiste tag geeft één `MISS` en daarna weer `HIT`, ook voor de andere pagina's van de host. `unstable_cache` is in Next 16 verouderd (vervangen door `use cache`, dat Cache Components vraagt); het werkt nog. Wijzigt iets aan het cachen, test dan altijd in een productiebuild.
 - **`sitemap.xml` en `robots.txt` onder `[host]` staan op `force-dynamic`.** Next bouwt een route met de naam `sitemap.xml` anders bij het bouwen één keer vooraf met de nepnaam `-` als host: de
   build raakte dan de database (faalde als die niet bereikbaar was) en elke echte host viel bij de paginaroute terecht (404 in plaats van XML). Verwijder die regel niet.
 - **`DATABASE_URL` mag alles bevatten wat Neon levert** (`?sslmode=require&channel_binding=require`). `src/db/index.ts` knipt alleen `sslmode` eruit en laat het scheidingsteken staan; een eerdere regex nam het `?` mee
@@ -311,7 +313,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
    Starter/Pro/Agency).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
-   domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
+   domeinen in behandeling, (✅ JS-loze openbare pagina's, zie §6), een **favicon per site** (nu tonen klantsites het icoon van het platform: `/favicon.ico` bestaat maar één keer, omdat een pad met een punt de proxy omzeilt), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
    vervallen van het Vercel-token, (✅ opgelost: de builder-werkbalk staat nu over de volle breedte bovenaan en wikkelt over meerdere rijen op smalle schermen; daaronder staan de paginakolom, het canvas en het rechterpaneel. Eerder viel hij onder het rechterpaneel weg). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
