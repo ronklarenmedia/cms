@@ -9,6 +9,7 @@ import { themeToCssVars } from "@/blocks/theme";
 import { db } from "@/db";
 import { pages, sites } from "@/db/schema";
 import { effectiveSiteTheme } from "@/lib/kits";
+import { ThemeFonts } from "@/lib/theme-fonts";
 import { requireStaff } from "@/lib/session";
 import { isUuid } from "../../../ids";
 import { pageMetadata } from "../../../seo";
@@ -44,6 +45,7 @@ export default async function VoorbeeldPage({ params }: { params: Params }) {
 
   return (
     <div className="min-h-screen" style={{ ...themeToCssVars(theme), background: "var(--var-color-white)" }}>
+      <ThemeFonts theme={theme} />
       <div className="sticky top-0 z-[200] flex flex-wrap items-center gap-3 bg-neutral-100 px-4 py-2 text-[12px] text-neutral-900">
         <span className="tag tag-accent">Voorbeeld</span>
         <span className="font-medium">{site.name}</span>

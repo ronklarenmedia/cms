@@ -8,7 +8,9 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import type { SectionData } from "@/blocks/contract";
 import { getBlock } from "@/blocks/registry";
 import { defaultTheme, themeToCssVars, type SiteTheme, type ThemeToken } from "@/blocks/theme";
-import { FONT_SUGGESTIONS, parseTokenValue, TOKEN_GROUPS, TOKENS, tokenKind, tokenLabel } from "@/lib/theme-tokens";
+import { ThemeFonts } from "@/lib/theme-fonts";
+import { parseTokenValue, TOKEN_GROUPS, TOKENS, tokenKind, tokenLabel } from "@/lib/theme-tokens";
+import { FontPicker } from "./FontPicker";
 import { ScaledFrame } from "../../componenten/ScaledFrame";
 import { deleteKit, saveKit } from "../actions";
 
@@ -228,6 +230,7 @@ export function KitEditor({
                             </button>
                           ) : null}
                         </label>
+                        {t.startsWith("fontFamily") ? <FontPicker value={values[t]} onChange={(v) => set(t, v)} label={tokenLabel(t)} /> : null}
                         <div className="flex items-center gap-2">
                           {kind === "color" ? (
                             <input type="color" aria-label={`${tokenLabel(t)} kiezen`} value={hex6(values[t])} onChange={(e) => set(t, e.target.value)} className="size-8 flex-none cursor-pointer rounded-sm border border-divider bg-transparent p-0.5" />
@@ -238,7 +241,6 @@ export function KitEditor({
                             value={values[t]}
                             onChange={(e) => set(t, e.target.value)}
                             inputMode={kind === "number" ? "decimal" : undefined}
-                            list={t.startsWith("fontFamily") ? "kit-fonts" : undefined}
                             aria-invalid={error ? true : undefined}
                             aria-describedby={error ? `err-${t}` : undefined}
                             spellCheck={false}
@@ -257,11 +259,6 @@ export function KitEditor({
             );
           })}
           {filtering && TOKEN_GROUPS.every((g) => g.tokens.filter(visible).length === 0) ? <p className="text-muted !mb-0 text-[13px]">Geen tokens gevonden.</p> : null}
-          <datalist id="kit-fonts">
-            {FONT_SUGGESTIONS.map((f) => (
-              <option key={f} value={f} />
-            ))}
-          </datalist>
         </div>
 
         {/* rechts: live voorbeeld */}
@@ -288,6 +285,7 @@ export function KitEditor({
             <div className="overflow-hidden rounded-md bg-white shadow-[var(--shadow-md)]" style={{ width: "100%", maxWidth: width }}>
               <ScaledFrame width={width}>
                 <div style={{ ...previewVars, background: "var(--var-color-white)" }}>
+                  <ThemeFonts theme={theme} />
                   {sampleSections.map((s) => (
                     <BlockSection key={s.id} section={s} />
                   ))}

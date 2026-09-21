@@ -13,6 +13,7 @@ import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, type
 import { fetchPublishInfo, publishSite, unpublishSite } from "./publish";
 import type { PublishInfo } from "./publishing";
 import { DomainsDialog } from "./DomainsDialog";
+import { ThemeFonts } from "@/lib/theme-fonts";
 import { KitDialog } from "./KitDialog";
 import { VersionsDialog } from "./VersionsDialog";
 import { isSlot, slotBlockSlugs, slotKeys, slots, type Slot } from "./layout-slots";
@@ -805,6 +806,7 @@ export function SiteBuilder({
               if ((e.target as HTMLElement).closest("a")) e.preventDefault();
             }}
           >
+            <ThemeFonts theme={site.theme} />
             <SiteFrame
               embedded
               header={layout.header.length > 0 ? <CanvasArea list={layout.header} area="header" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} /> : slotPlaceholder("header")}

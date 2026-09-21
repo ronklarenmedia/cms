@@ -102,7 +102,7 @@ const COLOR_GROUPS: { id: string; label: string; test: (t: string) => boolean }[
 ];
 
 const BASIC_GROUPS: { id: string; label: string; description: string; test: (t: string) => boolean }[] = [
-  { id: "tekst", label: "Typografie", description: "Lettertypes, groottes, diktes en regelafstand. Op openbare sites werken alleen systeemlettertypes zeker.", test: (t) => /^(fontSize|fontFamily|fontWeight|lineHeight|letterSpacing)/.test(t) },
+  { id: "tekst", label: "Typografie", description: "Lettertypes, groottes, diktes en regelafstand. Bij een lettertype kies je een webfont (zelf gehost, wordt meegeleverd) of een systeemlettertype.", test: (t) => /^(fontSize|fontFamily|fontWeight|lineHeight|letterSpacing)/.test(t) },
   { id: "vorm", label: "Vormgeving", description: "Hoeken, randen en schaduwen.", test: (t) => /^(borderRadius|borderWidth|boxShadow)/.test(t) },
   { id: "ruimte", label: "Ruimte en afmetingen", description: "Witruimte en maximale breedtes.", test: (t) => /^(spacing|maxWidth)/.test(t) },
   { id: "media", label: "Media", description: "Beeldverhoudingen.", test: (t) => t.startsWith("aspectRatio") },
@@ -113,16 +113,6 @@ const BASIC_GROUPS: { id: string; label: string; description: string; test: (t: 
 export const TOKEN_GROUPS: TokenGroup[] = [
   ...COLOR_GROUPS.map((g) => ({ id: g.id, label: g.label, description: "", tokens: TOKENS.filter((t) => g.test(t)) })),
   ...BASIC_GROUPS.map((g) => ({ id: g.id, label: g.label, description: g.description, tokens: TOKENS.filter((t) => g.test(t)) })),
-];
-
-/** Veelgebruikte lettertypestacks; systeemlettertypes hoeven niet te worden geladen. */
-export const FONT_SUGGESTIONS = [
-  'Inter, system-ui, sans-serif',
-  'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  'Georgia, "Times New Roman", serif',
-  '"Helvetica Neue", Arial, sans-serif',
-  '"Palatino Linotype", Palatino, serif',
-  'ui-monospace, "SF Mono", Menlo, monospace',
 ];
 
 const MAX_LENGTH = 120;

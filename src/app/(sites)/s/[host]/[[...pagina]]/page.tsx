@@ -3,6 +3,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { BlockRenderer } from "@/blocks/BlockRenderer";
 import { themeToCssVars } from "@/blocks/theme";
 import { findLiveSite, originOf, pagePath } from "@/lib/public-site";
+import { ThemeFonts } from "@/lib/theme-fonts";
 import { pageMetadata } from "@/app/(beheer)/websites/seo";
 import { SiteFrame } from "@/app/(beheer)/websites/SiteFrame";
 
@@ -46,6 +47,7 @@ export default async function PublicPage({ params }: { params: Params }) {
 
   return (
     <div style={{ ...themeToCssVars(theme), background: "var(--var-color-white)", minHeight: "100vh" }}>
+      <ThemeFonts theme={theme} />
       <SiteFrame
         header={layout.header.length > 0 ? <BlockRenderer sections={layout.header} /> : null}
         footer={layout.footer.length > 0 ? <BlockRenderer sections={layout.footer} /> : null}

@@ -142,7 +142,15 @@ klantpagina toont zijn websites.
 - *Validatie* (`parseTokenValue` in `theme-tokens.ts`, zowel in de editor als in de server-actie en bij het lezen): alleen bekende tokens; kleuren als hex/rgb/hsl/naam; getallen voor opacity en z-index; geen `;`, accolades,
   `url(`, `@import`, commentaar of backslashes. Een tokenwaarde komt in een `style`-attribuut en mag daar geen extra declaraties kunnen inbrengen. Een ongeldige kit uit de database wordt bij het renderen overgeslagen.
 - *In de builder*: knop "Design kit" (toont de naam van de kit) naast Voorbeeld en Domeinen, met `KitDialog.tsx`; het canvas ververst mee. *Nieuwe website* laat de kits van de gekozen klant plus de platformkits zien.
-- **Lettertypes:** openbare sites laden geen webfonts; alleen systeemlettertypes (of wat de bezoeker heeft) werken zeker. De editor waarschuwt daarvoor en geeft veilige stacks als suggestie. Webfonts per kit zijn nog te bouwen.
+- **Webfonts** (`src/lib/fonts.ts`, `src/lib/theme-fonts.tsx`, `public/fonts/`, `FontPicker.tsx`): een kit kiest per lettertype-token een **zelf gehoste** webfont of een systeemlettertype; een eigen stack kan ook.
+  - *Aanbod:* 14 open-source lettertypes (OFL-1.1, uit Fontsource 5.3.0): Inter, DM Sans, Manrope, Plus Jakarta Sans, Work Sans, Montserrat, Outfit, Space Grotesk (schreefloos), Playfair Display, Lora, Source Serif 4, Fraunces,
+    DM Serif Display (met schreef) en JetBrains Mono. Bestanden in `public/fonts/v1/` (528 KB samen, 22 à 51 KB per lettertype, alleen Latijns subset en alleen rechtopstaand, alle gewichten in één bestand), met de licenties in `public/fonts/licenses/`.
+    Toevoegen: zie `public/fonts/README.md` (kopiëren naar de map en één regel in `CATALOGUE`).
+  - *Werking:* er is **geen schemawijziging**. Het token bewaart een gewone stack (`"Playfair Display", Georgia, "Times New Roman", serif`); komt de eerste naam in de catalogus voor, dan levert `<ThemeFonts theme>` bij het renderen de
+    `@font-face` (`font-display: swap`) en een `preload` voor het kop- en tekstlettertype mee. Gebruikt in de publieke pagina, het voorbeeld, het builder-canvas en de kit-editor. React 19 tilt de regels naar de `<head>`.
+  - *Snelheid en privacy:* de bestanden komen van het **eigen domein van de klantsite** (paden met een punt omzeilen de proxy), `Cache-Control: public, max-age=31536000, immutable` (`next.config.ts`), geen verbinding met Google of een andere derde. Daarom staat de map op `v1`: vervang je een bestand, gebruik dan `v2` (en pas `FONT_DIR` aan).
+  - *Let op:* het **standaardthema noemt `Inter`**, dus elke site laadt nu Inter (48 KB) voor tekst, ook zonder kit; voorheen viel dat terug op het systeemlettertype. Alleen `fontFamilyPrimary` en `fontFamilyText` worden vooraf geladen; een pagina met twee webfonts kost dus ongeveer 60 à 100 KB extra.
+  - *Nog niet:* cursief (de browser maakt het zelf schuin), het Latin-ext-subset (tekens als ł, ő vallen terug op het systeemlettertype), aanpassing van de terugvalfont-afmetingen tegen layoutverschuiving bij het wisselen, en **eigen lettertypes van de klant uploaden** (dat vraagt een tabel of opslag in R2 en licentiebewaking: eerst overleggen).
 
 **Zoeken** — de zoekbalk bovenin (`GlobalSearch.tsx`, server-actie `searchPlatform` in `src/app/(beheer)/search.ts`, typen in `src/lib/search-types.ts`). Doorzoekt namen, contactpersonen en e-mail van klanten, namen en slugs van websites,
 titels, slugs en SEO-titels van pagina's en namen van design kits; per groep maximaal 5 resultaten (bij pagina's 8). Vanaf 2 tekens, met 200 ms vertraging na het typen; een oudere uitkomst wordt genegeerd.
@@ -292,7 +300,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel
      voorgelezen); `team` zet `position` op de `Person` in plaats van op een `ListItem` en gebruikt een relatieve
      `image`-URL in de JSON-LD.
-3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: webfonts per kit voor openbare sites, een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
+3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: eigen lettertypes van de klant uploaden, een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
    en het versiebeheer van kits (nu geldt de laatste opslag). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
