@@ -76,6 +76,9 @@ klantpagina toont zijn websites.
   site, nieuwste eerst, met bestandsnaam, afmetingen, grootte en "in gebruik (n×)" (zoekt het `id` in de opgeslagen pagina's en
   header/footer). Een beeld kiezen vult het veld. Verwijderen (alleen platform-admin) wist de rij en alle bestanden in R2, en
   weigert als het beeld nog in gebruik is of nu in het veld staat. Een site verwijderen ruimt ook alle bestanden in R2 op.
+- **Zijkolommen inklapbaar** (`usePanelOpen.ts`, `PanelRail` in `SiteBuilder.tsx`): de paginakolom links en het instellingenpaneel rechts hebben een inklapknop in hun kop; ingeklapt blijft een smal randje (44 px) met een
+  verticaal label ("Pagina's", "Instellingen") waarop je klikt om hem weer te openen. Zo krijgt het canvas op een smal scherm de ruimte (820 px: van ~200 naar ~640 px). De keuze staat in `localStorage` (`rkm.builder.left` en
+  `rkm.builder.right`, waarde `open`/`closed`; standaard open) en werkt ook als opslaan niet mag (dan onthoudt de pagina hem zolang hij openstaat). `useSyncExternalStore`: server en eerste weergave zijn altijd "open", dus geen hydratatiefout.
 - **Header en footer** staan onder "Op alle pagina's" in de linkerkolom en verschijnen op elke pagina. Welke blocks
   in welke plek mogen staat in `src/app/(beheer)/websites/layout-slots.ts`.
 - **Tab "Pagina"** (rechts): titel, URL, SEO-titel, omschrijving, afbeelding bij delen, noindex, met een
