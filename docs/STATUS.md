@@ -309,7 +309,7 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
    domeinen in behandeling, **JS-loze openbare pagina's** (zie hierboven), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
-   vervallen van het Vercel-token, en een **opmaakfout in de builder**: onder ongeveer 1000 px breed wordt de knop "Domeinen" afgedekt door het instellingenpaneel (de werkbalk loopt onder het paneel door). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
+   vervallen van het Vercel-token, (✅ opgelost: de builder-werkbalk staat nu over de volle breedte bovenaan en wikkelt over meerdere rijen op smalle schermen; daaronder staan de paginakolom, het canvas en het rechterpaneel. Eerder viel hij onder het rechterpaneel weg). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
 6. Opruimwerk: migratiebestanden, tests (nu alleen `check:blocks`), echte README, gebruikersbeheer-scherm,
