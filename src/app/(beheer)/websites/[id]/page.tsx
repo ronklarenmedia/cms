@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { customers, designKits, pages, sites } from "@/db/schema";
+import { customers, designKits, hostedFonts, hostedIcons, pages, sites } from "@/db/schema";
 import { isUuid } from "../ids";
 import { SiteBuilder } from "../SiteBuilder";
 import { effectiveSiteTheme } from "@/lib/kits";
@@ -29,6 +29,8 @@ export default async function WebsiteBuilderPage({ params, searchParams }: { par
   const startSlug = (await searchParams).pagina; // bijv. vanuit de zoekbalk; een lege waarde is de homepagina
   const initialPublish = await getPublishInfo(id);
   const pageRows = await db.select().from(pages).where(eq(pages.siteId, id)).orderBy(asc(pages.position), asc(pages.createdAt));
+  const fonts = await db.select().from(hostedFonts);
+  const icons = await db.select().from(hostedIcons);
 
   return (
     <SiteBuilder
@@ -36,6 +38,8 @@ export default async function WebsiteBuilderPage({ params, searchParams }: { par
       canDelete={user.role === "platform-admin"}
       initialPublish={initialPublish}
       initialPageId={startSlug === undefined ? undefined : pageRows.find((p) => p.slug === startSlug)?.id}
+      hostedFonts={fonts}
+      hostedIcons={Object.fromEntries(icons.map((i) => [i.name, i.svg]))}
       site={{
         id: row.site.id,
         name: row.site.name,

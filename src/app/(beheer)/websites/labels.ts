@@ -6,7 +6,7 @@ const fields: Record<string, string> = {
   body: "Tekst",
   intro: "Inleiding",
   text: "Tekst",
-  icon: "Icoon (emoji)",
+  icon: "Icoon (emoji of Material Symbol)",
   items: "Items",
   buttons: "Knoppen",
   label: "Label",

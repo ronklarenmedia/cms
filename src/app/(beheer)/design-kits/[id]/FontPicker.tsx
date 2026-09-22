@@ -1,19 +1,71 @@
 "use client";
 
-import { CATALOGUE, fontStack, SYSTEM_STACKS, webFontFor, type WebFont } from "@/lib/fonts";
+import { useState } from "react";
+import type { HostedFont } from "@/db/schema";
+import { CATALOGUE, familyStack, fontStack, SYSTEM_STACKS, webFontFor, type WebFont } from "@/lib/fonts";
+import { googleFontsIndex } from "@/lib/google-fonts-index";
+import { fetchGoogleFont } from "../google-fonts-actions";
 
-const CATEGORY: Record<WebFont["category"], string> = { sans: "Schreefloos", serif: "Met schreef", mono: "Vaste breedte" };
+const CATEGORY: Record<WebFont["category"], string> = { sans: "Schreefloos", serif: "Met schreef", mono: "Vaste breedte", display: "Uitgesproken", handwriting: "Handschrift" };
 const kb = (bytes: number) => `${Math.round(bytes / 1024)} KB`;
+const MAX_RESULTS = 8;
 
 /**
- * Kiest een lettertype uit de zelf gehoste webfonts of de systeemlettertypes; het invoerveld eronder blijft voor een eigen stack.
- * Een webfont wordt op de klantsite meegeleverd (zie src/lib/fonts.ts); een systeemlettertype kost niets.
+ * Kiest een lettertype uit de zelf gehoste webfonts, de systeemlettertypes, of zoekt in de volledige Google Fonts-
+ * bibliotheek (on-demand: de eerste keer dat iemand een familie kiest, haalt de server hem op en host hem zelf
+ * voortaan, zie src/lib/google-fonts.ts). Het invoerveld eronder blijft voor een eigen stack.
  */
-export function FontPicker({ value, onChange, label }: { value: string; onChange: (stack: string) => void; label: string }) {
+export function FontPicker({
+  value,
+  onChange,
+  label,
+  hosted,
+  onHosted,
+}: {
+  value: string;
+  onChange: (stack: string) => void;
+  label: string;
+  /** Al on-demand gehoste Google Fonts, voor een directe toepassing zonder opnieuw op te halen. */
+  hosted: HostedFont[];
+  /** Aangeroepen zodra een nieuwe familie is opgehaald, zodat de rest van de editor hem meteen kent. */
+  onHosted: (font: HostedFont) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+
   const known = CATALOGUE.find((f) => fontStack(f) === value) ?? null;
   const system = SYSTEM_STACKS.find((s) => s.stack === value) ?? null;
   const web = webFontFor(value);
   const selected = known ? `web:${known.id}` : system ? `sys:${system.stack}` : "eigen";
+
+  const needle = query.trim().toLowerCase();
+  const results = needle.length < 2 ? [] : googleFontsIndex().filter((f) => f.family.toLowerCase().includes(needle)).slice(0, MAX_RESULTS);
+
+  async function pick(family: string) {
+    setProblem(null);
+    const already = hosted.find((f) => f.family.toLowerCase() === family.toLowerCase());
+    if (already) {
+      onChange(familyStack(already.family, already.category));
+      setQuery("");
+      return;
+    }
+    setBusy(family);
+    try {
+      const res = await fetchGoogleFont(family);
+      if (!res.ok) {
+        setProblem(res.error);
+        return;
+      }
+      onHosted(res.font);
+      onChange(familyStack(res.font.family, res.font.category));
+      setQuery("");
+    } catch {
+      setProblem("Ophalen is mislukt. Controleer je verbinding en probeer het opnieuw.");
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-1">
@@ -53,6 +105,45 @@ export function FontPicker({ value, onChange, label }: { value: string; onChange
             ? "Een eigen stack: alleen lettertypes die de bezoeker zelf heeft, werken zeker."
             : "Systeemlettertype: niets te laden."}
       </span>
+
+      <div className="relative">
+        <input
+          type="search"
+          className="input"
+          placeholder="Zoek in alle Google Fonts…"
+          aria-label={`${label}: zoek een Google Font`}
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setProblem(null);
+          }}
+        />
+        {results.length > 0 ? (
+          <ul className="absolute top-full right-0 left-0 z-10 mt-1 max-h-52 overflow-auto rounded-md bg-surface py-1 shadow-[var(--shadow-md)]">
+            {results.map((f) => {
+              const already = hosted.some((h) => h.family.toLowerCase() === f.family.toLowerCase());
+              return (
+                <li key={f.family}>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12.5px] hover:bg-text/6 disabled:opacity-60"
+                    disabled={busy !== null}
+                    onClick={() => void pick(f.family)}
+                  >
+                    <span style={{ fontFamily: familyStack(f.family, f.category) }}>{f.family}</span>
+                    <span className="text-muted ml-auto text-[10.5px]">{busy === f.family ? "Ophalen…" : already ? "al gehost" : CATEGORY[f.category]}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : null}
+      </div>
+      {problem ? (
+        <span role="alert" className="text-danger text-[11px]">
+          {problem}
+        </span>
+      ) : null}
     </div>
   );
 }

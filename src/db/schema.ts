@@ -113,8 +113,18 @@ export type SnapshotPage = {
 };
 
 /** Alles wat een bezoeker van een gepubliceerde site nodig heeft. Wat hierin staat, verandert nooit meer (zie `siteVersions`). */
-// `favicon` alleen aanwezig als er een is geüpload: zo verandert de hash van bestaande momentopnamen niet.
-export type SiteSnapshot = { name: string; theme: SiteTheme; layout: SiteLayout; pages: SnapshotPage[]; favicon?: string };
+// `favicon`, `hostedFonts` en `icons` alleen aanwezig als de site ze gebruikt: zo verandert de hash van bestaande momentopnamen niet.
+export type SiteSnapshot = {
+  name: string;
+  theme: SiteTheme;
+  layout: SiteLayout;
+  pages: SnapshotPage[];
+  favicon?: string;
+  /** On-demand gehoste Google Fonts die het thema gebruikt (zie src/lib/google-fonts.ts); leeg als het thema alleen de vaste catalogus/systeemlettertypes gebruikt. */
+  hostedFonts?: HostedFont[];
+  /** Iconnaam → gesaneerde SVG-markup, voor content die naar een on-demand gehost Material Symbol verwijst (nu alleen usp-grid). */
+  icons?: Record<string, string>;
+};
 
 // ── Design kits ───────────────────────────────────────────────────────────────
 // Een kit is een opgeslagen thema: alleen de tokens die afwijken van `defaultTheme` (zie src/blocks/theme.ts). Een site verwijst
@@ -268,8 +278,40 @@ export const media = pgTable(
   (t) => [index("media_site_created_idx").on(t.siteId, t.createdAt)],
 );
 
+// Zelf gehoste Google Fonts, op verzoek van een medewerker opgehaald (zie src/lib/google-fonts.ts). Platformbreed (geen `siteId`):
+// een familie wordt maar één keer gehaald, ongeacht welke site of kit hem als eerste kiest. `files` bevat één object per
+// lettergewicht-bestand in R2 (`fonts/g/<id>/<gewicht>.woff2`); `id` is app-gegenereerd, net als bij `media`, omdat de R2-map
+// al moet bestaan vóór de rij wordt ingevoegd.
+export const fontCategoryEnum = pgEnum("font_category", ["sans", "serif", "mono", "display", "handwriting"]);
+
+export const hostedFonts = pgTable(
+  "hosted_fonts",
+  {
+    id: uuid("id").primaryKey(),
+    family: varchar("family", { length: 120 }).notNull(),
+    category: fontCategoryEnum("category").notNull(),
+    files: jsonb("files").$type<{ weight: string; url: string }[]>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [uniqueIndex("hosted_fonts_family_idx").on(sql`lower(${t.family})`)],
+);
+
+// Zelf gehoste Material Symbols-iconen, op verzoek van een medewerker opgehaald (zie src/lib/material-icons.ts) en gesaneerd tot
+// veilige SVG. Platformbreed en klein genoeg voor een tekstkolom (geen R2 nodig). Nu alleen gebruikt door usp-grid
+// (content.items[].icon; zie loadWorkingSnapshot voor hoe een naam naar SVG wordt opgelost bij het publiceren).
+export const hostedIcons = pgTable("hosted_icons", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 60 }).notNull().unique(),
+  svg: text("svg").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+});
+
 export type Site = typeof sites.$inferSelect;
 export type MediaRow = typeof media.$inferSelect;
+export type HostedFont = typeof hostedFonts.$inferSelect;
+export type HostedIcon = typeof hostedIcons.$inferSelect;
 export type SiteVersion = typeof siteVersions.$inferSelect;
 export type SiteDomain = typeof siteDomains.$inferSelect;
 export type PlatformSettingsRow = typeof platformSettings.$inferSelect;

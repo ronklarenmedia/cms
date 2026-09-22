@@ -1,7 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { customers, designKits, sites } from "@/db/schema";
+import { customers, designKits, hostedFonts, sites } from "@/db/schema";
 import { requireStaff } from "@/lib/session";
 import { isUuid } from "../../websites/ids";
 import { KitEditor } from "./KitEditor";
@@ -19,6 +19,7 @@ export default async function KitEditorPage({ params }: { params: Promise<{ id: 
   if (!row) notFound();
 
   const users = await db.select({ id: sites.id, name: sites.name }).from(sites).where(eq(sites.designKitId, id)).orderBy(asc(sites.name));
+  const fonts = await db.select().from(hostedFonts);
 
   return (
     <KitEditor
@@ -26,6 +27,7 @@ export default async function KitEditorPage({ params }: { params: Promise<{ id: 
       kit={{ id: row.kit.id, name: row.kit.name, theme: row.kit.theme, customerName: row.customerName }}
       sites={users}
       canDelete={user.role === "platform-admin"}
+      initialHostedFonts={fonts}
     />
   );
 }

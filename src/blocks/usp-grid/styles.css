@@ -36,6 +36,12 @@
   font-size: var(--var-font-size-xl);
   line-height: 1;
 }
+/* Een gehost Material Symbol (inline SVG) i.p.v. een emoji: even groot als de tekst eromheen, in de tekstkleur. */
+.blk-usp-grid__icon svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
 .blk-usp-grid__item-heading {
   font-size: var(--var-font-size-medium);
 }

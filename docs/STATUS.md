@@ -1,6 +1,6 @@
 # Status en overdracht — Ron Klaren Media platform
 
-Stand: 21 september 2026 (commit `2b5e58f` en later). **Het platform draait in productie op Vercel** (zie §9). Doel van dit bestand: thuis of op een andere computer
+Stand: 22 september 2026 (commit `38d1a76` en later; zie §3 voor de nieuwste, nog niet gecommitte wijziging: de Google Fonts-/iconenbibliotheek). **Het platform draait in productie op Vercel** (zie §9). Doel van dit bestand: thuis of op een andere computer
 verder kunnen werken zonder de eerdere gesprekken. Er staan bewust **geen geheimen** in (geen connectiestring,
 sleutels of wachtwoorden).
 
@@ -22,6 +22,7 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
 | **Platformoverzicht** (`/`) | **Echt** (21 sept): live koppelingsstatus, aantallen klanten/websites/domeinen/beelden, publicaties per uur of dag, klanten met de meeste websites en recente publicaties. Geen bezoekers of pageviews: daar is nog geen bron voor (zie §3) |
 | **Design kits** (`/design-kits`) | **Echt** (21 sept): overzicht, aanmaken, editor met alle 87 tokens en live voorbeeld, kit kiezen in de builder en bij een nieuwe site (zie §3) |
+| **Google Fonts- en iconenbibliotheek** | **Echt** (22 sept): zoeken in alle ~1800 Google Fonts en alle Material Symbols-iconen (usp-grid), on-demand ophalen en zelf hosten (zie §3) |
 | Rapportages, Apps | **Nog mockup** (nagemaakte demo-data) |
 | Zoekbalk bovenin | **Echt** (21 sept): klanten, websites, pagina's en design kits (zie §3). Het belletje (meldingen) is nog niet functioneel |
 
@@ -172,6 +173,27 @@ titels, slugs en SEO-titels van pagina's en namen van design kits; per groep max
 (werkbank: variant, voorbeeld, thema, breakpoint, eigenschappen, JSON-weergave; niets wordt opgeslagen) en
 `/componenten/showcase`.
 
+**Google Fonts- en iconenbibliotheek** (22 sept) — on-demand: niet vooraf gebundeld, maar de eerste keer dat een medewerker een
+lettertype of icoon kiest haalt de server het op en host het daarna voorgoed zelf, zoals nu al met geüploade afbeeldingen/favicons.
+- *Lettertypes* (`src/lib/google-fonts.ts`, tabel `hosted_fonts`, route `src/app/fonts/g/[...file]/route.ts`): de `FontPicker` in de
+  design-kit-editor heeft naast de vaste 14 een zoekveld over een gebundelde index van alle Google Fonts (`src/lib/google-fonts-index.json`,
+  ~1800 namen/categorieën, ververst met `scripts/update-google-fonts-index.ts` — géén API-sleutel nodig, alleen namen worden gebundeld).
+  Een gekozen familie wordt bij Google opgehaald (CSS2-endpoint, alleen het Latijnse subset), naar R2 gezet onder een **platformbrede**
+  sleutel (`fonts/g/<id>/…`, niet per site) en via een eigen route op het **eigen domein van de klantsite** geserveerd (geen CORS-afhankelijkheid,
+  zelfde cache-regel als de bestaande statische lettertypes). Publiceren bakt de gebruikte gehoste fonts in de momentopname
+  (`snapshot.hostedFonts`), zodat een openbare pagina nooit een extra databasequery nodig heeft.
+- *Iconen* (`src/lib/material-icons.ts`, tabel `hosted_icons`, alleen `usp-grid`): een zoekveld (`IconPicker.tsx`) over een gebundelde
+  naamindex van Material Symbols (`src/lib/material-icons-index.json`, ~3900 namen, ververst met `scripts/update-material-icons-index.ts`).
+  Een gekozen icoon wordt van een vastgepind pad+versie op jsDelivr gehaald, **gesaneerd** (volledige herbouw uit alleen gevalideerde
+  `viewBox`/`d`-waarden — nooit ruwe opmaak van de bron) en als tekst opgeslagen (geen R2 nodig). Publiceren bakt de gebruikte iconen in
+  `snapshot.icons` (naam → SVG); `usp-grid` rendert ze inline via `<Icon>` uit `src/blocks/parts/Icon.tsx` (de enige andere plek naast
+  `JsonLd.tsx` waar `dangerouslySetInnerHTML` mag, zie de checker). Het `icon`-veld accepteert nog gewoon een vrij emoji (achterwaarts
+  compatibel, geen migratie nodig): alleen een waarde die een bekende iconnaam blijkt te zijn wordt als SVG gerenderd.
+- Beveiliging: elke aanvraag naar Google/jsDelivr gaat alleen over een naam die al in de gebundelde index staat (nooit een vrije URL van
+  een gebruiker), met timeout en groottelimiet; nooit op het pad van een bezoeker, altijd achter `staffUser()`.
+- **SQL nog niet overal toegepast**: `docs/sql/2026-09-22-hosted-fonts.sql` en `docs/sql/2026-09-22-hosted-icons.sql` moeten nog op elke
+  database worden uitgevoerd vóór deze code live gaat (zie §9). Nog niet visueel getest (zie §12): dit vraagt een werkende `DATABASE_URL`.
+
 ## 4. Architectuur in het kort
 
 Stack: Next.js 16 (App Router), React 19, Tailwind 4, Drizzle ORM + Neon Postgres (`pg`), Zod 4, Better Auth,
@@ -317,9 +339,12 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel
      voorgelezen); `team` zet `position` op de `Person` in plaats van op een `ListItem` en gebruikt een relatieve
      `image`-URL in de JSON-LD.
-3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: eigen lettertypes van de klant uploaden, een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
+3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
    en het versiebeheer van kits (nu geldt de laatste opslag). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
    Starter/Pro/Agency).
+   - ✅ **Google Fonts- en iconenbibliotheek**, on-demand (zie §3). Nog te doen: SQL nog op elke database uitvoeren en zelf visueel
+     testen (§9/§12 — dit is gebouwd zonder werkende lokale database), iconen naar meer blocks dan usp-grid uitbreiden, eigen
+     lettertypes van de klant uploaden.
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
    domeinen in behandeling, (✅ JS-loze openbare pagina's, zie §6), (✅ favicon per site), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het
@@ -369,6 +394,11 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
   `production` uitvoeren vóór het deployen (eerst geoefend op een tijdelijke branch als kopie van productie, die daarna is verwijderd). Zonder de tabel falen o.a. de builder, het voorbeeld, publiceren en het aanmaken van een site.
 - **Favicon:** `docs/sql/2026-09-21-favicon.sql` (kolom `sites.favicon_url`, leeg voor bestaande sites) moet op de database staan vóór de code die hem leest. Lokaal (`main`) toegepast; op `production` uitvoeren vóór het deployen.
   Zonder de kolom falen o.a. de builder, het voorbeeld, publiceren en de openbare pagina's (elke `select` op `sites` noemt de kolom).
+- **Google Fonts/iconenbibliotheek:** `docs/sql/2026-09-22-hosted-fonts.sql` (tabel `hosted_fonts` + enum `font_category`) en
+  `docs/sql/2026-09-22-hosted-icons.sql` (tabel `hosted_icons`) moeten op de database staan vóór de code die ze leest. **Nog nergens
+  toegepast** (dit is op een andere computer gebouwd, zonder lokale `DATABASE_URL` om ze te draaien) — eerst op `main`, dan op `production`
+  vóór het deployen. Zonder de tabellen falen o.a. de builder, het voorbeeld, de design-kit-editor en publiceren (ze worden altijd gelezen,
+  ook als een site niets on-demand gehost gebruikt).
 - Een admin aanmaken met `npm run create-user` (tegen de productie-database) is gedaan: het bestaande account staat in de `production`-branch (gekopieerd bij het aanmaken van de branch).
 
 ## 10. Werkafspraken
@@ -416,3 +446,10 @@ verwijderen; een gepubliceerde wijziging verschijnt direct. Wat hieronder staat 
 - Domeinen (na het instellen van de Vercel-variabelen): voeg in de builder onder "Domeinen" `klant.nl` toe; het scherm toont de DNS-records; na het instellen bij de registrar en "Controleer nu"
   wordt het *Actief*. Voeg ook `www.klant.nl` toe en zet één van de twee primair: het andere adres stuurt (308) naar het primaire, `robots.txt` en `sitemap.xml` staan onder het eigen domein.
   Lokaal zonder Vercel is te testen met `curl -H "Host: klant.nl" http://localhost:3000/` nadat het domein in de database staat.
+- **Google Fonts- en iconenbibliotheek** (22 sept, nog geheel ongetest — gebouwd zonder werkende lokale database, zie §9 voor de SQL
+  die eerst moet draaien): in de design-kit-editor bij een lettertype-token een niet-gebundeld Google Font zoeken en kiezen; een
+  laadstatus, dan een werkend voorbeeld; herladen en bevestigen dat hij nu instant beschikbaar is (al gehost). Die kit publiceren en
+  op de live site in het netwerktabblad controleren dat het lettertype van `/fonts/g/…` komt (zelfde origin als de site, niet
+  `fonts.googleapis.com`), met `cache-control: immutable`. In de bouwer een `usp-grid`-item een Material Symbol geven via de
+  icoonkiezer (zoeken, kiezen, ophalen); bevestigen dat vrij emoji typen nog gewoon werkt. Publiceren en op de openbare pagina de
+  paginabron bekijken: het icoon staat als inline `<svg fill="currentColor">`, geen extra verzoek.

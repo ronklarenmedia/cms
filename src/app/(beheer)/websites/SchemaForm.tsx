@@ -2,11 +2,16 @@
 
 import { z } from "zod";
 import type { AnyBlock } from "@/blocks/contract";
+import { IconPicker } from "./IconPicker";
 import { ImageUpload } from "./ImageUpload";
 import { fieldLabel, longTextKeys, placeholders, valueLabel } from "./labels";
 
 // Het instellingenpaneel wordt uit de Zod-schema's van het block gegenereerd (via JSON Schema),
 // zodat een nieuw block geen eigen formulier nodig heeft.
+
+/** `<blockslug>.<veldnaam>`-paren die een eigen invoercomponent krijgen i.p.v. het gewone tekstveld. Een nieuw block
+ * hier toevoegen is genoeg; er hoeft verder niets aangepast te worden. */
+const ICON_FIELDS = new Set(["usp-grid.icon"]);
 export type JS = {
   type?: string;
   enum?: string[];
@@ -85,6 +90,9 @@ function Field({
   onChange,
   path,
   errors,
+  blockSlug,
+  hostedIcons,
+  onIconHosted,
 }: {
   name: string;
   schema: JS;
@@ -93,6 +101,9 @@ function Field({
   onChange: Change;
   path: string;
   errors: Errors;
+  blockSlug?: string;
+  hostedIcons?: Record<string, string>;
+  onIconHosted?: (name: string, svg: string) => void;
 }) {
   const label = fieldLabel(name);
   const error = errors[path];
@@ -154,6 +165,7 @@ function Field({
   if (schema.type === "string") {
     const long = longTextKeys.has(name) || (schema.maxLength ?? 0) >= 200;
     const commit = (raw: string) => onChange(raw === "" && !required ? undefined : raw);
+    const isIconField = blockSlug && ICON_FIELDS.has(`${blockSlug}.${name}`);
     return (
       <label className="field" style={{ gap: 4 }}>
         <span className="flex items-baseline justify-between text-[11px]">
@@ -164,7 +176,9 @@ function Field({
             </span>
           ) : null}
         </span>
-        {long ? (
+        {isIconField ? (
+          <IconPicker value={String(value ?? "")} onChange={commit} hosted={hostedIcons ?? {}} onHosted={onIconHosted ?? (() => {})} />
+        ) : long ? (
           <textarea
             className="input"
             rows={3}
@@ -224,7 +238,7 @@ function Field({
     return (
       <Group title={label}>
         {isImage ? <ImageUpload value={current} onChange={onChange} /> : null}
-        <ObjectFields schema={schema} value={current} onChange={onChange} path={path} errors={errors} />
+        <ObjectFields schema={schema} value={current} onChange={onChange} path={path} errors={errors} blockSlug={blockSlug} hostedIcons={hostedIcons} onIconHosted={onIconHosted} />
         {optional ? (
           <button
             type="button"
@@ -283,6 +297,9 @@ function Field({
                 onChange={(v) => replace(list.map((x, j) => (j === i ? v : x)))}
                 path={`${path}.${i}`}
                 errors={errors}
+                blockSlug={blockSlug}
+                hostedIcons={hostedIcons}
+                onIconHosted={onIconHosted}
               />
             ) : (
               <Field
@@ -293,6 +310,9 @@ function Field({
                 onChange={(v) => replace(list.map((x, j) => (j === i ? v : x)))}
                 path={`${path}.${i}`}
                 errors={errors}
+                blockSlug={blockSlug}
+                hostedIcons={hostedIcons}
+                onIconHosted={onIconHosted}
               />
             )}
           </div>
@@ -320,12 +340,18 @@ function ObjectFields({
   onChange,
   path,
   errors,
+  blockSlug,
+  hostedIcons,
+  onIconHosted,
 }: {
   schema: JS;
   value: unknown;
   onChange: Change;
   path: string;
   errors: Errors;
+  blockSlug?: string;
+  hostedIcons?: Record<string, string>;
+  onIconHosted?: (name: string, svg: string) => void;
 }) {
   const obj = (value && typeof value === "object" ? value : {}) as Record<string, unknown>;
   const required = new Set(schema.required ?? []);
@@ -351,25 +377,35 @@ function ObjectFields({
             onChange={(next) => set(key, next)}
             path={path ? `${path}.${key}` : key}
             errors={errors}
+            blockSlug={blockSlug}
+            hostedIcons={hostedIcons}
+            onIconHosted={onIconHosted}
           />
         ))}
     </>
   );
 }
 
-/** Formulier voor één deel (content of settings) van een sectie. `root` is het pad-prefix in de foutmeldingen. */
+/** Formulier voor één deel (content of settings) van een sectie. `root` is het pad-prefix in de foutmeldingen.
+ * `blockSlug`/`hostedIcons`/`onIconHosted`: alleen nodig als het block een veld in `ICON_FIELDS` heeft (nu usp-grid.icon). */
 export function SchemaFields({
   schema,
   value,
   onChange,
   root,
   errors,
+  blockSlug,
+  hostedIcons,
+  onIconHosted,
 }: {
   schema: JS;
   value: unknown;
   onChange: (next: Record<string, unknown>) => void;
   root: "content" | "settings";
   errors: Errors;
+  blockSlug?: string;
+  hostedIcons?: Record<string, string>;
+  onIconHosted?: (name: string, svg: string) => void;
 }) {
   return (
     <ObjectFields
@@ -378,6 +414,9 @@ export function SchemaFields({
       onChange={(next) => onChange(next as Record<string, unknown>)}
       path={root}
       errors={errors}
+      blockSlug={blockSlug}
+      hostedIcons={hostedIcons}
+      onIconHosted={onIconHosted}
     />
   );
 }

@@ -21,7 +21,7 @@ function BlockError({ message }: { message: string }) {
 }
 
 /** Rendert één opgeslagen sectie: valideert tegen het schema van zijn block en wikkelt hem in <Section>. */
-export function BlockSection({ section }: { section: SectionData }) {
+export function BlockSection({ section, icons }: { section: SectionData; icons?: Record<string, string> }) {
   const block = getBlock(section.type);
   if (!block) return <BlockError message={`Onbekend bloktype "${section.type}"`} />;
 
@@ -39,17 +39,17 @@ export function BlockSection({ section }: { section: SectionData }) {
   const Component = block.Component;
   return (
     <Section block={block.slug} variant={variant} settings={settings}>
-      <Component variant={variant} content={content} settings={settings} />
+      <Component variant={variant} content={content} settings={settings} icons={icons} />
     </Section>
   );
 }
 
-/** Rendert de secties van een pagina (`pages.content`) in volgorde. */
-export function BlockRenderer({ sections }: { sections: SectionData[] }) {
+/** Rendert de secties van een pagina (`pages.content`) in volgorde. `icons`: gesaneerde SVG per iconnaam (nu alleen voor usp-grid; zie src/lib/material-icons.ts). */
+export function BlockRenderer({ sections, icons }: { sections: SectionData[]; icons?: Record<string, string> }) {
   return (
     <>
       {sections.map((section) => (
-        <BlockSection key={section.id} section={section} />
+        <BlockSection key={section.id} section={section} icons={icons} />
       ))}
     </>
   );

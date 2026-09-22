@@ -7,7 +7,7 @@ import "@/blocks/blocks.css";
 import { BlockRenderer } from "@/blocks/BlockRenderer";
 import { themeToCssVars } from "@/blocks/theme";
 import { db } from "@/db";
-import { pages, sites } from "@/db/schema";
+import { hostedFonts, hostedIcons, pages, sites } from "@/db/schema";
 import { effectiveSiteTheme } from "@/lib/kits";
 import { ThemeFonts } from "@/lib/theme-fonts";
 import { requireStaff } from "@/lib/session";
@@ -27,7 +27,9 @@ const load = cache(async (id: string, slug: string) => {
   if (!site) return null;
   const all = await db.select().from(pages).where(eq(pages.siteId, id)).orderBy(asc(pages.position), asc(pages.createdAt));
   const page = all.find((p) => p.slug === slug);
-  return page ? { site, all, page, theme: await effectiveSiteTheme(site) } : null;
+  const fonts = await db.select().from(hostedFonts);
+  const icons = Object.fromEntries((await db.select().from(hostedIcons)).map((i) => [i.name, i.svg]));
+  return page ? { site, all, page, theme: await effectiveSiteTheme(site), fonts, icons } : null;
 });
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
@@ -41,11 +43,11 @@ export default async function VoorbeeldPage({ params }: { params: Params }) {
   const { id, pagina } = await params;
   const data = await load(id, pagina?.[0] ?? "");
   if (!data) notFound();
-  const { site, all, page, theme } = data;
+  const { site, all, page, theme, fonts, icons } = data;
 
   return (
     <div className="min-h-screen" style={{ ...themeToCssVars(theme), background: "var(--var-color-white)" }}>
-      <ThemeFonts theme={theme} />
+      <ThemeFonts theme={theme} hosted={fonts} />
       <div className="sticky top-0 z-[200] flex flex-wrap items-center gap-3 bg-neutral-100 px-4 py-2 text-[12px] text-neutral-900">
         <span className="tag tag-accent">Voorbeeld</span>
         <span className="font-medium">{site.name}</span>
@@ -68,10 +70,10 @@ export default async function VoorbeeldPage({ params }: { params: Params }) {
       <div className="isolate">
         <PreviewLinks siteId={id}>
           <SiteFrame
-            header={site.layout.header.length > 0 ? <BlockRenderer sections={site.layout.header} /> : null}
-            footer={site.layout.footer.length > 0 ? <BlockRenderer sections={site.layout.footer} /> : null}
+            header={site.layout.header.length > 0 ? <BlockRenderer sections={site.layout.header} icons={icons} /> : null}
+            footer={site.layout.footer.length > 0 ? <BlockRenderer sections={site.layout.footer} icons={icons} /> : null}
           >
-            <BlockRenderer sections={page.content} />
+            <BlockRenderer sections={page.content} icons={icons} />
           </SiteFrame>
         </PreviewLinks>
       </div>

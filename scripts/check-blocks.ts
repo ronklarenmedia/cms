@@ -183,8 +183,8 @@ for (const file of files) {
   if (/\b(rgb|rgba|hsl|hsla|hwb|lab|lch|oklch|oklab)\(/i.test(code)) fail(at, "kleurfunctie (rgb/hsl/…) gevonden — gebruik een var(--var-*)-token");
   if (/\bstyle\s*=/.test(code) && !isCss) fail(at, "style-prop gevonden — uiterlijk hoort in CSS met tokens");
   if (/<style[\s>]/i.test(code)) fail(at, "<style>-element gevonden");
-  if (/dangerouslySetInnerHTML/.test(code) && !file.endsWith("parts/JsonLd.tsx")) {
-    fail(at, "dangerouslySetInnerHTML gevonden — voor JSON-LD gebruik <JsonLd> uit parts/JsonLd.tsx");
+  if (/dangerouslySetInnerHTML/.test(code) && !file.endsWith("parts/JsonLd.tsx") && !file.endsWith("parts/Icon.tsx")) {
+    fail(at, "dangerouslySetInnerHTML gevonden — voor JSON-LD gebruik <JsonLd>, voor een gehost icoon <Icon> uit parts/");
   }
   if (!isCss && /["']use client["']/.test(code)) fail(at, '"use client" gevonden — blocks zijn server components');
   if (!isCss && /from\s+["']next\//.test(code)) fail(at, "import uit next/* gevonden — blocks blijven framework-onafhankelijk");

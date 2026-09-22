@@ -15,8 +15,8 @@ export const content = z.object({
   items: z
     .array(
       z.object({
-        /** Eén emoji of teken; puur decoratief (aria-hidden). */
-        icon: z.string().max(4).optional(),
+        /** Eén emoji/teken (vrij, wordt letterlijk getoond), of de naam van een gehost Material Symbol (src/lib/material-icons.ts); puur decoratief (aria-hidden). */
+        icon: z.string().max(60).optional(),
         heading: z.string().min(1).max(80),
         text: z.string().max(240).optional(),
       }),

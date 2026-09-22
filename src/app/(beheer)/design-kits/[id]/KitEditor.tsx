@@ -8,6 +8,7 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import type { SectionData } from "@/blocks/contract";
 import { getBlock } from "@/blocks/registry";
 import { defaultTheme, themeToCssVars, type SiteTheme, type ThemeToken } from "@/blocks/theme";
+import type { HostedFont } from "@/db/schema";
 import { ThemeFonts } from "@/lib/theme-fonts";
 import { parseTokenValue, TOKEN_GROUPS, TOKENS, tokenKind, tokenLabel } from "@/lib/theme-tokens";
 import { FontPicker } from "./FontPicker";
@@ -44,14 +45,18 @@ export function KitEditor({
   kit,
   sites,
   canDelete,
+  initialHostedFonts,
 }: {
   kit: { id: string; name: string; theme: SiteTheme; customerName: string | null };
   sites: { id: string; name: string }[];
   canDelete: boolean;
+  /** On-demand gehoste Google Fonts (src/lib/google-fonts.ts), voor de zoek-picker en het voorbeeld. */
+  initialHostedFonts: HostedFont[];
 }) {
   const router = useRouter();
   const [name, setName] = useState(kit.name);
   const [values, setValues] = useState<Values>(() => initialValues(kit.theme));
+  const [hostedFonts, setHostedFonts] = useState(initialHostedFonts);
   const [saved, setSaved] = useState(() => JSON.stringify({ name: kit.name, theme: kit.theme }));
   const [query, setQuery] = useState("");
   const [onlyChanged, setOnlyChanged] = useState(false);
@@ -232,7 +237,9 @@ export function KitEditor({
                             </button>
                           ) : null}
                         </label>
-                        {t.startsWith("fontFamily") ? <FontPicker value={values[t]} onChange={(v) => set(t, v)} label={tokenLabel(t)} /> : null}
+                        {t.startsWith("fontFamily") ? (
+                          <FontPicker value={values[t]} onChange={(v) => set(t, v)} label={tokenLabel(t)} hosted={hostedFonts} onHosted={(f) => setHostedFonts((prev) => [...prev, f])} />
+                        ) : null}
                         <div className="flex items-center gap-2">
                           {kind === "color" ? (
                             <input type="color" aria-label={`${tokenLabel(t)} kiezen`} value={hex6(values[t])} onChange={(e) => set(t, e.target.value)} className="size-8 flex-none cursor-pointer rounded-sm border border-divider bg-transparent p-0.5" />
@@ -287,7 +294,7 @@ export function KitEditor({
             <div className="overflow-hidden rounded-md bg-white shadow-[var(--shadow-md)]" style={{ width: "100%", maxWidth: width }}>
               <ScaledFrame width={width}>
                 <div style={{ ...previewVars, background: "var(--var-color-white)" }}>
-                  <ThemeFonts theme={theme} />
+                  <ThemeFonts theme={theme} hosted={hostedFonts} />
                   {sampleSections.map((s) => (
                     <BlockSection key={s.id} section={s} />
                   ))}

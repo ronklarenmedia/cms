@@ -1,9 +1,22 @@
 import { asc, and, eq } from "drizzle-orm";
+import type { SectionData } from "@/blocks/contract";
 import { db } from "@/db";
-import { pages, sites, siteVersions, type SiteSnapshot } from "@/db/schema";
+import { hostedFonts, hostedIcons, pages, sites, siteVersions, type SiteSnapshot } from "@/db/schema";
+import { nonCatalogueFamilies } from "@/lib/fonts";
 import { effectiveSiteTheme } from "@/lib/kits";
 import { hashSnapshot } from "@/lib/snapshot";
 import { parseSections } from "./sections";
+
+/** De iconnamen die usp-grid-items in deze secties gebruiken (vrije emoji zitten er ook tussen; alleen bekende namen matchen straks iets in `hosted_icons`). */
+function uspGridIconNames(sections: readonly SectionData[]): string[] {
+  const names = new Set<string>();
+  for (const s of sections) {
+    if (s.type !== "usp-grid") continue;
+    const items = (s.content as { items?: { icon?: unknown }[] } | null)?.items ?? [];
+    for (const item of items) if (typeof item.icon === "string" && item.icon) names.add(item.icon);
+  }
+  return [...names];
+}
 
 // Hulpfuncties voor publiceren (alleen op de server). De acties zelf staan in publish.ts.
 
@@ -41,14 +54,30 @@ export async function loadWorkingSnapshot(siteId: string): Promise<{ ok: true; s
   const footer = parseSections(site.layout.footer, { kind: "slot", slot: "footer" });
   if (!footer.ok) return { ok: false, error: `Footer: ${footer.error}` };
 
+  // Kit en eigen afwijkingen samengevoegd: de momentopname is zelfstandig, ook als de kit later verandert of verdwijnt.
+  const theme = await effectiveSiteTheme(site);
+
+  // On-demand gehoste Google Fonts en Material Symbols worden hier opgelost en in de momentopname gebakken (net als
+  // favicon hieronder), zodat het renderen van een openbare pagina nooit een extra databasequery nodig heeft. De
+  // tabellen zijn platformbreed en klein: alles ophalen en in JS filteren is eenvoudiger en snel genoeg.
+  const wantedFamilies = new Set(nonCatalogueFamilies(theme).map((f) => f.toLowerCase()));
+  const usedHostedFonts = wantedFamilies.size > 0 ? (await db.select().from(hostedFonts)).filter((f) => wantedFamilies.has(f.family.toLowerCase())) : [];
+
+  const wantedIcons = new Set([...outPages.flatMap((p) => uspGridIconNames(p.sections)), ...uspGridIconNames(header.sections), ...uspGridIconNames(footer.sections)]);
+  const usedIcons =
+    wantedIcons.size > 0
+      ? Object.fromEntries((await db.select().from(hostedIcons)).filter((i) => wantedIcons.has(i.name)).map((i) => [i.name, i.svg]))
+      : undefined;
+
   const snapshot: SiteSnapshot = {
     name: site.name,
-    // Kit en eigen afwijkingen samengevoegd: de momentopname is zelfstandig, ook als de kit later verandert of verdwijnt.
-    theme: await effectiveSiteTheme(site),
+    theme,
     layout: { header: header.sections, footer: footer.sections },
     pages: outPages,
-    // Alleen als er een is geüpload: zo blijft de hash van sites zonder favicon gelijk aan die van hun bestaande momentopname.
+    // Alleen als er een is geüpload/gebruikt: zo blijft de hash van sites zonder favicon/gehoste fonts/iconen gelijk aan die van hun bestaande momentopname.
     ...(site.faviconUrl ? { favicon: site.faviconUrl } : {}),
+    ...(usedHostedFonts.length ? { hostedFonts: usedHostedFonts } : {}),
+    ...(usedIcons ? { icons: usedIcons } : {}),
   };
   return { ok: true, snapshot, hash: hashSnapshot(snapshot) };
 }

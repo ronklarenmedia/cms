@@ -8,7 +8,7 @@ import { BlockSection } from "@/blocks/BlockRenderer";
 import { CATEGORIES, type AnyBlock, type SectionData } from "@/blocks/contract";
 import { blocks, getBlock } from "@/blocks/registry";
 import { themeToCssVars, type SiteTheme } from "@/blocks/theme";
-import type { SiteLayout } from "@/db/schema";
+import type { HostedFont, SiteLayout } from "@/db/schema";
 import { addPage, deletePage, deleteSite, renamePage, saveLayout, savePage, type PageDTO, type PageSettings } from "./actions";
 import { fetchPublishInfo, publishSite, unpublishSite } from "./publish";
 import type { PublishInfo } from "./publishing";
@@ -65,7 +65,7 @@ const headingOf = (s: SectionData) => {
 };
 
 /** Eén sectie in het canvas; ongeldige inhoud toont een placeholder zodat de rest van de pagina blijft staan. */
-const CanvasSection = memo(function CanvasSection({ section }: { section: SectionData }) {
+const CanvasSection = memo(function CanvasSection({ section, icons }: { section: SectionData; icons: Record<string, string> }) {
   const issues = sectionIssues(section);
   if (issues.length > 0) {
     return (
@@ -75,7 +75,7 @@ const CanvasSection = memo(function CanvasSection({ section }: { section: Sectio
       </div>
     );
   }
-  return <BlockSection section={section} />;
+  return <BlockSection section={section} icons={icons} />;
 });
 
 /** De secties van één plek (pagina, header of footer) in het canvas; klikken selecteert en schakelt naar die plek. */
@@ -85,18 +85,20 @@ function CanvasArea({
   selectedId,
   onPick,
   registerRef,
+  icons,
 }: {
   list: SectionData[];
   area: Slot | null;
   selectedId: string | null;
   onPick: (area: Slot | null, id: string) => void;
   registerRef: (id: string, el: HTMLDivElement | null) => void;
+  icons: Record<string, string>;
 }) {
   return (
     <>
       {list.map((s) => (
         <div key={s.id} ref={(el) => registerRef(s.id, el)} className="relative cursor-pointer" onClick={() => onPick(area, s.id)}>
-          <CanvasSection section={s} />
+          <CanvasSection section={s} icons={icons} />
           <div
             className="pointer-events-none absolute inset-0 hover:outline-2"
             style={{ outline: s.id === selectedId ? "2px solid var(--color-accent)" : "none", outlineOffset: -2 }}
@@ -174,6 +176,8 @@ export function SiteBuilder({
   canDelete,
   initialPublish,
   initialPageId,
+  hostedFonts,
+  hostedIcons: initialHostedIcons,
 }: {
   site: BuilderSite;
   initialPages: PageDTO[];
@@ -181,6 +185,10 @@ export function SiteBuilder({
   initialPublish: PublishInfo;
   /** De pagina waarmee de builder opent (bijv. vanuit de zoekbalk); standaard de eerste. */
   initialPageId?: string;
+  /** On-demand gehoste Google Fonts (src/lib/google-fonts.ts), voor het canvas als het thema er een gebruikt. */
+  hostedFonts: HostedFont[];
+  /** Iconnaam → gesaneerde SVG van on-demand gehoste Material Symbols (src/lib/material-icons.ts), voor het canvas en de icoonkiezer. */
+  hostedIcons: Record<string, string>;
 }) {
   const startPage = initialPages.find((p) => p.id === initialPageId) ?? initialPages[0];
   const [pages, setPages] = useState<PageDTO[]>(initialPages);
@@ -191,6 +199,8 @@ export function SiteBuilder({
   const [hist, setHist] = useState<Record<string, History>>({});
   const [status, setStatus] = useState<SaveStatus>({ kind: "saved" });
   const [publish, setPublish] = useState<PublishInfo>(initialPublish);
+  const [iconMap, setIconMap] = useState(initialHostedIcons);
+  const addHostedIcon = (name: string, svg: string) => setIconMap((prev) => ({ ...prev, [name]: svg }));
   const router = useRouter();
   const [confirm, confirmDialog] = useConfirm();
   // Zijkolommen: inklapbaar, de keuze blijft bewaard. Ingeklapt blijft een smalle rand met een label over.
@@ -842,11 +852,11 @@ export function SiteBuilder({
               if ((e.target as HTMLElement).closest("a")) e.preventDefault();
             }}
           >
-            <ThemeFonts theme={site.theme} />
+            <ThemeFonts theme={site.theme} hosted={hostedFonts} />
             <SiteFrame
               embedded
-              header={layout.header.length > 0 ? <CanvasArea list={layout.header} area="header" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} /> : slotPlaceholder("header")}
-              footer={layout.footer.length > 0 ? <CanvasArea list={layout.footer} area="footer" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} /> : slotPlaceholder("footer")}
+              header={layout.header.length > 0 ? <CanvasArea list={layout.header} area="header" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} icons={iconMap} /> : slotPlaceholder("header")}
+              footer={layout.footer.length > 0 ? <CanvasArea list={layout.footer} area="footer" selectedId={sectionId} onPick={pickSection} registerRef={registerRef} icons={iconMap} /> : slotPlaceholder("footer")}
             >
               {page.sections.length === 0 ? (
                 <button
@@ -861,7 +871,7 @@ export function SiteBuilder({
                   Voeg je eerste sectie toe
                 </button>
               ) : (
-                <CanvasArea list={page.sections} area={null} selectedId={sectionId} onPick={pickSection} registerRef={registerRef} />
+                <CanvasArea list={page.sections} area={null} selectedId={sectionId} onPick={pickSection} registerRef={registerRef} icons={iconMap} />
               )}
             </SiteFrame>
           </div>
@@ -959,6 +969,9 @@ export function SiteBuilder({
                       root="content"
                       errors={errors}
                       onChange={(next) => patchSelected({ content: next }, `content:${selected.id}`)}
+                      blockSlug={selectedBlock.slug}
+                      hostedIcons={iconMap}
+                      onIconHosted={addHostedIcon}
                     />
                   </UploadSiteContext>
                 </SectionPart>

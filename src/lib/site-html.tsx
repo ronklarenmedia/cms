@@ -21,7 +21,7 @@ type Page = PublicSite["snapshot"]["pages"][number];
 const first = (value: string | null | undefined) => value?.trim() || undefined;
 
 function SiteDocument({ site, page }: { site: PublicSite; page: Page }): ReactElement {
-  const { theme, layout, name, favicon } = site.snapshot;
+  const { theme, layout, name, favicon, hostedFonts, icons } = site.snapshot;
   const title = documentTitle(name, page);
   const description = first(page.seoDescription);
   const hidden = site.kind === "preview" || page.noindex; // een voorbeeldadres staat nooit in zoekmachines
@@ -58,15 +58,15 @@ function SiteDocument({ site, page }: { site: PublicSite; page: Page }): ReactEl
         {description ? <meta name="twitter:description" content={description} /> : null}
         {image ? <meta name="twitter:image" content={image} /> : null}
         <style dangerouslySetInnerHTML={{ __html: siteCss() }} />
-        <ThemeFonts theme={theme} />
+        <ThemeFonts theme={theme} hosted={hostedFonts} />
       </head>
       <body>
         <div style={{ ...themeToCssVars(theme), background: "var(--var-color-white)", minHeight: "100vh" }}>
           <SiteFrame
-            header={layout.header.length > 0 ? <BlockRenderer sections={layout.header} /> : null}
-            footer={layout.footer.length > 0 ? <BlockRenderer sections={layout.footer} /> : null}
+            header={layout.header.length > 0 ? <BlockRenderer sections={layout.header} icons={icons} /> : null}
+            footer={layout.footer.length > 0 ? <BlockRenderer sections={layout.footer} icons={icons} /> : null}
           >
-            <BlockRenderer sections={page.sections} />
+            <BlockRenderer sections={page.sections} icons={icons} />
           </SiteFrame>
         </div>
         {scripts.map((s) => (
