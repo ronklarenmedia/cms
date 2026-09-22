@@ -55,16 +55,19 @@ export const fixtures: ProcessFixture[] = [
       steps: [
         {
           number: "1",
+          icon: "🎨",
           title: "Kies je stijl",
           description: "Kies uit geteste block-varianten en stem kleuren, typografie en logo af.",
         },
         {
           number: "2",
+          icon: "✏️",
           title: "Voeg content toe",
           description: "Vul je pagina's met overtuigende teksten, prijzen en klantervaringen.",
         },
         {
           number: "3",
+          icon: "🚀",
           title: "Publiceer direct",
           description: "Met één klik staat je website veilig en razendsnel online.",
         },

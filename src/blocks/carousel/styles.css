@@ -1,0 +1,110 @@
+/* Carrousel — horizontaal scrollen met scroll-snap, geen JavaScript */
+
+.blk-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-medium);
+}
+
+.blk-carousel__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-carousel__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-carousel__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-carousel__intro {
+  max-width: var(--var-max-width-small);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-carousel__track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: var(--var-spacing-medium);
+  margin: 0 calc(-1 * var(--var-spacing-small));
+  padding: 0 var(--var-spacing-small) var(--var-spacing-small);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .blk-carousel__track {
+    scroll-behavior: smooth;
+  }
+}
+
+.blk-carousel__slide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+}
+
+.blk-carousel__slide img {
+  width: 100%;
+  aspect-ratio: var(--var-aspect-ratio-video);
+  object-fit: cover;
+  border-radius: var(--var-border-radius-large);
+}
+
+.blk-carousel__caption {
+  margin-top: var(--var-spacing-small);
+}
+
+.blk-carousel__caption-heading {
+  font-size: var(--var-font-size-medium);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-carousel__caption-text {
+  margin-top: var(--var-spacing-xs);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+}
+
+.blk-carousel__nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-carousel__dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: var(--var-border-radius-full);
+  background: var(--blk-line);
+}
+
+.blk-carousel__dot:hover,
+.blk-carousel__dot:focus-visible {
+  background: var(--blk-accent);
+}
+
+.blk-carousel__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Variant: volgende dia piept mee */
+@container blk (min-width: 40rem) {
+  .blk-carousel--peek .blk-carousel__slide {
+    flex-basis: 85%;
+  }
+}

@@ -14,13 +14,18 @@
 @import "./faq/styles.css";
 @import "./pricing/styles.css";
 @import "./process/styles.css";
+@import "./tabs/styles.css";
 @import "./team/styles.css";
 @import "./timeline/styles.css";
 @import "./cases/styles.css";
 @import "./gallery/styles.css";
+@import "./carousel/styles.css";
 @import "./breadcrumbs/styles.css";
 @import "./video/styles.css";
 @import "./list/styles.css";
+@import "./contact/styles.css";
+@import "./comparison/styles.css";
+@import "./cookie-notice/styles.css";
 @import "./site-header/styles.css";
 @import "./site-footer/styles.css";
 

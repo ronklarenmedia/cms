@@ -17,8 +17,13 @@ export type Enhancement = {
 /** Map met de scripts; nieuwe versie = nieuwe map (de bestanden zijn `immutable` gecachet, zie next.config.ts). */
 export const ENHANCE_DIR = "/enhance/v1";
 
-/** Nu geen enkele. Toevoegen: script in public/enhance/v1/<id>.js zetten en hier registreren. */
-export const ENHANCEMENTS: readonly Enhancement[] = [];
+export const ENHANCEMENTS: readonly Enhancement[] = [
+  {
+    id: "cookie-notice",
+    blocks: ["cookie-notice"],
+    purpose: "Onthoudt een klik op \"Akkoord\" (localStorage), zodat de cookiemelding niet op elke pagina terugkomt.",
+  },
+];
 
 export const enhancementUrl = (e: Enhancement) => `${ENHANCE_DIR}/${e.id}.js`;
 

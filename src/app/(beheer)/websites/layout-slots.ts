@@ -8,7 +8,7 @@ export type Slot = keyof SiteLayout;
  */
 export const slots: Record<Slot, { label: string; description: string; allowed: readonly string[] }> = {
   header: { label: "Header", description: "Staat boven elke pagina", allowed: ["site-header"] },
-  footer: { label: "Footer", description: "Staat onder elke pagina", allowed: ["site-footer"] },
+  footer: { label: "Footer", description: "Staat onder elke pagina", allowed: ["site-footer", "cookie-notice"] },
 };
 
 export const slotKeys = Object.keys(slots) as Slot[];

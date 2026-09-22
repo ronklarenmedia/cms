@@ -7,12 +7,16 @@ import { effectiveSiteTheme } from "@/lib/kits";
 import { hashSnapshot } from "@/lib/snapshot";
 import { parseSections } from "./sections";
 
-/** De iconnamen die usp-grid-items in deze secties gebruiken (vrije emoji zitten er ook tussen; alleen bekende namen matchen straks iets in `hosted_icons`). */
-function uspGridIconNames(sections: readonly SectionData[]): string[] {
+/** Welk content-veld de herhaalde items bevat, per block dat een icon-veld heeft (zie ICON_FIELDS in SchemaForm.tsx). */
+const ICON_LIST_FIELD: Record<string, string> = { "usp-grid": "items", process: "steps", stats: "items" };
+
+/** De iconnamen die deze secties gebruiken (vrije emoji zitten er ook tussen; alleen bekende namen matchen straks iets in `hosted_icons`). */
+function iconNamesUsed(sections: readonly SectionData[]): string[] {
   const names = new Set<string>();
   for (const s of sections) {
-    if (s.type !== "usp-grid") continue;
-    const items = (s.content as { items?: { icon?: unknown }[] } | null)?.items ?? [];
+    const listField = ICON_LIST_FIELD[s.type];
+    if (!listField) continue;
+    const items = (s.content as Record<string, { icon?: unknown }[] | null> | null)?.[listField] ?? [];
     for (const item of items) if (typeof item.icon === "string" && item.icon) names.add(item.icon);
   }
   return [...names];
@@ -63,7 +67,7 @@ export async function loadWorkingSnapshot(siteId: string): Promise<{ ok: true; s
   const wantedFamilies = new Set(nonCatalogueFamilies(theme).map((f) => f.toLowerCase()));
   const usedHostedFonts = wantedFamilies.size > 0 ? (await db.select().from(hostedFonts)).filter((f) => wantedFamilies.has(f.family.toLowerCase())) : [];
 
-  const wantedIcons = new Set([...outPages.flatMap((p) => uspGridIconNames(p.sections)), ...uspGridIconNames(header.sections), ...uspGridIconNames(footer.sections)]);
+  const wantedIcons = new Set([...outPages.flatMap((p) => iconNamesUsed(p.sections)), ...iconNamesUsed(header.sections), ...iconNamesUsed(footer.sections)]);
   const usedIcons =
     wantedIcons.size > 0
       ? Object.fromEntries((await db.select().from(hostedIcons)).filter((i) => wantedIcons.has(i.name)).map((i) => [i.name, i.svg]))

@@ -1,0 +1,115 @@
+/* Tabs — CSS-only met verborgen radio-knoppen (:checked), geen JavaScript nodig. */
+
+.blk-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-tabs__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-tabs__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-tabs__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-tabs__intro {
+  max-width: var(--var-max-width-small);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-tabs__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--var-spacing-xs);
+}
+
+/* Verborgen, maar wel focusbaar (toetsenbord) en aanwezig voor schermlezers. */
+.blk-tabs__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.blk-tabs__label {
+  display: inline-block;
+  padding: var(--var-spacing-xs) var(--var-spacing-medium);
+  border-radius: var(--var-border-radius-standard);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-standard);
+  font-weight: var(--var-font-weight-medium);
+  cursor: pointer;
+  transition: color var(--var-transition-fast), background var(--var-transition-fast);
+}
+
+.blk-tabs__panels {
+  flex: 1 1 100%;
+}
+
+.blk-tabs__panel {
+  display: none;
+}
+
+.blk-tabs__panel-heading {
+  font-size: var(--var-font-size-medium);
+  margin-bottom: var(--var-spacing-xs);
+}
+
+.blk-tabs__panel-body {
+  color: var(--blk-muted);
+  line-height: var(--var-line-height-relaxed);
+}
+
+/* Actief tabblad: het gekoppelde label en het bijbehorende paneel, gekoppeld op volgorde (geen JS, geen vaste id's nodig). */
+.blk-tabs__input:nth-of-type(1):checked ~ .blk-tabs__label:nth-of-type(1),
+.blk-tabs__input:nth-of-type(2):checked ~ .blk-tabs__label:nth-of-type(2),
+.blk-tabs__input:nth-of-type(3):checked ~ .blk-tabs__label:nth-of-type(3),
+.blk-tabs__input:nth-of-type(4):checked ~ .blk-tabs__label:nth-of-type(4),
+.blk-tabs__input:nth-of-type(5):checked ~ .blk-tabs__label:nth-of-type(5),
+.blk-tabs__input:nth-of-type(6):checked ~ .blk-tabs__label:nth-of-type(6) {
+  color: var(--blk-btn-fg);
+  background: var(--blk-accent);
+}
+
+.blk-tabs__input:nth-of-type(1):focus-visible ~ .blk-tabs__label:nth-of-type(1),
+.blk-tabs__input:nth-of-type(2):focus-visible ~ .blk-tabs__label:nth-of-type(2),
+.blk-tabs__input:nth-of-type(3):focus-visible ~ .blk-tabs__label:nth-of-type(3),
+.blk-tabs__input:nth-of-type(4):focus-visible ~ .blk-tabs__label:nth-of-type(4),
+.blk-tabs__input:nth-of-type(5):focus-visible ~ .blk-tabs__label:nth-of-type(5),
+.blk-tabs__input:nth-of-type(6):focus-visible ~ .blk-tabs__label:nth-of-type(6) {
+  outline: var(--var-border-width-standard) solid var(--blk-accent);
+  outline-offset: 2px;
+}
+
+.blk-tabs__input:nth-of-type(1):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(1),
+.blk-tabs__input:nth-of-type(2):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(2),
+.blk-tabs__input:nth-of-type(3):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(3),
+.blk-tabs__input:nth-of-type(4):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(4),
+.blk-tabs__input:nth-of-type(5):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(5),
+.blk-tabs__input:nth-of-type(6):checked ~ .blk-tabs__panels .blk-tabs__panel:nth-of-type(6) {
+  display: block;
+}
+
+/* Variant: pillen */
+.blk-tabs--pills .blk-tabs__label {
+  border: var(--var-border-width-thin) solid var(--blk-line);
+}

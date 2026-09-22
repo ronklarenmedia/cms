@@ -11,7 +11,7 @@ import { fieldLabel, longTextKeys, placeholders, valueLabel } from "./labels";
 
 /** `<blockslug>.<veldnaam>`-paren die een eigen invoercomponent krijgen i.p.v. het gewone tekstveld. Een nieuw block
  * hier toevoegen is genoeg; er hoeft verder niets aangepast te worden. */
-const ICON_FIELDS = new Set(["usp-grid.icon"]);
+const ICON_FIELDS = new Set(["usp-grid.icon", "process.icon", "stats.icon"]);
 export type JS = {
   type?: string;
   enum?: string[];

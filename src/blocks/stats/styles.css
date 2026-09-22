@@ -38,6 +38,101 @@
   flex-direction: column;
 }
 
+.blk-stats__icon {
+  display: inline-block;
+  align-self: flex-start;
+  margin-bottom: var(--var-spacing-small);
+  font-size: var(--var-font-size-xl);
+  line-height: 1;
+}
+.blk-stats__icon svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+.blk-stats__icon--framed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75em;
+  height: 2.75em;
+  border-style: solid;
+  border-width: var(--var-border-width-thin);
+  font-size: var(--var-font-size-large);
+}
+.blk-stats__icon--framed.blk-stats__icon--border-standard { border-width: var(--var-border-width-standard); }
+.blk-stats__icon--framed.blk-stats__icon--border-thick { border-width: var(--var-border-width-thick); }
+
+.blk-stats__icon--radius-none { border-radius: var(--var-border-radius-none); }
+.blk-stats__icon--radius-small { border-radius: var(--var-border-radius-small); }
+.blk-stats__icon--radius-standard { border-radius: var(--var-border-radius-standard); }
+.blk-stats__icon--radius-medium { border-radius: var(--var-border-radius-medium); }
+.blk-stats__icon--radius-large { border-radius: var(--var-border-radius-large); }
+.blk-stats__icon--radius-full { border-radius: var(--var-border-radius-full); }
+
+.blk-stats__icon--fg-primary { color: var(--var-color-primary); }
+.blk-stats__icon--fg-secondary { color: var(--var-color-secondary); }
+.blk-stats__icon--fg-accent { color: var(--var-color-accent); }
+.blk-stats__icon--fg-text { color: var(--var-color-text); }
+.blk-stats__icon--fg-bg-primary-light { color: var(--var-color-bg-primary-light); }
+.blk-stats__icon--fg-bg-primary-medium { color: var(--var-color-bg-primary-medium); }
+.blk-stats__icon--fg-bg-primary-dark { color: var(--var-color-bg-primary-dark); }
+.blk-stats__icon--fg-bg-secondary-light { color: var(--var-color-bg-secondary-light); }
+.blk-stats__icon--fg-bg-secondary-medium { color: var(--var-color-bg-secondary-medium); }
+.blk-stats__icon--fg-bg-secondary-dark { color: var(--var-color-bg-secondary-dark); }
+.blk-stats__icon--fg-white { color: var(--var-color-white); }
+.blk-stats__icon--fg-off-white { color: var(--var-color-off-white); }
+.blk-stats__icon--fg-light-grey { color: var(--var-color-light-grey); }
+.blk-stats__icon--fg-medium-grey { color: var(--var-color-medium-grey); }
+.blk-stats__icon--fg-dark-grey { color: var(--var-color-dark-grey); }
+.blk-stats__icon--fg-off-black { color: var(--var-color-off-black); }
+.blk-stats__icon--fg-bg-black { color: var(--var-color-bg-black); }
+.blk-stats__icon--fg-success { color: var(--var-color-success); }
+.blk-stats__icon--fg-warning { color: var(--var-color-warning); }
+.blk-stats__icon--fg-error { color: var(--var-color-error); }
+
+.blk-stats__icon--bd-primary { border-color: var(--var-color-primary); }
+.blk-stats__icon--bd-secondary { border-color: var(--var-color-secondary); }
+.blk-stats__icon--bd-accent { border-color: var(--var-color-accent); }
+.blk-stats__icon--bd-text { border-color: var(--var-color-text); }
+.blk-stats__icon--bd-bg-primary-light { border-color: var(--var-color-bg-primary-light); }
+.blk-stats__icon--bd-bg-primary-medium { border-color: var(--var-color-bg-primary-medium); }
+.blk-stats__icon--bd-bg-primary-dark { border-color: var(--var-color-bg-primary-dark); }
+.blk-stats__icon--bd-bg-secondary-light { border-color: var(--var-color-bg-secondary-light); }
+.blk-stats__icon--bd-bg-secondary-medium { border-color: var(--var-color-bg-secondary-medium); }
+.blk-stats__icon--bd-bg-secondary-dark { border-color: var(--var-color-bg-secondary-dark); }
+.blk-stats__icon--bd-white { border-color: var(--var-color-white); }
+.blk-stats__icon--bd-off-white { border-color: var(--var-color-off-white); }
+.blk-stats__icon--bd-light-grey { border-color: var(--var-color-light-grey); }
+.blk-stats__icon--bd-medium-grey { border-color: var(--var-color-medium-grey); }
+.blk-stats__icon--bd-dark-grey { border-color: var(--var-color-dark-grey); }
+.blk-stats__icon--bd-off-black { border-color: var(--var-color-off-black); }
+.blk-stats__icon--bd-bg-black { border-color: var(--var-color-bg-black); }
+.blk-stats__icon--bd-success { border-color: var(--var-color-success); }
+.blk-stats__icon--bd-warning { border-color: var(--var-color-warning); }
+.blk-stats__icon--bd-error { border-color: var(--var-color-error); }
+
+.blk-stats__icon--fill-primary { background-color: var(--var-color-primary); }
+.blk-stats__icon--fill-secondary { background-color: var(--var-color-secondary); }
+.blk-stats__icon--fill-accent { background-color: var(--var-color-accent); }
+.blk-stats__icon--fill-text { background-color: var(--var-color-text); }
+.blk-stats__icon--fill-bg-primary-light { background-color: var(--var-color-bg-primary-light); }
+.blk-stats__icon--fill-bg-primary-medium { background-color: var(--var-color-bg-primary-medium); }
+.blk-stats__icon--fill-bg-primary-dark { background-color: var(--var-color-bg-primary-dark); }
+.blk-stats__icon--fill-bg-secondary-light { background-color: var(--var-color-bg-secondary-light); }
+.blk-stats__icon--fill-bg-secondary-medium { background-color: var(--var-color-bg-secondary-medium); }
+.blk-stats__icon--fill-bg-secondary-dark { background-color: var(--var-color-bg-secondary-dark); }
+.blk-stats__icon--fill-white { background-color: var(--var-color-white); }
+.blk-stats__icon--fill-off-white { background-color: var(--var-color-off-white); }
+.blk-stats__icon--fill-light-grey { background-color: var(--var-color-light-grey); }
+.blk-stats__icon--fill-medium-grey { background-color: var(--var-color-medium-grey); }
+.blk-stats__icon--fill-dark-grey { background-color: var(--var-color-dark-grey); }
+.blk-stats__icon--fill-off-black { background-color: var(--var-color-off-black); }
+.blk-stats__icon--fill-bg-black { background-color: var(--var-color-bg-black); }
+.blk-stats__icon--fill-success { background-color: var(--var-color-success); }
+.blk-stats__icon--fill-warning { background-color: var(--var-color-warning); }
+.blk-stats__icon--fill-error { background-color: var(--var-color-error); }
+
 .blk-stats__value {
   font-family: var(--var-font-family-primary);
   font-size: var(--var-font-size-xl);

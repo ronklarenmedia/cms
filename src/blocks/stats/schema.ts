@@ -1,5 +1,9 @@
 import { z } from "zod";
+import type { ThemeToken } from "@/blocks/theme";
+import { COLOR_TOKENS } from "@/lib/theme-tokens";
 import { sectionSettingsSchema, type Fixture } from "../contract";
+
+const colorToken = z.enum(COLOR_TOKENS as [ThemeToken, ...ThemeToken[]]);
 
 export const variants = [
   { id: "plain", label: "Eenvoudig" },
@@ -15,6 +19,8 @@ export const content = z.object({
   items: z
     .array(
       z.object({
+        /** Eén emoji/teken (vrij, wordt letterlijk getoond), of de naam van een gehost Material Symbol. Optioneel, boven het cijfer; puur decoratief (aria-hidden). */
+        icon: z.string().max(60).optional(),
         value: z.string().min(1).max(30),
         label: z.string().min(1).max(80),
         description: z.string().max(120).optional(),
@@ -27,6 +33,13 @@ export type StatsContent = z.output<typeof content>;
 
 export const settings = sectionSettingsSchema.extend({
   columns: z.enum(["2", "3", "4"]).default("4"),
+  /** "bare" = icoon zonder omkadering; "framed" = icoon in een kader met rand en achtergrond. */
+  iconStyle: z.enum(["bare", "framed"]).default("bare"),
+  iconColor: colorToken.default("colorAccent"),
+  iconBorderWidth: z.enum(["thin", "standard", "thick"]).default("thin"),
+  iconBorderColor: colorToken.default("colorAccent"),
+  iconBackgroundColor: colorToken.default("colorBgPrimaryLight"),
+  iconRadius: z.enum(["none", "small", "standard", "medium", "large", "full"]).default("full"),
 });
 export type StatsSettings = z.output<typeof settings>;
 

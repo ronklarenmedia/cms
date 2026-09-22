@@ -70,6 +70,100 @@
   z-index: 1;
 }
 
+/* Icoon i.p.v. nummer (stap.icon ingevuld): zelfde ronde markering, kleuren via losse instellingen. */
+.blk-process__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-style: solid;
+  font-size: var(--var-font-size-large);
+  line-height: 1;
+  z-index: 1;
+}
+.blk-process__icon svg {
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+}
+.blk-process__icon--border-thin { border-width: var(--var-border-width-thin); }
+.blk-process__icon--border-standard { border-width: var(--var-border-width-standard); }
+.blk-process__icon--border-thick { border-width: var(--var-border-width-thick); }
+
+.blk-process__icon--radius-none { border-radius: var(--var-border-radius-none); }
+.blk-process__icon--radius-small { border-radius: var(--var-border-radius-small); }
+.blk-process__icon--radius-standard { border-radius: var(--var-border-radius-standard); }
+.blk-process__icon--radius-medium { border-radius: var(--var-border-radius-medium); }
+.blk-process__icon--radius-large { border-radius: var(--var-border-radius-large); }
+.blk-process__icon--radius-full { border-radius: var(--var-border-radius-full); }
+
+/* Icoonkleur (settings.iconColor): elke kleur uit het thema. */
+.blk-process__icon--fg-primary { color: var(--var-color-primary); }
+.blk-process__icon--fg-secondary { color: var(--var-color-secondary); }
+.blk-process__icon--fg-accent { color: var(--var-color-accent); }
+.blk-process__icon--fg-text { color: var(--var-color-text); }
+.blk-process__icon--fg-bg-primary-light { color: var(--var-color-bg-primary-light); }
+.blk-process__icon--fg-bg-primary-medium { color: var(--var-color-bg-primary-medium); }
+.blk-process__icon--fg-bg-primary-dark { color: var(--var-color-bg-primary-dark); }
+.blk-process__icon--fg-bg-secondary-light { color: var(--var-color-bg-secondary-light); }
+.blk-process__icon--fg-bg-secondary-medium { color: var(--var-color-bg-secondary-medium); }
+.blk-process__icon--fg-bg-secondary-dark { color: var(--var-color-bg-secondary-dark); }
+.blk-process__icon--fg-white { color: var(--var-color-white); }
+.blk-process__icon--fg-off-white { color: var(--var-color-off-white); }
+.blk-process__icon--fg-light-grey { color: var(--var-color-light-grey); }
+.blk-process__icon--fg-medium-grey { color: var(--var-color-medium-grey); }
+.blk-process__icon--fg-dark-grey { color: var(--var-color-dark-grey); }
+.blk-process__icon--fg-off-black { color: var(--var-color-off-black); }
+.blk-process__icon--fg-bg-black { color: var(--var-color-bg-black); }
+.blk-process__icon--fg-success { color: var(--var-color-success); }
+.blk-process__icon--fg-warning { color: var(--var-color-warning); }
+.blk-process__icon--fg-error { color: var(--var-color-error); }
+
+/* Randkleur (settings.iconBorderColor). */
+.blk-process__icon--bd-primary { border-color: var(--var-color-primary); }
+.blk-process__icon--bd-secondary { border-color: var(--var-color-secondary); }
+.blk-process__icon--bd-accent { border-color: var(--var-color-accent); }
+.blk-process__icon--bd-text { border-color: var(--var-color-text); }
+.blk-process__icon--bd-bg-primary-light { border-color: var(--var-color-bg-primary-light); }
+.blk-process__icon--bd-bg-primary-medium { border-color: var(--var-color-bg-primary-medium); }
+.blk-process__icon--bd-bg-primary-dark { border-color: var(--var-color-bg-primary-dark); }
+.blk-process__icon--bd-bg-secondary-light { border-color: var(--var-color-bg-secondary-light); }
+.blk-process__icon--bd-bg-secondary-medium { border-color: var(--var-color-bg-secondary-medium); }
+.blk-process__icon--bd-bg-secondary-dark { border-color: var(--var-color-bg-secondary-dark); }
+.blk-process__icon--bd-white { border-color: var(--var-color-white); }
+.blk-process__icon--bd-off-white { border-color: var(--var-color-off-white); }
+.blk-process__icon--bd-light-grey { border-color: var(--var-color-light-grey); }
+.blk-process__icon--bd-medium-grey { border-color: var(--var-color-medium-grey); }
+.blk-process__icon--bd-dark-grey { border-color: var(--var-color-dark-grey); }
+.blk-process__icon--bd-off-black { border-color: var(--var-color-off-black); }
+.blk-process__icon--bd-bg-black { border-color: var(--var-color-bg-black); }
+.blk-process__icon--bd-success { border-color: var(--var-color-success); }
+.blk-process__icon--bd-warning { border-color: var(--var-color-warning); }
+.blk-process__icon--bd-error { border-color: var(--var-color-error); }
+
+/* Achtergrondkleur (settings.iconBackgroundColor). */
+.blk-process__icon--fill-primary { background-color: var(--var-color-primary); }
+.blk-process__icon--fill-secondary { background-color: var(--var-color-secondary); }
+.blk-process__icon--fill-accent { background-color: var(--var-color-accent); }
+.blk-process__icon--fill-text { background-color: var(--var-color-text); }
+.blk-process__icon--fill-bg-primary-light { background-color: var(--var-color-bg-primary-light); }
+.blk-process__icon--fill-bg-primary-medium { background-color: var(--var-color-bg-primary-medium); }
+.blk-process__icon--fill-bg-primary-dark { background-color: var(--var-color-bg-primary-dark); }
+.blk-process__icon--fill-bg-secondary-light { background-color: var(--var-color-bg-secondary-light); }
+.blk-process__icon--fill-bg-secondary-medium { background-color: var(--var-color-bg-secondary-medium); }
+.blk-process__icon--fill-bg-secondary-dark { background-color: var(--var-color-bg-secondary-dark); }
+.blk-process__icon--fill-white { background-color: var(--var-color-white); }
+.blk-process__icon--fill-off-white { background-color: var(--var-color-off-white); }
+.blk-process__icon--fill-light-grey { background-color: var(--var-color-light-grey); }
+.blk-process__icon--fill-medium-grey { background-color: var(--var-color-medium-grey); }
+.blk-process__icon--fill-dark-grey { background-color: var(--var-color-dark-grey); }
+.blk-process__icon--fill-off-black { background-color: var(--var-color-off-black); }
+.blk-process__icon--fill-bg-black { background-color: var(--var-color-bg-black); }
+.blk-process__icon--fill-success { background-color: var(--var-color-success); }
+.blk-process__icon--fill-warning { background-color: var(--var-color-warning); }
+.blk-process__icon--fill-error { background-color: var(--var-color-error); }
+
 .blk-process__line {
   position: absolute;
   top: 2.75rem;

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import type { HostedFont } from "@/db/schema";
+import { FONT_WEIGHT_LABEL, FONT_WEIGHTS } from "@/lib/custom-fonts-index";
 import { CATALOGUE, familyStack, fontStack, SYSTEM_STACKS, webFontFor, type WebFont } from "@/lib/fonts";
 import { googleFontsIndex } from "@/lib/google-fonts-index";
+import { uploadCustomFont } from "../custom-fonts-actions";
 import { fetchGoogleFont } from "../google-fonts-actions";
 
 const CATEGORY: Record<WebFont["category"], string> = { sans: "Schreefloos", serif: "Met schreef", mono: "Vaste breedte", display: "Uitgesproken", handwriting: "Handschrift" };
@@ -33,6 +35,9 @@ export function FontPicker({
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
+  const [uploadProblem, setUploadProblem] = useState<string | null>(null);
 
   const known = CATALOGUE.find((f) => fontStack(f) === value) ?? null;
   const system = SYSTEM_STACKS.find((s) => s.stack === value) ?? null;
@@ -64,6 +69,25 @@ export function FontPicker({
       setProblem("Ophalen is mislukt. Controleer je verbinding en probeer het opnieuw.");
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function upload(form: HTMLFormElement) {
+    setUploadProblem(null);
+    setUploadBusy(true);
+    try {
+      const res = await uploadCustomFont(new FormData(form));
+      if (!res.ok) {
+        setUploadProblem(res.error);
+        return;
+      }
+      onHosted(res.font);
+      onChange(familyStack(res.font.family, res.font.category));
+      form.reset();
+    } catch {
+      setUploadProblem("Uploaden is mislukt. Controleer je verbinding en probeer het opnieuw.");
+    } finally {
+      setUploadBusy(false);
     }
   }
 
@@ -143,6 +167,49 @@ export function FontPicker({
         <span role="alert" className="text-danger text-[11px]">
           {problem}
         </span>
+      ) : null}
+
+      <button type="button" className="self-start text-[11px] text-accent underline" onClick={() => setShowUpload((v) => !v)}>
+        {showUpload ? "Eigen lettertype uploaden verbergen" : "Eigen lettertype uploaden…"}
+      </button>
+      {showUpload ? (
+        <form
+          className="flex flex-col gap-1.5 rounded-md border border-divider p-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void upload(e.currentTarget);
+          }}
+        >
+          <input type="text" name="family" required maxLength={80} placeholder="Naam (bijv. Huisstijl Sans)" aria-label="Naam van het eigen lettertype" className="input" />
+          <div className="flex gap-1.5">
+            <select name="weight" defaultValue="400" aria-label="Gewicht" className="input">
+              {FONT_WEIGHTS.map((w) => (
+                <option key={w} value={w}>
+                  {FONT_WEIGHT_LABEL[w]}
+                </option>
+              ))}
+            </select>
+            <select name="category" defaultValue="sans" aria-label="Categorie" className="input">
+              {Object.entries(CATEGORY).map(([id, label]) => (
+                <option key={id} value={id}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input type="file" name="file" accept=".woff2" required aria-label="Lettertypebestand (.woff2)" className="input" />
+          <button type="submit" className="btn btn-secondary self-start" disabled={uploadBusy}>
+            {uploadBusy ? "Uploaden…" : "Toevoegen"}
+          </button>
+          <span className="text-muted text-[10.5px]">
+            Alleen .woff2, maximaal 2 MB. Een tweede gewicht voor dezelfde naam wordt aan die familie toegevoegd.
+          </span>
+          {uploadProblem ? (
+            <span role="alert" className="text-danger text-[11px]">
+              {uploadProblem}
+            </span>
+          ) : null}
+        </form>
       ) : null}
     </div>
   );

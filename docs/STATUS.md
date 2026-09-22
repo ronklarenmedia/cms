@@ -17,7 +17,7 @@ uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is
 | Productie | **Live** op Vercel: beheer op `https://platform.ronklarenmedia.nl` (noodadres `rkm-platform.vercel.app`), voorbeeldadressen op `<sitenaam>.rkmsites.dev`, Neon-branch `production`, R2 voor beelden. Details en instellingen in §9 |
 | Websites | Echt en **in productie bewezen** (galerij, aanmaken, builder, voorbeeld, **publiceren als versie met terugrollen**, openbare weergave op `<sitenaam>.rkmsites.dev`, **eigen domeinen van klanten**: toevoegen, activeren, primair, doorverwijzen, sitemap/robots, verwijderen) |
 | Componenten (overzicht, editor, showcase) | Echt, op het block-register |
-| Blocks | 20 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `site-header`, `site-footer` (14 door Gemini/eerder, de laatste zes door Claude; allemaal gecontroleerd met `check:blocks`) |
+| Blocks | 25 stuks: `hero`, `section-heading`, `stats`, `logo-bar`, `testimonials`, `text-image`, `usp-grid`, `cta-banner`, `faq`, `pricing`, `process`, `team`, `timeline`, `cases`, `gallery`, `breadcrumbs`, `video`, `list`, `contact`, `comparison`, `tabs`, `carousel`, `cookie-notice`, `site-header`, `site-footer` (14 door Gemini/eerder, zes door Claude in batch 1–3, vijf nieuw op 22 sept: `contact`, `comparison`, `tabs`, `carousel`, `cookie-notice`; allemaal gecontroleerd met `check:blocks`) |
 | Header/footer per site, SEO per pagina | Echt (zie §3) |
 | Instellingen | Deels echt: **Algemeen**, **Koppelingen** (status), **Team & rollen**, **Beveiliging** (sessies). De overige tabs tonen "volgt" met wat ze nodig hebben (zie §3) |
 | **Platformoverzicht** (`/`) | **Echt** (21 sept): live koppelingsstatus, aantallen klanten/websites/domeinen/beelden, publicaties per uur of dag, klanten met de meeste websites en recente publicaties. Geen bezoekers of pageviews: daar is nog geen bron voor (zie §3) |
@@ -345,6 +345,17 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      item een `description` heeft een lijst met titel + tekst en accentrand — één veld, twee weergaven), en `signee`
      (persoon met optionele foto en handtekening, als afsluiter onderaan de tekstkolom — bijv. voor een oprichterscitaat).
      Alles optioneel en backward compatible; 7 fixtures nu (was 4).
+   - ✅ **Vijf nieuwe blocks** (22 sept): `contact` (adres, telefoon, e-mail, openingstijden, knop naar een routeplanner),
+     `comparison` (vergelijkingstabel: kolommen als pakketten, rijen als kenmerken, `<table>` met horizontale scroll op
+     smalle schermen), `tabs` (tabbladen zonder JavaScript — verborgen radio-knoppen + `:checked`/`:nth-of-type` in CSS,
+     precedent uit `docs/publieke-paginas-zonder-js.md`), `carousel` (horizontaal scrollen met `scroll-snap` en
+     dia-navigatie via `#`-ankers, ook zonder JavaScript) en `cookie-notice` (vaste balk/kaart, hoort in de footer-slot
+     zodat hij sitebreed verschijnt; blijft zonder JavaScript gewoon zichtbaar — dat is de veilige staat — en met de nieuwe
+     `public/enhance/v1/cookie-notice.js`-enhancement onthoudt een klik op "Akkoord" de keuze via `localStorage`, eerste
+     enhancement-script sinds het mechanisme in `src/lib/enhancements.ts` werd gebouwd). `gallery` kreeg er een **lightbox**
+     bij: klik op een beeld opent het uitvergroot via `:target` (geen JavaScript), met een nieuwe `parts/hashId.ts`-helper
+     voor botsingsvrije `#`-ankers per blockinstantie (ook gebruikt door `tabs` en `carousel`). Alle vijf én de uitbreiding
+     geverifieerd in de showcase (desktop en mobiele breedte) en met `check:blocks`/`tsc`/`eslint`/`build`.
    - ✅ **Opgelost** (22 sept): `testimonials`, `team` en `pricing` zetten `position` nu op een `ListItem` (met de
      eigenlijke entiteit in `item`) in plaats van op het beoordeelde ding zelf — dat laatste is geen geldig
      schema.org-veld daar en gaf onbetrouwbare rich-results. De sterren in `testimonials` hebben nu `role="img"` op
@@ -361,9 +372,17 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). ✅ **Versiebeheer van kits** (22 sept, zie §3) en ✅ **eigen thema-aanpassingen
    van een site zichtbaar** (het "Design kit"-dialoog toont nu de losse tokens i.p.v. alleen een aantal). Daarna plannen/prijsmodel
    (de database kent BOJOB/PRO, de mockup Starter/Pro/Agency).
-   - ✅ **Google Fonts- en iconenbibliotheek**, on-demand (zie §3). Nog te doen: SQL nog op elke database uitvoeren en zelf visueel
-     testen (§9/§12 — dit is gebouwd zonder werkende lokale database), iconen naar meer blocks dan usp-grid uitbreiden, eigen
-     lettertypes van de klant uploaden.
+   - ✅ **Google Fonts- en iconenbibliotheek**, on-demand (zie §3); SQL uitgevoerd op `main` en `production`, visueel getest.
+     ✅ **Iconen naar meer blocks** (22 sept): `process` (icoon i.p.v. het nummer in de ronde markering, kleur/rand/achtergrond
+     instelbaar) en `stats` (icoon boven het cijfer, met dezelfde bare/framed-stijlopties als `usp-grid`) — dezelfde conventie
+     als eerder afgesproken ("dit geldt vanaf nu voor alle iconen en afbeeldingen"). `SchemaForm.tsx`'s `ICON_FIELDS` en
+     `publishing.ts`'s icoon-scan (nu `iconNamesUsed()`, per block het juiste array-veld) zijn generiek gemaakt voor méér dan
+     usp-grid alleen. ✅ **Eigen lettertype uploaden** (22 sept): naast on-demand Google Fonts kan een medewerker nu ook een
+     eigen `.woff2`-bestand toevoegen aan de `FontPicker` (nieuwe familie, of een extra gewicht bij een al gehoste familie —
+     ook eentje die eerder van Google kwam). Validatie op de echte bestandsbytes (magic number `wOF2`, niet de bestandsnaam),
+     max. 2 MB, zelfde R2-pad en `hosted_fonts`-tabel als Google Fonts (`src/lib/custom-fonts.ts` + `custom-fonts-index.ts`
+     voor het clientveilige deel, `custom-fonts-actions.ts`). Eind-tot-eind getest (echt bestand geüpload via de kit-editor,
+     rij en R2-object daarna weer opgeruimd).
 4. **Echt publiceren** — ✅ momentopnamen, terugrollen, openbare weergave en **eigen domeinen** (DNS-instructies, controle, primair, www ↔ kaal, robots/sitemap).
    ✅ **Live op Vercel en de Vercel-koppeling bewezen** (Pro-team, project `rkm-platform`, `rkmsites.dev`, `platform.ronklarenmedia.nl`). Nog te doen: absolute URL's in JSON-LD, een platformbreed domeinenoverzicht onder Instellingen → Domeinen, automatisch periodiek controleren van
    domeinen in behandeling, (✅ JS-loze openbare pagina's, zie §6), (✅ favicon per site), publiceer-notitie in de UI, deploy-log, **testdata op `production` opruimen** (testsite "Ron's eerste test" met 8 versies), een herinnering voor het

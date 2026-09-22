@@ -1,0 +1,127 @@
+/* Contact — adres, telefoon, e-mail en openingstijden */
+
+.blk-contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-contact__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+}
+
+.blk-contact__eyebrow {
+  color: var(--blk-accent);
+  font-size: var(--var-font-size-small);
+  font-weight: var(--var-font-weight-medium);
+  letter-spacing: var(--var-letter-spacing-wide);
+  text-transform: uppercase;
+}
+
+.blk-contact__heading {
+  font-size: var(--var-font-size-xl);
+}
+
+.blk-contact__intro {
+  max-width: var(--var-max-width-small);
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-medium);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-contact__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-large);
+}
+
+.blk-contact__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-small);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--var-font-size-medium);
+}
+
+.blk-contact__detail {
+  color: var(--blk-fg);
+}
+
+.blk-contact__link {
+  color: var(--blk-accent);
+  font-weight: var(--var-font-weight-medium);
+  text-decoration: none;
+}
+.blk-contact__link:hover {
+  text-decoration: underline;
+}
+
+.blk-contact__hours {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  margin: 0;
+}
+
+.blk-contact__hours-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--var-spacing-medium);
+  padding-bottom: var(--var-spacing-xs);
+  border-bottom: var(--var-border-width-thin) solid var(--blk-line);
+  font-size: var(--var-font-size-small);
+}
+
+.blk-contact__hours-day {
+  color: var(--blk-fg);
+  font-weight: var(--var-font-weight-medium);
+}
+
+.blk-contact__hours-time {
+  margin: 0;
+  color: var(--blk-muted);
+}
+
+/* Variant: Gecentreerd */
+.blk-contact--centered {
+  text-align: center;
+}
+.blk-contact--centered .blk-contact__intro {
+  margin-inline: auto;
+}
+.blk-contact--centered .blk-contact__details {
+  align-items: center;
+}
+.blk-contact--centered .blk-contact__hours-row {
+  max-width: var(--var-max-width-small);
+  margin-inline: auto;
+}
+
+/* Variant: Kaarten */
+.blk-contact--cards .blk-contact__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--var-spacing-medium);
+}
+.blk-contact--cards .blk-contact__details {
+  padding: var(--var-spacing-medium);
+  border: var(--var-border-width-thin) solid var(--blk-line);
+  border-radius: var(--var-border-radius-medium);
+  background: var(--blk-tint);
+}
+
+@container blk (min-width: 40rem) {
+  .blk-contact--split .blk-contact__body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--var-spacing-xl);
+    align-items: start;
+  }
+  .blk-contact--cards .blk-contact__body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

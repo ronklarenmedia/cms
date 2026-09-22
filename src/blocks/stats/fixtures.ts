@@ -1,10 +1,10 @@
 import type { StatsFixture } from "./schema";
 
 const items = [
-  { value: "500+", label: "Tevreden klanten", description: "Middelgrote en grote organisaties in de Benelux." },
-  { value: "99.9%", label: "Uptime garantie", description: "Bewaakt door onze 24/7 infrastructuur monitoring." },
-  { value: "< 100ms", label: "Laadtijd", description: "Geoptimaliseerd voor Core Web Vitals en conversie." },
-  { value: "15+", label: "Jaar ervaring", description: "Specialisten in maatwerk software en websites." },
+  { icon: "🤝", value: "500+", label: "Tevreden klanten", description: "Middelgrote en grote organisaties in de Benelux." },
+  { icon: "🛡️", value: "99.9%", label: "Uptime garantie", description: "Bewaakt door onze 24/7 infrastructuur monitoring." },
+  { icon: "⚡", value: "< 100ms", label: "Laadtijd", description: "Geoptimaliseerd voor Core Web Vitals en conversie." },
+  { icon: "🎂", value: "15+", label: "Jaar ervaring", description: "Specialisten in maatwerk software en websites." },
 ];
 
 export const fixtures: StatsFixture[] = [
@@ -26,7 +26,7 @@ export const fixtures: StatsFixture[] = [
       heading: "Onze prestaties",
       items: items.slice(0, 3),
     },
-    settings: { columns: "3", background: "off-white" },
+    settings: { columns: "3", background: "off-white", iconStyle: "framed" },
   },
   {
     name: "Met scheidingslijnen, op donkere achtergrond",

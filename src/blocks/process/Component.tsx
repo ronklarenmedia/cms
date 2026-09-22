@@ -1,13 +1,27 @@
 import type { BlockProps } from "../contract";
 import { Buttons } from "../parts/Buttons";
+import { Icon } from "../parts/Icon";
 import { JsonLd } from "../parts/JsonLd";
 import type { ProcessContent, ProcessSettings, ProcessVariant } from "./schema";
 
-export function Process({
-  variant,
-  content,
-}: BlockProps<ProcessVariant, ProcessContent, ProcessSettings>) {
+type Props = BlockProps<ProcessVariant, ProcessContent, ProcessSettings> & {
+  /** Iconnaam → gesaneerde SVG-markup (src/lib/material-icons.ts); alleen hiervoor wordt icon als opmaak gerenderd. */
+  icons?: Record<string, string>;
+};
+
+// "colorBgPrimaryLight" → "bg-primary-light", voor de klassennamen in styles.css (--fg-/--bd-/--fill-<slug>).
+const colorSlug = (token: string) => token.slice("color".length).replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
+
+export function Process({ variant, content, settings, icons = {} }: Props) {
   const { eyebrow, heading, intro, steps, buttons = [] } = content;
+  const iconClass = [
+    "blk-process__icon",
+    `blk-process__icon--fg-${colorSlug(settings.iconColor)}`,
+    `blk-process__icon--border-${settings.iconBorderWidth}`,
+    `blk-process__icon--radius-${settings.iconRadius}`,
+    `blk-process__icon--bd-${colorSlug(settings.iconBorderColor)}`,
+    `blk-process__icon--fill-${colorSlug(settings.iconBackgroundColor)}`,
+  ].join(" ");
   const hasHeader = Boolean(eyebrow || heading || intro);
   const StepHeading = heading ? "h3" : "h2";
 
@@ -39,7 +53,15 @@ export function Process({
         {steps.map((step, idx) => (
           <li key={`${step.number}-${idx}`} className="blk-process__step">
             <div className="blk-process__marker-wrap">
-              <span className="blk-process__number">{step.number}</span>
+              {step.icon && icons[step.icon] ? (
+                <Icon svg={icons[step.icon]} className={iconClass} />
+              ) : step.icon ? (
+                <span className={iconClass} aria-hidden="true">
+                  {step.icon}
+                </span>
+              ) : (
+                <span className="blk-process__number">{step.number}</span>
+              )}
               {idx < steps.length - 1 && <span className="blk-process__line" aria-hidden="true" />}
             </div>
             <div className="blk-process__body">

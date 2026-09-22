@@ -1,0 +1,67 @@
+/* Cookiemelding — vaste balk of kaart, hoort in de footer-slot (verschijnt dan op elke pagina) */
+
+.blk-cookie-notice {
+  position: fixed;
+  z-index: var(--var-z-index-overlay);
+  display: flex;
+  align-items: center;
+  gap: var(--var-spacing-medium);
+  padding: var(--var-spacing-medium);
+  background: var(--var-color-off-black);
+  box-shadow: var(--var-box-shadow-large);
+}
+
+.blk-cookie-notice__text {
+  flex: 1 1 auto;
+}
+
+.blk-cookie-notice__heading {
+  margin: 0;
+  color: var(--var-color-white);
+  font-weight: var(--var-font-weight-bold);
+}
+
+.blk-cookie-notice__body {
+  margin: var(--var-spacing-xs) 0 0;
+  color: var(--var-color-light-grey);
+  font-size: var(--var-font-size-small);
+  line-height: var(--var-line-height-relaxed);
+}
+
+.blk-cookie-notice__link {
+  color: var(--var-color-white);
+  text-decoration: underline;
+}
+
+.blk-cookie-notice__accept {
+  flex-shrink: 0;
+  padding: var(--var-spacing-xs) var(--var-spacing-medium);
+  border: 0;
+  border-radius: var(--var-border-radius-standard);
+  background: var(--var-color-white);
+  color: var(--var-color-off-black);
+  font-size: var(--var-font-size-standard);
+  font-weight: var(--var-font-weight-medium);
+  cursor: pointer;
+}
+
+/* Variant: balk onderaan, volledige breedte */
+.blk-cookie-notice--bar {
+  inset-inline: 0;
+  bottom: 0;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+/* Variant: kaart in de hoek */
+.blk-cookie-notice--corner {
+  left: var(--var-spacing-medium);
+  bottom: var(--var-spacing-medium);
+  max-width: 22rem;
+  flex-direction: column;
+  align-items: flex-start;
+  border-radius: var(--var-border-radius-medium);
+}
+.blk-cookie-notice--corner .blk-cookie-notice__accept {
+  align-self: stretch;
+}

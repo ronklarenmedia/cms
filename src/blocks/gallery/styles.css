@@ -47,14 +47,74 @@
   margin: 0;
 }
 
+.blk-gallery__link {
+  display: block;
+}
+
 .blk-gallery__figure img {
   width: 100%;
   border-radius: var(--var-border-radius-medium);
+  cursor: zoom-in;
 }
 
 .blk-gallery__caption {
   color: var(--blk-muted);
   font-size: var(--var-font-size-small);
+}
+
+.blk-gallery__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Lightbox: uitgeschakeld beeld op ware grootte, geopend via #-anker (:target), geen JavaScript. */
+.blk-gallery__lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: var(--var-z-index-modal);
+  align-items: center;
+  justify-content: center;
+  padding: var(--var-spacing-large);
+  background: color-mix(in srgb, var(--var-color-off-black) 85%, transparent);
+}
+.blk-gallery__lightbox:target {
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-small);
+}
+.blk-gallery__lightbox img {
+  max-width: 100%;
+  max-height: 80svh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--var-border-radius-medium);
+}
+.blk-gallery__lightbox-close {
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--var-border-radius-full);
+  background: var(--var-color-white);
+  color: var(--var-color-off-black);
+  font-size: var(--var-font-size-large);
+  line-height: 1;
+}
+.blk-gallery__lightbox-caption {
+  margin: 0;
+  color: var(--var-color-white);
+  font-size: var(--var-font-size-small);
+  text-align: center;
 }
 
 /* Raster: alle tegels dezelfde vorm. */
