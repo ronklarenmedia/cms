@@ -15,6 +15,25 @@ export const content = z.object({
   body: z.string().max(400).optional(),
   buttons: z.array(buttonSchema).max(2).default([]),
   media: imageSchema.optional(),
+  /** Tweede, verschoven beeld achter `media` voor een collage-effect. Zonder `media` heeft dit geen zichtbaar effect. */
+  accentMedia: imageSchema.optional(),
+  /** Zwevend cijfer over het beeld, bijv. "15+" met "jaar ervaring". Alleen zichtbaar met `media`. */
+  stat: z.object({ value: z.string().min(1).max(20), label: z.string().min(1).max(60) }).optional(),
+  /** Korte puntenlijst onder de knoppen. Zonder `description` per item een vinkjeslijst; zodra één item een
+   * `description` heeft, wordt de hele lijst als titel + tekst met een accentrand getoond. */
+  highlights: z
+    .array(z.object({ label: z.string().min(1).max(80), description: z.string().max(160).optional() }))
+    .max(6)
+    .optional(),
+  /** Persoon (bijv. oprichter) onderaan de tekstkolom, met optionele foto en handtekening — voor een citaat-achtige afsluiter. */
+  signee: z
+    .object({
+      avatar: imageSchema.optional(),
+      name: z.string().min(1).max(80),
+      role: z.string().max(80).optional(),
+      signature: imageSchema.optional(),
+    })
+    .optional(),
 });
 export type HeroContent = z.output<typeof content>;
 

@@ -52,6 +52,15 @@ const fields: Record<string, string> = {
   description: "Omschrijving",
   uploadDate: "Uploaddatum (JJJJ-MM-DD)",
   transcript: "Tekst van de video",
+  accentMedia: "Extra afbeelding (collage)",
+  stat: "Statistiek",
+  value: "Waarde (bijv. \"15+\")",
+  highlights: "Puntenlijst",
+  signee: "Persoon (bijv. oprichter)",
+  name: "Naam",
+  role: "Functie",
+  avatar: "Foto",
+  signature: "Handtekening",
 };
 
 const values: Record<string, Record<string, string>> = {

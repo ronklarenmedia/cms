@@ -34,6 +34,100 @@
   margin-top: var(--var-spacing-medium);
 }
 
+/* Puntenlijst onder de knoppen: zonder tekst per item een vinkjeslijst, met tekst een lijst met accentrand. */
+.blk-hero__highlights {
+  list-style: none;
+  margin: var(--var-spacing-medium) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--var-spacing-small) var(--var-spacing-medium);
+}
+.blk-hero__highlights--check {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.blk-hero__highlight {
+  display: flex;
+  align-items: baseline;
+  gap: var(--var-spacing-small);
+  font-size: var(--var-font-size-small);
+  color: var(--blk-fg);
+}
+.blk-hero__check {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.8rem;
+  border-right: var(--var-border-width-standard) solid var(--blk-accent);
+  border-bottom: var(--var-border-width-standard) solid var(--blk-accent);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+}
+.blk-hero__highlights--detailed {
+  grid-template-columns: 1fr;
+  gap: var(--var-spacing-medium);
+}
+.blk-hero__highlights--detailed .blk-hero__highlight {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--var-spacing-xs);
+  padding-left: var(--var-spacing-medium);
+  border-left: var(--var-border-width-standard) solid var(--blk-accent);
+}
+.blk-hero__highlight-label {
+  margin: 0;
+  font-weight: var(--var-font-weight-bold);
+  color: var(--blk-fg);
+}
+.blk-hero__highlight-desc {
+  margin: 0;
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+}
+
+/* Oprichter/citaat-afsluiter onderaan de tekstkolom. */
+.blk-hero__signee {
+  display: flex;
+  align-items: center;
+  gap: var(--var-spacing-medium);
+  margin-top: var(--var-spacing-large);
+  padding-top: var(--var-spacing-large);
+  border-top: var(--var-border-width-thin) solid var(--blk-line);
+}
+.blk-hero__signee-avatar {
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: var(--var-border-radius-full);
+}
+.blk-hero__signee-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.blk-hero__signee-info {
+  flex: 1;
+  min-width: 0;
+}
+.blk-hero__signee-name {
+  margin: 0;
+  font-weight: var(--var-font-weight-bold);
+  color: var(--blk-accent);
+}
+.blk-hero__signee-role {
+  margin: 0;
+  color: var(--blk-muted);
+  font-size: var(--var-font-size-small);
+}
+.blk-hero__signee-signature img {
+  max-height: 2.5rem;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Beeld: het hoofdbeeld, met optioneel een verschoven tweede beeld (collage) en een zwevende statistiek. */
+.blk-hero__media-wrap {
+  position: relative;
+}
 .blk-hero__media {
   overflow: hidden;
   aspect-ratio: var(--var-aspect-ratio-photo);
@@ -44,6 +138,37 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+.blk-hero__media--accent {
+  position: absolute;
+  top: 26%;
+  left: 26%;
+  width: 82%;
+  height: 82%;
+  z-index: 1;
+  aspect-ratio: var(--var-aspect-ratio-square);
+}
+.blk-hero__stat {
+  position: absolute;
+  z-index: 2;
+  top: 22%;
+  left: 4%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--var-spacing-xs);
+  padding: var(--var-spacing-medium);
+  background: var(--var-color-primary);
+  color: var(--var-color-white);
+  border-radius: var(--var-border-radius-standard);
+  box-shadow: var(--var-box-shadow-standard);
+}
+.blk-hero__stat-value {
+  font-size: var(--var-font-size-xl);
+  font-weight: var(--var-font-weight-bold);
+  line-height: 1;
+}
+.blk-hero__stat-label {
+  font-size: var(--var-font-size-small);
 }
 
 .blk-hero--centered {
@@ -56,7 +181,20 @@
 .blk-hero--centered .blk-btns {
   justify-content: center;
 }
-.blk-hero--centered .blk-hero__media {
+.blk-hero--centered .blk-hero__highlights--check {
+  justify-items: center;
+}
+.blk-hero--centered .blk-hero__highlights--detailed .blk-hero__highlight {
+  align-items: center;
+  border-left: none;
+  padding-left: 0;
+  border-top: var(--var-border-width-standard) solid var(--blk-accent);
+  padding-top: var(--var-spacing-small);
+}
+.blk-hero--centered .blk-hero__signee {
+  justify-content: center;
+}
+.blk-hero--centered .blk-hero__media-wrap {
   width: 100%;
   max-width: var(--var-max-width-medium);
 }
@@ -70,7 +208,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--var-spacing-xl);
   }
-  .blk-hero--split-reverse .blk-hero__media {
+  .blk-hero--split-reverse .blk-hero__media-wrap {
     order: -1;
   }
 }

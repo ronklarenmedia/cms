@@ -338,6 +338,13 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      maken zodra sites een domein hebben); `video` laadt YouTube/Vimeo pas na een klik (een ingeklapte `<details>` met de iframe erin,
      zonder JavaScript), speelt dus na de eerste klik nog niet automatisch af, en de fixture met een eigen bestand wijst naar een
      niet-bestaand `/blocks/rondleiding.mp4` (alleen om de weergave te tonen); `gallery` heeft geen lightbox (die vraagt client-JS).
+   - ✅ **Hero uitgebreid** (22 sept, naar aanleiding van vier patterns uit een externe patternbibliotheek — bleken allemaal
+     varianten van de bestaande `hero` "split"-lay-out te zijn, geen nieuwe blocks): vier nieuwe, optionele velden.
+     `accentMedia` (tweede, verschoven beeld naast `media` voor een collage-effect), `stat` (zwevend cijfer + label over
+     het beeld), `highlights` (puntenlijst onder de knoppen: zonder `description` per item een vinkjeslijst, zodra één
+     item een `description` heeft een lijst met titel + tekst en accentrand — één veld, twee weergaven), en `signee`
+     (persoon met optionele foto en handtekening, als afsluiter onderaan de tekstkolom — bijv. voor een oprichterscitaat).
+     Alles optioneel en backward compatible; 7 fixtures nu (was 4).
    - ✅ **Opgelost** (22 sept): `testimonials`, `team` en `pricing` zetten `position` nu op een `ListItem` (met de
      eigenlijke entiteit in `item`) in plaats van op het beoordeelde ding zelf — dat laatste is geen geldig
      schema.org-veld daar en gaf onbetrouwbare rich-results. De sterren in `testimonials` hebben nu `role="img"` op
