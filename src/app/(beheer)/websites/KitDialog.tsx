@@ -64,7 +64,7 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
         setProblem(res.error);
         return;
       }
-      setLoad((prev) => (prev.status === "ready" ? { status: "ready", info: { ...prev.info, overrides: 0 } } : prev));
+      setLoad((prev) => (prev.status === "ready" ? { status: "ready", info: { ...prev.info, overrides: [] } } : prev));
       onChanged();
     } catch {
       setProblem("Wissen is mislukt. Controleer je verbinding en probeer het opnieuw.");
@@ -96,11 +96,18 @@ export function KitDialog({ siteId, onClose, onChanged }: { siteId: string; onCl
         {load.status === "loading" ? <p className="text-muted m-0 text-[13px]">Laden…</p> : null}
         {load.status === "error" ? <p className="m-0 text-[13px] text-danger">{load.message}</p> : null}
 
-        {load.status === "ready" && load.info.overrides > 0 ? (
+        {load.status === "ready" && load.info.overrides.length > 0 ? (
           <div className="flex flex-col gap-2 rounded-md border border-warning/50 bg-warning/8 px-3 py-2.5 text-[12.5px]">
             <span>
-              Deze website heeft nog {load.info.overrides} eigen {load.info.overrides === 1 ? "thema-aanpassing" : "thema-aanpassingen"} uit de tijd vóór design kits. Die gaan boven de kit, dus een andere kit kiezen verandert die tokens niet.
+              Deze website heeft nog {load.info.overrides.length} eigen {load.info.overrides.length === 1 ? "thema-aanpassing" : "thema-aanpassingen"} uit de tijd vóór design kits. Die gaan boven de kit, dus een andere kit kiezen verandert die tokens niet.
             </span>
+            <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+              {load.info.overrides.map((o) => (
+                <li key={o.token} className="rounded-sm bg-warning/15 px-1.5 py-0.5 text-[11px]" title={o.token}>
+                  {o.label}: <code>{o.value}</code>
+                </li>
+              ))}
+            </ul>
             <button type="button" className="btn btn-secondary self-start" style={{ fontSize: 11.5 }} disabled={working !== null} onClick={() => void clearOverrides()}>
               Eigen aanpassingen wissen
             </button>

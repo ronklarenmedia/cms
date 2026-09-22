@@ -94,6 +94,9 @@ export function tokenKind(token: ThemeToken): TokenKind {
   return "text";
 }
 
+/** Alle kleur-tokens van het thema, voor block-instellingen die uit de hele kit mogen kiezen (bijv. usp-grid's icoonkleuren). */
+export const COLOR_TOKENS = TOKENS.filter((t) => tokenKind(t) === "color");
+
 const COLOR_GROUPS: { id: string; label: string; test: (t: string) => boolean }[] = [
   { id: "merk", label: "Merkkleuren", test: (t) => ["colorPrimary", "colorSecondary", "colorAccent", "colorText"].includes(t) },
   { id: "achtergronden", label: "Achtergronden", test: (t) => t.startsWith("colorBgPrimary") || t.startsWith("colorBgSecondary") },

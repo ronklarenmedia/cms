@@ -16,24 +16,27 @@ export function Testimonials({
     "@context": "https://schema.org",
     "@type": "ItemList",
     itemListElement: items.map((item, idx) => ({
-      "@type": "Review",
+      "@type": "ListItem",
       position: idx + 1,
-      reviewBody: item.quote,
-      author: {
-        "@type": "Person",
-        name: item.name,
-        ...(item.role ? { jobTitle: item.role } : {}),
+      item: {
+        "@type": "Review",
+        reviewBody: item.quote,
+        author: {
+          "@type": "Person",
+          name: item.name,
+          ...(item.role ? { jobTitle: item.role } : {}),
+        },
+        ...(item.rating
+          ? {
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: item.rating,
+                bestRating: 5,
+                worstRating: 1,
+              },
+            }
+          : {}),
       },
-      ...(item.rating
-        ? {
-            reviewRating: {
-              "@type": "Rating",
-              ratingValue: item.rating,
-              bestRating: 5,
-              worstRating: 1,
-            },
-          }
-        : {}),
     })),
   };
 
@@ -52,9 +55,11 @@ export function Testimonials({
           <li key={`${item.name}-${item.quote.slice(0, 15)}`} className="blk-testimonials__item">
             <figure className="blk-testimonials__figure">
               {item.rating && (
-                <div className="blk-testimonials__rating" aria-label={`${item.rating} van 5 sterren`}>
-                  {"★".repeat(item.rating)}
-                  {"☆".repeat(5 - item.rating)}
+                <div className="blk-testimonials__rating" role="img" aria-label={`${item.rating} van 5 sterren`}>
+                  <span aria-hidden="true">
+                    {"★".repeat(item.rating)}
+                    {"☆".repeat(5 - item.rating)}
+                  </span>
                 </div>
               )}
               <blockquote className="blk-testimonials__quote">

@@ -12,6 +12,7 @@ import type { HostedFont } from "@/db/schema";
 import { ThemeFonts } from "@/lib/theme-fonts";
 import { parseTokenValue, TOKEN_GROUPS, TOKENS, tokenKind, tokenLabel } from "@/lib/theme-tokens";
 import { FontPicker } from "./FontPicker";
+import { KitVersionsDialog } from "./KitVersionsDialog";
 import { ScaledFrame } from "../../componenten/ScaledFrame";
 import { useConfirm } from "../../ConfirmDialog";
 import { deleteKit, saveKit } from "../actions";
@@ -64,6 +65,7 @@ export function KitEditor({
   const [message, setMessage] = useState<{ tone: "ok" | "fout"; text: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const [confirm, confirmDialog] = useConfirm();
+  const [versionsOpen, setVersionsOpen] = useState(false);
 
   // Per token de gecontroleerde waarde of een foutmelding; alleen geldige waarden komen in het voorbeeld en in de opslag.
   const parsed = useMemo(() => TOKENS.map((t) => [t, parseTokenValue(t, values[t])] as const), [values]);
@@ -158,6 +160,9 @@ export function KitEditor({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button type="button" className="btn btn-secondary" style={{ fontSize: 12 }} onClick={() => setVersionsOpen(true)}>
+            <i className="ph ph-clock-counter-clockwise" /> Versies
+          </button>
           <Link href={`/design-kits/nieuw?kopie=${kit.id}`} className="btn btn-secondary" style={{ fontSize: 12 }}>
             <i className="ph ph-copy" /> Dupliceren
           </Link>
@@ -305,6 +310,15 @@ export function KitEditor({
         </div>
       </div>
       {confirmDialog}
+      {versionsOpen ? (
+        <KitVersionsDialog
+          kitId={kit.id}
+          onClose={() => setVersionsOpen(false)}
+          // Terugzetten wijzigt de kit op de server; de editor herinitialiseert zijn waarden alleen bij het laden, dus
+          // een volledige herlaad voorkomt dat een verouderde werkkopie de zojuist teruggezette versie overschrijft.
+          onChanged={() => window.location.reload()}
+        />
+      ) : null}
     </div>
   );
 }

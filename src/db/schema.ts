@@ -144,6 +144,25 @@ export const designKits = pgTable(
   (t) => [index("design_kits_customer_idx").on(t.customerId)],
 );
 
+// Bewaarde versies van een kit: elke "Opslaan" in de editor legt de vorige stand vast, vóór de nieuwe waarden worden
+// weggeschreven naar `design_kits.theme` (die blijft de "live" stand; er is geen apart concept/publiceren voor kits —
+// een wijziging werkt meteen door). De laatste KEEP_KIT_VERSIONS blijven bewaard (zie ./versions.ts).
+export const designKitVersions = pgTable(
+  "design_kit_versions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kitId: uuid("kit_id")
+      .notNull()
+      .references(() => designKits.id, { onDelete: "cascade" }),
+    version: integer("version").notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    theme: jsonb("theme").$type<SiteTheme>().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+  },
+  (t) => [unique("design_kit_versions_kit_version_unique").on(t.kitId, t.version)],
+);
+
 export const sites = pgTable("sites", {
   id: uuid("id").primaryKey().defaultRandom(),
   customerId: uuid("customer_id")
@@ -313,6 +332,7 @@ export type MediaRow = typeof media.$inferSelect;
 export type HostedFont = typeof hostedFonts.$inferSelect;
 export type HostedIcon = typeof hostedIcons.$inferSelect;
 export type SiteVersion = typeof siteVersions.$inferSelect;
+export type DesignKitVersion = typeof designKitVersions.$inferSelect;
 export type SiteDomain = typeof siteDomains.$inferSelect;
 export type PlatformSettingsRow = typeof platformSettings.$inferSelect;
 export type Page = typeof pages.$inferSelect;

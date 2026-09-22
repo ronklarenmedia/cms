@@ -16,12 +16,15 @@ export function Team({
     "@context": "https://schema.org",
     "@type": "ItemList",
     itemListElement: members.map((member, idx) => ({
-      "@type": "Person",
+      "@type": "ListItem",
       position: idx + 1,
-      name: member.name,
-      jobTitle: member.role,
-      image: member.image.url,
-      description: member.bio,
+      item: {
+        "@type": "Person",
+        name: member.name,
+        jobTitle: member.role,
+        image: member.image.url,
+        description: member.bio,
+      },
     })),
   };
 

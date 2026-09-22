@@ -15,9 +15,11 @@ export function LogoBar({ variant, content }: BlockProps<LogoBarVariant, LogoBar
       )}
       <ul className="blk-logo-bar__items">
         {logos.map((logo) => {
+          // De naam wordt al voorgelezen via de sr-only-tekst hieronder; het beeld zelf wordt daarom als decoratief
+          // gerenderd, anders leest een schermlezer de naam twee keer voor (eerst via de alt-tekst, dan via sr-only).
           const itemContent = (
             <>
-              <Img image={logo.image} />
+              <Img image={{ ...logo.image, decorative: true }} />
               <span className="blk-logo-bar__sr-only">{logo.name}</span>
             </>
           );

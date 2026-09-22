@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ron Klaren Media — platform
 
-## Getting Started
+Multi-tenant platform om websites (en later apps) voor klanten te bouwen en te beheren. Websites worden opgebouwd
+uit **blocks** (herbruikbare secties in code) met **thema-tokens**; noordster is supersnelle, goed vindbare sites
+(ook voor AI-assistenten), geen visuele originaliteit per site. Openbare sites zijn pure HTML zonder JavaScript.
 
-First, run the development server:
+**Lees eerst [`docs/STATUS.md`](docs/STATUS.md).** Dat is het levende overdrachtsdocument: productiestand, wat
+werkt, architectuur, genomen beslissingen, bekende valkuilen en de checklist voor deployen. Dit bestand is alleen
+een korte start.
+
+## Snel starten
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Maak `.env.local` (staat niet in git) met minimaal `DATABASE_URL` (Neon) en `BETTER_AUTH_SECRET`; zie
+`docs/STATUS.md` §2 voor de volledige lijst en waar je de waarden vandaan haalt. Daarna:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev            # http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Inloggen met een bestaand account, of maak er een aan met `npm run create-user` (vraagt om een wachtwoord in de
+terminal).
 
-## Learn More
+## Stack
 
-To learn more about Next.js, take a look at the following resources:
+Next.js 16 (App Router), React 19, Tailwind 4, Drizzle ORM + Neon Postgres, Zod 4, Better Auth, Cloudflare R2.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Dit is niet de Next.js uit je hoofd:** zie [`AGENTS.md`](AGENTS.md) — belangrijke API's zijn anders dan je
+training data (bijv. `proxy.ts` in plaats van `middleware.ts`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Belangrijke commando's
 
-## Deploy on Vercel
+```bash
+npm run dev                # ontwikkelserver
+npm run check:blocks       # controleert alle blocks tegen het contract
+npm run build              # productiebuild (vangt ook type- en lintfouten)
+npm run create-user        # gebruiker aanmaken of wachtwoord opnieuw instellen (in een terminal)
+npx tsc --noEmit            # typecontrole
+npx eslint src scripts      # linten
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Structuur
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/app/(beheer)/   het beheer (klanten, websites, instellingen, componenten, login, …)
+src/app/(sites)/    openbare sites: alleen route-handlers, pure HTML, geen React in de browser
+src/blocks/         het block-systeem (contract, registry, 20 blocks, README.md)
+src/db/             Drizzle-schema en verbinding
+src/lib/            gedeelde server- en clientlogica
+docs/               STATUS.md (overdracht), hosting-opties.md, deploy-vercel.md, sql/ (handgeschreven migraties)
+```
+
+Voor het bouwen of aanpassen van een block: zie [`src/blocks/README.md`](src/blocks/README.md).
+
+## Werkafspraken
+
+Nederlands voor interface, commentaar en commitberichten. Databasewijzigingen zijn handgeschreven, additieve SQL in
+`docs/sql/` (geen migratieraamwerk, nooit `drizzle-kit push`) — zie `docs/STATUS.md` §6 voor waarom. Vóór een
+commit: `npx tsc --noEmit`, `npx eslint src scripts`, `npm run check:blocks`, `npm run build`.

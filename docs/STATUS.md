@@ -134,14 +134,18 @@ klantpagina toont zijn websites.
 - *Klanten met de meeste websites* en *Recente publicaties* (wie, wanneer, of die versie nu live is).
 - **Bewust niet:** bezoekers, pageviews, groei per klant en "best bekeken pagina's". Het platform meet die niet; er staat een korte melding. Ze komen terug zodra er een statistiekbron is (bijvoorbeeld Vercel Web Analytics
   of Cloudflare) en er een plek is om de tellingen op te slaan (nieuwe tabel: eerst overleggen).
-- Het oude mockupscherm (`src/mockup/screens/Platform.tsx`) is verwijderd. `src/mockup/logic.ts` bevat nog de bijbehorende demo-data (`clients`, `deploys`, `kpis`, `pages`, `services`); opruimen kan bij de rest van `logic.ts`.
+- Het oude mockupscherm (`src/mockup/screens/Platform.tsx`) is verwijderd, en `src/mockup/logic.ts` inmiddels ook opgeruimd (zie §7 punt 6): de bijbehorende demo-data (`clients`, `deploys`, `kpis`, `pages`, `services`) is weg.
 
 **Design kits** — `/design-kits` (`src/app/(beheer)/design-kits/`, servermodules `src/lib/kits.ts` en `src/lib/theme-tokens.ts`). Een kit is een **opgeslagen thema**: alleen de tokens die afwijken van `defaultTheme`.
 - *Model*: tabel `design_kits` (`customer_id` leeg = **platformkit**, voor elke klant; anders alleen voor die klant, en dat is achteraf niet te wijzigen) en `sites.design_kit_id`. Een site verwijst naar één kit; de kit
   van een klant is niet te gebruiken voor sites van een andere klant. Een kit in gebruik is niet te verwijderen (FK `restrict` plus een melding). Twee platformkits zijn aangemaakt: **Corporate** (leeg = het standaardthema) en **Warm**.
 - *Thema van een site* = `{...kit.theme, ...sites.theme}` (`effectiveSiteTheme`); `themeToCssVars` vult de rest met de standaard. `sites.theme` is de **eigen afwijking** van de site: het bleef bestaan omdat sites die vóór de kits
-  zijn gemaakt hun preset (Corporate/Warm) daarin hebben. Er is geen scherm om `sites.theme` te bewerken; in de kit-dialoog van de builder staat een waarschuwing en een knop "Eigen aanpassingen wissen" als een site er nog heeft
-  (die gaan boven de kit, dus een andere kit kiezen zou anders niets doen). Een nieuwe site krijgt `theme = {}` en kiest een kit.
+  zijn gemaakt hun preset (Corporate/Warm) daarin hebben. Er is geen apart scherm om `sites.theme` te bewerken; in de kit-dialoog van de builder (`KitDialog.tsx`) staat een waarschuwing met de **losse tokens en hun waarden**
+  (niet alleen een aantal) zodra een site er nog heeft, en een knop "Eigen aanpassingen wissen" (die gaan boven de kit, dus een andere kit kiezen zou anders niets doen). Een nieuwe site krijgt `theme = {}` en kiest een kit.
+- **Versiebeheer van kits** (22 sept, tabel `design_kit_versions`, `KitVersionsDialog.tsx`, acties `listKitVersions`/`rollbackKit` in `actions.ts`): elke "Opslaan" in de editor legt de **nieuwe** stand vast als een versie
+  (geen apart publiceren voor kits: een wijziging werkt meteen door in elke site die de kit gebruikt). "Terugzetten" kopieert een oudere versie terug naar de live kit en legt dat zelf ook als nieuwe versie vast (dus zelf ook
+  terug te draaien). Laatste 20 versies bewaard, zelfde patroon als site-versies. Na een terugzetten herlaadt de editor de hele pagina (`window.location.reload()`): de werkkopie in de browser weet anders niet dat de
+  server-kant is veranderd en zou de zojuist teruggezette versie bij de volgende "Opslaan" overschrijven.
 - *Publiceren*: de momentopname bewaart het **samengevoegde** thema. Een kit wijzigen bereikt een live site dus pas bij de volgende publicatie; de builder en het voorbeeld tonen het direct, en de site krijgt dan
   "Niet-gepubliceerde wijzigingen" (het thema zit in de hash). Een site zonder kit geeft precies dezelfde momentopname en hash als voorheen (gecontroleerd op een kopie van productie: `changed: false`).
 - *Overzicht* (`/design-kits`): kaarten per groep (platformkits, dan per klant), met zoeken op kit of klant, kleurstalen, lettertype en het aantal websites. *Nieuw* (`/design-kits/nieuw`, ook `?kopie=<id>` voor "Dupliceren"):
@@ -315,8 +319,8 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **`/favicon.ico` op een openbare host** wordt in `src/proxy.ts` herschreven naar `/s/<host>/site-favicon` (route-handler `src/app/(sites)/s/[host]/site-favicon/route.ts`): geüpload = 307 naar de PNG van 32 px, anders het
   automatische SVG-icoon; gecachet en verlopen met dezelfde tag per host als de pagina's. Op een beheerhost blijft het gewoon het platformicoon. De mapnaam heeft bewust geen `.ico`: dat is een gereserveerde bestandsnaam in Next
   (zoals `sitemap.xml` en `robots.txt`). `site-favicon` staat in `RESERVED_PAGE_SLUGS` (`src/lib/favicon.ts`): een pagina met die naam zou het adres overschaduwen en wordt geweigerd.
-- `src/mockup/logic.ts` bevat nog demo-data voor schermen die inmiddels echt zijn (o.a. componenten). Opruimen kan
-  later; het bestand is niet type-gecontroleerd, dus controleer daarna alle mockup-schermen.
+- `src/mockup/logic.ts` is niet type-gecontroleerd (`@ts-nocheck`): bij een wijziging altijd handmatig alle overgebleven
+  mockup-schermen controleren (Galerij, Klanten, Placeholder, RapportKlanten, RapportOmzet), TypeScript vangt fouten hier niet.
 
 ## 7. Wat ontbreekt (in voorgestelde volgorde)
 
@@ -334,14 +338,22 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
      maken zodra sites een domein hebben); `video` laadt YouTube/Vimeo pas na een klik (een ingeklapte `<details>` met de iframe erin,
      zonder JavaScript), speelt dus na de eerste klik nog niet automatisch af, en de fixture met een eigen bestand wijst naar een
      niet-bestaand `/blocks/rondleiding.mp4` (alleen om de weergave te tonen); `gallery` heeft geen lightbox (die vraagt client-JS).
-   - Bekende puntjes in de blocks van Gemini (niet blokkerend): `testimonials` levert `Review`-JSON-LD zonder
-     `itemReviewed` (Google gebruikt dat niet voor review-snippets) en de sterren hebben `aria-label` op een gewone `div`
-     (hoort `role="img"` te krijgen); `logo-bar` noemt de naam zowel in de `alt` als in een `sr-only`-tekst (dubbel
-     voorgelezen); `team` zet `position` op de `Person` in plaats van op een `ListItem` en gebruikt een relatieve
-     `image`-URL in de JSON-LD.
-3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). Nog te doen: een scherm voor de eigen thema-aanpassingen van een site of ze definitief laten vervallen,
-   en het versiebeheer van kits (nu geldt de laatste opslag). Daarna plannen/prijsmodel (de database kent BOJOB/PRO, de mockup
-   Starter/Pro/Agency).
+   - ✅ **Opgelost** (22 sept): `testimonials`, `team` en `pricing` zetten `position` nu op een `ListItem` (met de
+     eigenlijke entiteit in `item`) in plaats van op het beoordeelde ding zelf — dat laatste is geen geldig
+     schema.org-veld daar en gaf onbetrouwbare rich-results. De sterren in `testimonials` hebben nu `role="img"` op
+     de `div` (was alleen `aria-label`, sommige schermlezers negeren dat zonder passende rol) en de losse
+     ster-tekens zijn `aria-hidden`. `logo-bar` rendert het logo nu decoratief (`alt=""`): de naam stond al in een
+     `sr-only`-tekst ernaast en werd dus twee keer voorgelezen.
+   - **Nog open**: `testimonials`' `Review`-JSON-LD heeft geen `itemReviewed` (er is geen "wat wordt hier
+     beoordeeld"-gegeven beschikbaar in dit generieke block; Google gebruikt het overigens niet voor review-snippets,
+     dus laag risico). `team` en `breadcrumbs` gebruiken de relatieve `image`/`href`-waarde zoals opgeslagen in de
+     JSON-LD in plaats van een absolute URL — dat vraagt dat elk block de host van de site kent, wat een wijziging
+     aan `BlockProps`/`BlockRenderer`/`contract.ts` is (die pas je niet aan zonder overleg, zie `src/blocks/README.md`).
+     Nu eigen domeinen bewezen in productie draaien is de eerdere blokkade ("zodra sites een domein hebben") weg;
+     dit is dus een bewuste keuze om niet aan te pakken, geen technische blokkade meer.
+3. ✅ **Design kits** (model gekozen en gebouwd, zie §3). ✅ **Versiebeheer van kits** (22 sept, zie §3) en ✅ **eigen thema-aanpassingen
+   van een site zichtbaar** (het "Design kit"-dialoog toont nu de losse tokens i.p.v. alleen een aantal). Daarna plannen/prijsmodel
+   (de database kent BOJOB/PRO, de mockup Starter/Pro/Agency).
    - ✅ **Google Fonts- en iconenbibliotheek**, on-demand (zie §3). Nog te doen: SQL nog op elke database uitvoeren en zelf visueel
      testen (§9/§12 — dit is gebouwd zonder werkende lokale database), iconen naar meer blocks dan usp-grid uitbreiden, eigen
      lettertypes van de klant uploaden.
@@ -351,8 +363,17 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
    vervallen van het Vercel-token, (✅ opgelost: de builder-werkbalk staat nu over de volle breedte bovenaan en wikkelt over meerdere rijen op smalle schermen; daaronder staan de paginakolom, het canvas en het rechterpaneel. Eerder viel hij onder het rechterpaneel weg). Daarna **Instellingen** (Koppelingen, Team & rollen, Plannen, Domeinen, …) en het
    **Platform-dashboard** (✅ klaar, zie §3; bezoekers en pageviews wachten op een analytics-bron).
 5. **AI** (Anthropic: AI-aanpassing in de builder is nu uitgeschakeld; generator, credits), **Rapportages**, **Apps**.
-6. Opruimwerk: migratiebestanden, tests (nu alleen `check:blocks`), echte README, gebruikersbeheer-scherm,
-   wachtwoord-reset per mail, tweestapsverificatie, opruimen van `logic.ts`, meldingen (het belletje).
+6. Opruimwerk: migratiebestanden, tests (nu alleen `check:blocks`), ✅ **echte README** (22 sept), gebruikersbeheer-scherm,
+   wachtwoord-reset per mail, tweestapsverificatie, meldingen (het belletje).
+   - ✅ **`logic.ts` opgeruimd** (22 sept, van 540 naar ~165 regels): de mockup-"builder" (`/websites/nieuw` heeft al
+     lang een eigen echt formulier, `NewSiteForm`), de kit-editor- en componentenwerkbank-demo's (`kitEditorVals`,
+     `compEditorVals`, `kitPalettes`/`kitPapers`/`kitFonts`) en de oude platform-dashboard-demo (`kpis`, `clients`,
+     `pages`, `deploys`) plus alle bijbehorende `showX`-vlaggen waren dood: niets las ze nog, want `/design-kits`,
+     `/componenten` en `/` (platformoverzicht) zijn allemaal al echt en gaan niet meer via `MockupScreen`. Geverifieerd
+     door voor elk overgebleven mockup-scherm (`Galerij`, `Klanten`, `Placeholder`, `RapportKlanten`, `RapportOmzet`)
+     precies na te gaan welke `v.xxx`-velden het destructureert, en alles wat door niets werd gelezen te verwijderen.
+     Wat overblijft: de rapportage-demo's (`reportVals()`) en de klant/site/app-roster-fallbacks — die blijven nodig
+     zolang Rapportages en Apps geen echt datamodel hebben.
 
 ## 8. Open vragen aan Ron
 
@@ -395,10 +416,12 @@ controle staat in **elke pagina en server-actie** via `src/lib/session.ts` (`req
 - **Favicon:** `docs/sql/2026-09-21-favicon.sql` (kolom `sites.favicon_url`, leeg voor bestaande sites) moet op de database staan vóór de code die hem leest. Lokaal (`main`) toegepast; op `production` uitvoeren vóór het deployen.
   Zonder de kolom falen o.a. de builder, het voorbeeld, publiceren en de openbare pagina's (elke `select` op `sites` noemt de kolom).
 - **Google Fonts/iconenbibliotheek:** `docs/sql/2026-09-22-hosted-fonts.sql` (tabel `hosted_fonts` + enum `font_category`) en
-  `docs/sql/2026-09-22-hosted-icons.sql` (tabel `hosted_icons`) moeten op de database staan vóór de code die ze leest. **Nog nergens
-  toegepast** (dit is op een andere computer gebouwd, zonder lokale `DATABASE_URL` om ze te draaien) — eerst op `main`, dan op `production`
-  vóór het deployen. Zonder de tabellen falen o.a. de builder, het voorbeeld, de design-kit-editor en publiceren (ze worden altijd gelezen,
-  ook als een site niets on-demand gehost gebruikt).
+  `docs/sql/2026-09-22-hosted-icons.sql` (tabel `hosted_icons`) moeten op de database staan vóór de code die ze leest. **Toegepast op
+  `main`** (22 sept); **nog niet op `production`** — eerst uitvoeren vóór het deployen. Zonder de tabellen falen o.a. de builder, het
+  voorbeeld, de design-kit-editor en publiceren (ze worden altijd gelezen, ook als een site niets on-demand gehost gebruikt).
+- **Versiebeheer van kits:** `docs/sql/2026-09-22-design-kit-versions.sql` (tabel `design_kit_versions`) moet op de database staan vóór
+  de code die hem leest. **Toegepast op `main`** (22 sept); **nog niet op `production`** — eerst uitvoeren vóór het deployen. Zonder de
+  tabel faalt elke "Opslaan" in de kit-editor.
 - Een admin aanmaken met `npm run create-user` (tegen de productie-database) is gedaan: het bestaande account staat in de `production`-branch (gekopieerd bij het aanmaken van de branch).
 
 ## 10. Werkafspraken

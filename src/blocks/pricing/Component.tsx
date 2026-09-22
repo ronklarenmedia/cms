@@ -14,12 +14,15 @@ export function Pricing({
     "@context": "https://schema.org",
     "@type": "ItemList",
     itemListElement: plans.map((plan, index) => ({
-      "@type": "Offer",
+      "@type": "ListItem",
       position: index + 1,
-      name: plan.name,
-      description: plan.description,
-      price: plan.price.replace(/[^\d.,]/g, ""),
-      priceCurrency: "EUR",
+      item: {
+        "@type": "Offer",
+        name: plan.name,
+        description: plan.description,
+        price: plan.price.replace(/[^\d.,]/g, ""),
+        priceCurrency: "EUR",
+      },
     })),
   };
 

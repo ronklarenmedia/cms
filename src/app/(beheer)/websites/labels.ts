@@ -1,3 +1,5 @@
+import { COLOR_TOKENS, tokenLabel } from "@/lib/theme-tokens";
+
 // Nederlandse namen voor de velden en waarden die uit de block-schema's komen.
 // Onbekende sleutels vallen terug op een leesbare versie van de veldnaam.
 const fields: Record<string, string> = {
@@ -28,6 +30,12 @@ const fields: Record<string, string> = {
   mobile: "Mobiel",
   anchor: "Anker (voor #-links)",
   columns: "Kolommen",
+  iconStyle: "Icoonstijl",
+  iconColor: "Icoonkleur",
+  iconBorderWidth: "Randdikte icoon",
+  iconBorderColor: "Randkleur icoon",
+  iconBackgroundColor: "Achtergrondkleur icoon",
+  iconRadius: "Hoekafronding icoonkader",
   aspect: "Vorm van de beelden",
   title: "Titel",
   date: "Datum",
@@ -62,7 +70,22 @@ const values: Record<string, Record<string, string>> = {
   height: { compact: "Compact", normal: "Normaal", full: "Volledig scherm" },
   style: { primary: "Primair", secondary: "Secundair" },
   aspect: { photo: "Foto", square: "Vierkant", video: "Video (breed)" },
+  iconStyle: { bare: "Alleen icoon", framed: "Gekaderd" },
+  iconBorderWidth: { thin: "Dun", standard: "Standaard", thick: "Dik" },
+  iconRadius: { none: "Vierkant", small: "Licht afgerond", standard: "Afgerond", medium: "Sterk afgerond", large: "Extra afgerond", full: "Cirkel" },
 };
+
+// Alle kleur-tokens van het thema, voor icoonkleur/randkleur/achtergrondkleur (usp-grid); dezelfde namen als in de design-kit-editor,
+// maar zonder het "Kleur "-voorvoegsel (dat staat hier al in het veldlabel) en met een hoofdletter als los label.
+const colorValues = Object.fromEntries(
+  COLOR_TOKENS.map((t) => {
+    const rest = tokenLabel(t).replace(/^Kleur /, "");
+    return [t, rest.charAt(0).toUpperCase() + rest.slice(1)];
+  }),
+);
+values.iconColor = colorValues;
+values.iconBorderColor = colorValues;
+values.iconBackgroundColor = colorValues;
 
 const humanize = (s: string) => {
   const spaced = s.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/[-_]/g, " ");

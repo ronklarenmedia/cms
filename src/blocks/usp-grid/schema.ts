@@ -1,5 +1,9 @@
 import { z } from "zod";
+import type { ThemeToken } from "@/blocks/theme";
+import { COLOR_TOKENS } from "@/lib/theme-tokens";
 import { sectionSettingsSchema, type Fixture } from "../contract";
+
+const colorToken = z.enum(COLOR_TOKENS as [ThemeToken, ...ThemeToken[]]);
 
 export const variants = [
   { id: "plain", label: "Eenvoudig" },
@@ -29,6 +33,16 @@ export type UspGridContent = z.output<typeof content>;
 // Enum met strings: een select in de builder levert strings op.
 export const settings = sectionSettingsSchema.extend({
   columns: z.enum(["2", "3", "4"]).default("3"),
+  /** "bare" = icoon zonder omkadering; "framed" = icoon in een kader met rand en achtergrond. */
+  iconStyle: z.enum(["bare", "framed"]).default("bare"),
+  /** Kleur van het icoon zelf; elke kleur uit het thema, niet alleen de merkkleuren. */
+  iconColor: colorToken.default("colorAccent"),
+  /** Alleen zichtbaar effect bij iconStyle "framed". */
+  iconBorderWidth: z.enum(["thin", "standard", "thick"]).default("thin"),
+  iconBorderColor: colorToken.default("colorAccent"),
+  iconBackgroundColor: colorToken.default("colorBgPrimaryLight"),
+  /** Hoekafronding van het kader: "none" is vierkant, "full" is een cirkel. Alleen zichtbaar effect bij iconStyle "framed". */
+  iconRadius: z.enum(["none", "small", "standard", "medium", "large", "full"]).default("full"),
 });
 export type UspGridSettings = z.output<typeof settings>;
 
